@@ -268,7 +268,7 @@ fn update_menu_buttons(
     if pressed_button {
         if *selected_button == 0 {
             audio.play_sfx(&game_assets.sfx_2);
-            assets_handler.load(AppState::Debug, &mut game_assets);
+            assets_handler.load(AppState::InGame, &mut game_assets);
         }
         if *selected_button == 1 {
             exit.send(AppExit);

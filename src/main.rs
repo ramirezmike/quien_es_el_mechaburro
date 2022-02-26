@@ -7,7 +7,13 @@ use bevy::prelude::*;
 mod asset_loading;
 mod assets;
 mod audio;
+mod bullet;
+mod collision;
+mod direction;
+mod game_camera;
+mod ingame;
 mod mesh;
+mod player;
 mod title_screen;
 
 fn main() {
@@ -17,9 +23,14 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
+        .add_plugin(bullet::BulletPlugin)
         .add_plugin(audio::GameAudioPlugin)
+        .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(title_screen::TitlePlugin)
+        .add_plugin(ingame::InGamePlugin)
+        .add_plugin(player::PlayerPlugin)
+        .add_plugin(collision::WorldCollisionPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
         .run();
