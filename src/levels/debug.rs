@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{asset_loading, assets::GameAssets, cleanup, collision, game_camera, mesh, player, AppState};
+use crate::{asset_loading, assets::GameAssets, cleanup, collision, game_camera, mesh, player, bot, AppState};
 use bevy::window::WindowResized;
 use bevy_inspector_egui::bevy_egui::{egui, EguiContext};
 use bevy::gltf::Gltf;
@@ -130,6 +130,26 @@ fn setup(
                     });
             })
             .insert_bundle(player::PlayerBundle::default())
+            .insert(CleanupMarker);
+
+        commands
+            .spawn_bundle((
+                Transform::from_xyz(2.0, 0.0, 0.0),
+                GlobalTransform::identity(),
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn_bundle((
+                        Transform::from_rotation(Quat::from_rotation_y(
+                            std::f32::consts::FRAC_PI_2,
+                        )),
+                        GlobalTransform::identity(),
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn_scene(gltf.scenes[0].clone());
+                    });
+            })
+            .insert_bundle(bot::BotBundle::default())
             .insert(CleanupMarker);
     }
 

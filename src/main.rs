@@ -8,6 +8,7 @@ mod asset_loading;
 mod assets;
 mod audio;
 mod bullet;
+mod bot;
 mod burro;
 mod collision;
 mod direction;
@@ -26,8 +27,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
-        .add_plugin(bullet::BulletPlugin)
         .add_plugin(audio::GameAudioPlugin)
+        .add_plugin(bot::BotPlugin)
+        .add_plugin(bullet::BulletPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(title_screen::TitlePlugin)

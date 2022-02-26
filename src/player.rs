@@ -1,5 +1,6 @@
 use crate::{bullet::BulletEvent, collision, direction, AppState, burro};
 use bevy::prelude::*;
+use std::collections::HashMap;
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerPlugin;
@@ -34,17 +35,22 @@ impl ZeroSignum for Vec3 {
 
 fn move_player(
     time: Res<Time>,
-    mut player_transform: Query<(&mut Transform, &mut Player)>,
+    mut player_transform: Query<(Entity, &mut Transform, &mut Player)>,
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
     collidables: Res<collision::Collidables>,
 ) {
-    for (mut transform, mut player) in player_transform.iter_mut() {
+    let mut move_events = HashMap::new();
+    for move_event in player_move_event_reader.iter() {
+        move_events.entry(move_event.entity).or_insert(move_event);
+    }
+
+    for (entity, mut transform, mut player) in player_transform.iter_mut() {
         let speed: f32 = player.speed;
         let rotation_speed: f32 = player.rotation_speed;
         let friction: f32 = player.friction;
 
         player.velocity *= friction.powf(time.delta_seconds());
-        if let Some(move_event) = player_move_event_reader.iter().last() {
+        if let Some(move_event) = move_events.get(&entity) {
             let acceleration = Vec3::from(move_event.direction);
             player.velocity += (acceleration.zero_signum() * speed) * time.delta_seconds();
         }
@@ -88,7 +94,7 @@ fn move_player(
 }
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
-enum PlayerAction {
+pub enum PlayerAction {
     Up,
     Down,
     Left,
@@ -130,7 +136,7 @@ pub struct Player {
 }
 
 impl Player {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Player {
             velocity: Vec3::default(),
             speed: 0.8,
@@ -206,6 +212,7 @@ impl PlayerBundle {
 }
 
 pub struct PlayerMoveEvent {
+    pub entity: Entity,
     pub direction: direction::Direction,
 }
 
@@ -225,7 +232,10 @@ fn handle_input(
         }
 
         if direction != direction::Direction::NEUTRAL {
-            player_move_event_writer.send(PlayerMoveEvent { direction });
+            player_move_event_writer.send(PlayerMoveEvent { 
+                entity,
+                direction 
+            });
         }
 
         if action_state.just_pressed(&PlayerAction::Pause) {
