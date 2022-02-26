@@ -1,4 +1,4 @@
-use crate::assets::GameAssets;
+use crate::{assets::GameAssets, burro, inspect};
 use bevy::prelude::*;
 
 pub struct BulletPlugin;
@@ -63,15 +63,33 @@ fn handle_bullet_events(
 fn handle_bullets(
     mut commands: Commands,
     time: Res<Time>,
-    mut bullets: Query<(Entity, &mut Bullet, &mut Transform)>,
+    mut bullets: Query<(Entity, &mut Bullet, &mut Transform), Without<burro::Burro>>,
+    burros: Query<(Entity, &Transform, &burro::Burro), Without<Bullet>>,
+    inspector: Res<inspect::InspectorData>,
 ) {
-    for (entity, mut bullet, mut transform) in bullets.iter_mut() {
+    'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
         bullet.time_alive += time.delta_seconds();
 
         if bullet.time_alive > bullet.time_to_live {
             // time to die
             commands.entity(entity).despawn_recursive();
+            continue;
+        }
+
+        let bullet_position = Vec2::new(transform.translation.x, transform.translation.z);
+        'burros: for (burro_entity, burro_transform, _) in burros.iter() {
+            if burro_entity == bullet.source {
+                continue;
+            } // don't shoot yourself
+
+            let burro_position =
+                Vec2::new(burro_transform.translation.x, burro_transform.translation.z);
+            if bullet_position.distance(burro_position) <= inspector.bullet_distance {
+                commands.entity(entity).despawn_recursive();
+                println!("Hit burro!");
+                continue 'bullets;
+            }
         }
     }
 }

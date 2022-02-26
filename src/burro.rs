@@ -36,10 +36,7 @@ impl Burro {
     }
 }
 
-fn handle_burros(
-    time: Res<Time>,
-    mut burros: Query<&mut Burro>,
-) {
+fn handle_burros(time: Res<Time>, mut burros: Query<&mut Burro>) {
     for mut burro in burros.iter_mut() {
         // handling firing cool down
         burro.cool_down += time.delta_seconds();

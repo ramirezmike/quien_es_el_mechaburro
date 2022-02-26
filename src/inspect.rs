@@ -16,10 +16,8 @@ impl Plugin for InspectPlugin {
 }
 
 #[derive(Inspectable, Default)]
-struct InspectorData {
-    #[inspectable(despawnable = true)]
-    player: InspectorQuerySingle<Entity, With<player::Player>>,
-    scrolls: InspectorQuery<Entity, With<mesh::ScrollingPane>>,
+pub struct InspectorData {
+    pub bullet_distance: f32,
 }
 
 fn toggle(input: ResMut<Input<KeyCode>>, mut inspector_windows: ResMut<InspectorWindows>) {
