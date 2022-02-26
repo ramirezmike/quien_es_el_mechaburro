@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, ingame, title_screen, AppState};
+use crate::{assets::GameAssets, levels, title_screen, AppState};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -26,7 +26,7 @@ pub struct NextState {
 impl Default for NextState {
     fn default() -> Self {
         NextState {
-            state: AppState::InGame,
+            state: AppState::Debug,
         }
     }
 }
@@ -95,7 +95,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
     fn queue_assets_for_state(&mut self, state: &AppState, game_assets: &mut ResMut<GameAssets>) {
         match state {
             AppState::TitleScreen => title_screen::load(self, game_assets),
-            AppState::InGame => ingame::load(self, game_assets),
+            AppState::Debug => levels::debug::load(self, game_assets),
             _ => (),
         }
     }

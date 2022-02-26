@@ -11,7 +11,9 @@ mod bullet;
 mod collision;
 mod direction;
 mod game_camera;
-mod ingame;
+//mod ingame;
+mod inspect;
+mod levels;
 mod mesh;
 mod player;
 mod title_screen;
@@ -28,7 +30,9 @@ fn main() {
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(title_screen::TitlePlugin)
-        .add_plugin(ingame::InGamePlugin)
+        //.add_plugin(ingame::InGamePlugin)
+        .add_plugin(inspect::InspectPlugin)
+        .add_plugin(levels::debug::DebugRoomPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(collision::WorldCollisionPlugin)
         .add_state(AppState::Initial)
@@ -41,7 +45,7 @@ pub enum AppState {
     Initial,
     Pause,
     Debug,
-    InGame,
+    //InGame,
     TitleScreen,
     ModelLoading,
     Loading,
