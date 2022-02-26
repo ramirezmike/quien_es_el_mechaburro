@@ -62,11 +62,9 @@ fn paint_ui(
     let ctx = ctx.ctx_mut();
 
     egui::Window::new("")
-        .anchor(egui::Align2::LEFT_TOP, [0.0, 0.0])
-        .resizable(false)
+        .resizable(true)
         .title_bar(false)
-        .fixed_size([win_size.width / 12.0, win_size.height])
-        .collapsible(false)
+        .collapsible(true)
         .show(ctx, |ui| {
             ui.collapsing("Levels", |ui| {
                 if ui.button("Level 1").clicked() {
@@ -74,11 +72,6 @@ fn paint_ui(
                 }
             });
             ui.end_row();
-
-            // put something at the bottom to make it pane like
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                ui.separator();
-            });
         });
 }
 

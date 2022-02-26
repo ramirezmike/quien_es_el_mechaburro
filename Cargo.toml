@@ -18,3 +18,4 @@ leafwing-input-manager = "0.2.0"
 bevy-inspector-egui = { git = "https://github.com/jakobhellermann/bevy-inspector-egui" }
 bevy_kira_audio = { git = "https://github.com/NiklasEi/bevy_kira_audio", features = ["wav"]}
 noise = "0.7.0"
+rand = "0.8.5"

@@ -40,11 +40,11 @@ fn handle_bullet_events(
     for bullet in bullet_reader.iter() {
         commands
             .spawn_bundle(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.3 })),
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.7 })),
                 material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
                 transform: Transform::from_xyz(
                     bullet.position.x,
-                    bullet.position.y,
+                    bullet.position.y + 0.5,
                     bullet.position.z,
                 ),
                 ..Default::default()
@@ -64,7 +64,7 @@ fn handle_bullets(
     mut commands: Commands,
     time: Res<Time>,
     mut bullets: Query<(Entity, &mut Bullet, &mut Transform), Without<burro::Burro>>,
-    burros: Query<(Entity, &Transform, &burro::Burro), Without<Bullet>>,
+    mut burros: Query<(Entity, &Transform, &mut burro::Burro), Without<Bullet>>,
     inspector: Res<inspect::InspectorData>,
 ) {
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
@@ -78,16 +78,18 @@ fn handle_bullets(
         }
 
         let bullet_position = Vec2::new(transform.translation.x, transform.translation.z);
-        'burros: for (burro_entity, burro_transform, _) in burros.iter() {
+        'burros: for (burro_entity, burro_transform, mut burro) in burros.iter_mut() {
             if burro_entity == bullet.source {
+                // don't shoot yourself
                 continue;
-            } // don't shoot yourself
+            }
 
             let burro_position =
                 Vec2::new(burro_transform.translation.x, burro_transform.translation.z);
             if bullet_position.distance(burro_position) <= inspector.bullet_distance {
                 commands.entity(entity).despawn_recursive();
-                println!("Hit burro!");
+                burro.hit();
+
                 continue 'bullets;
             }
         }

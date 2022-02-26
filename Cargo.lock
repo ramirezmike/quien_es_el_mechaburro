@@ -2650,6 +2650,7 @@ dependencies = [
  "bevy_kira_audio",
  "leafwing-input-manager",
  "noise",
+ "rand 0.8.5",
 ]
 
 [[package]]

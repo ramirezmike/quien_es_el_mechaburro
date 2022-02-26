@@ -8,8 +8,8 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<PlayerAction>::default())
             .add_event::<PlayerMoveEvent>()
-            .add_system(handle_input.label("input"))
-            .add_system(move_player.after("input"));
+            .add_system(handle_input.label("handle_input"))
+            .add_system(move_player.after("handle_input"));
     }
 }
 
@@ -29,7 +29,7 @@ impl ZeroSignum for Vec3 {
             }
         };
 
-        Vec3::new(convert(self.x), convert(self.y), convert(self.z))
+        Vec3::new(convert(self.x), convert(self.y), convert(self.z)).normalize()
     }
 }
 
@@ -74,9 +74,9 @@ fn move_player(
                 (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0).sin()
                     as f32;
             transform.translation.y += bobbing_velocity * (time.delta_seconds() * 4.0);
-            transform.rotate(Quat::from_rotation_x(
-                bobbing_velocity * (time.delta_seconds() * 8.0),
-            ));
+        //          transform.rotate(Quat::from_rotation_x(
+        //              bobbing_velocity * (time.delta_seconds() * 8.0),
+        //          ));
         } else {
             transform.translation.y += -player.speed * time.delta_seconds(); // gravity
         }
@@ -87,7 +87,7 @@ fn move_player(
             .lerp(rotation, time.delta_seconds() * rotation_speed);
 
         // don't rotate if we're not moving or if uhh rotation isnt a number?? why isn't it a number? who did this
-        if !new_rotation.is_nan() && player.velocity.length() > 0.0001 {
+        if !new_rotation.is_nan() && player.velocity.length() > 0.0001 && !player.is_firing {
             transform.rotation = rotation;
         }
     }
@@ -133,6 +133,7 @@ pub struct Player {
     pub speed: f32,
     pub rotation_speed: f32,
     pub friction: f32,
+    pub is_firing: bool,
 }
 
 impl Player {
@@ -142,6 +143,7 @@ impl Player {
             speed: 0.8,
             rotation_speed: 1.0,
             friction: 0.01,
+            is_firing: false,
         }
     }
 }
@@ -218,19 +220,17 @@ pub struct PlayerMoveEvent {
 
 fn handle_input(
     mut app_state: ResMut<State<AppState>>,
-    mut player: Query<
-        (
-            Entity,
-            &ActionState<PlayerAction>,
-            &Transform,
-            &mut burro::Burro,
-        ),
-        With<Player>,
-    >,
+    mut player: Query<(
+        Entity,
+        &ActionState<PlayerAction>,
+        &mut Transform,
+        &mut burro::Burro,
+        &mut Player,
+    )>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
 ) {
-    for (entity, action_state, transform, mut burro) in player.iter_mut() {
+    for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
@@ -248,6 +248,9 @@ fn handle_input(
         }
 
         if burro.can_fire() {
+            use std::f32::consts::PI;
+
+            player.is_firing = false;
             if action_state.pressed(&PlayerAction::ActionUp) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
@@ -257,6 +260,8 @@ fn handle_input(
                     direction: Vec3::new(1.0, 0.0, 0.0),
                 });
                 burro.fire();
+                player.is_firing = true;
+                transform.rotation = Quat::from_axis_angle(Vec3::Y, 0.0);
             }
 
             if action_state.pressed(&PlayerAction::ActionDown) {
@@ -268,6 +273,8 @@ fn handle_input(
                     direction: Vec3::new(-1.0, 0.0, 0.0),
                 });
                 burro.fire();
+                player.is_firing = true;
+                transform.rotation = Quat::from_axis_angle(Vec3::Y, PI);
             }
 
             if action_state.pressed(&PlayerAction::ActionLeft) {
@@ -279,6 +286,8 @@ fn handle_input(
                     direction: Vec3::new(0.0, 0.0, -1.0),
                 });
                 burro.fire();
+                player.is_firing = true;
+                transform.rotation = Quat::from_axis_angle(Vec3::Y, PI / 2.0);
             }
 
             if action_state.pressed(&PlayerAction::ActionRight) {
@@ -290,6 +299,8 @@ fn handle_input(
                     direction: Vec3::new(0.0, 0.0, 1.0),
                 });
                 burro.fire();
+                player.is_firing = true;
+                transform.rotation = Quat::from_axis_angle(Vec3::Y, (3.0 * PI) / 2.0);
             }
         }
     }

@@ -15,9 +15,17 @@ impl Plugin for InspectPlugin {
     }
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Inspectable)]
 pub struct InspectorData {
     pub bullet_distance: f32,
+}
+
+impl Default for InspectorData {
+    fn default() -> Self {
+        InspectorData {
+            bullet_distance: 1.0,
+        }
+    }
 }
 
 fn toggle(input: ResMut<Input<KeyCode>>, mut inspector_windows: ResMut<InspectorWindows>) {
