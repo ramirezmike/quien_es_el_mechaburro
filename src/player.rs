@@ -65,7 +65,8 @@ fn move_player(
 
         if player.velocity.length() > 0.01 {
             let bobbing_velocity =
-                (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0).sin() as f32;
+                (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0).sin()
+                    as f32;
             transform.translation.y += bobbing_velocity * (time.delta_seconds() * 4.0);
             transform.rotate(Quat::from_rotation_x(
                 bobbing_velocity * (time.delta_seconds() * 8.0),

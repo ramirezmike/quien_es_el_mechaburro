@@ -8,16 +8,14 @@ impl Plugin for InGamePlugin {
         app.add_system_set(
             SystemSet::on_enter(AppState::InGame)
                 .with_system(setup)
-                .with_system(game_camera::spawn_camera)
-            )
-            .add_system_set(
-                SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>),
-            )
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(update)
-                    .with_system(game_camera::pan_orbit_camera),
-            );
+                .with_system(game_camera::spawn_camera),
+        )
+        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>))
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(update)
+                .with_system(game_camera::pan_orbit_camera),
+        );
     }
 }
 
@@ -77,5 +75,4 @@ fn setup(
     collidables.reset();
 }
 
-fn update() {
-}
+fn update() {}
