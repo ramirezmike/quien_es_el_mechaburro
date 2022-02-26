@@ -8,6 +8,7 @@ mod asset_loading;
 mod assets;
 mod audio;
 mod bullet;
+mod burro;
 mod collision;
 mod direction;
 mod game_camera;

@@ -1,4 +1,4 @@
-use crate::{bullet::BulletEvent, collision, direction, AppState};
+use crate::{bullet::BulletEvent, collision, direction, AppState, burro};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -38,7 +38,7 @@ fn move_player(
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
     collidables: Res<collision::Collidables>,
 ) {
-    if let Ok((mut transform, mut player)) = player_transform.get_single_mut() {
+    for (mut transform, mut player) in player_transform.iter_mut() {
         let speed: f32 = player.speed;
         let rotation_speed: f32 = player.rotation_speed;
         let friction: f32 = player.friction;
@@ -143,6 +143,7 @@ impl Player {
 #[derive(Bundle)]
 pub struct PlayerBundle {
     player: Player,
+    burro: burro::Burro,
     #[bundle]
     input_manager: InputManagerBundle<PlayerAction>,
 }
@@ -151,6 +152,7 @@ impl Default for PlayerBundle {
     fn default() -> Self {
         PlayerBundle {
             player: Player::new(),
+            burro: burro::Burro::default(),
             input_manager: InputManagerBundle {
                 input_map: PlayerBundle::default_input_map(),
                 action_state: ActionState::default(),
@@ -209,11 +211,11 @@ pub struct PlayerMoveEvent {
 
 fn handle_input(
     mut app_state: ResMut<State<AppState>>,
-    player: Query<(&ActionState<PlayerAction>, &Transform), With<Player>>,
+    player: Query<(Entity, &ActionState<PlayerAction>, &Transform, &burro::Burro), With<Player>>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
 ) {
-    if let Ok((action_state, transform)) = player.get_single() {
+    for (entity, action_state, transform, burro) in player.iter() {
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
@@ -232,6 +234,9 @@ fn handle_input(
 
         if action_state.just_pressed(&PlayerAction::ActionUp) {
             bullet_event_writer.send(BulletEvent {
+                source: entity,
+                speed: burro.bullet_speed,
+                time_to_live: burro.bullet_time_alive,
                 position: transform.translation,
                 direction: Vec3::new(1.0, 0.0, 0.0),
             });
@@ -239,6 +244,9 @@ fn handle_input(
 
         if action_state.just_pressed(&PlayerAction::ActionDown) {
             bullet_event_writer.send(BulletEvent {
+                source: entity,
+                speed: burro.bullet_speed,
+                time_to_live: burro.bullet_time_alive,
                 position: transform.translation,
                 direction: Vec3::new(-1.0, 0.0, 0.0),
             });
@@ -246,6 +254,9 @@ fn handle_input(
 
         if action_state.just_pressed(&PlayerAction::ActionLeft) {
             bullet_event_writer.send(BulletEvent {
+                source: entity,
+                speed: burro.bullet_speed,
+                time_to_live: burro.bullet_time_alive,
                 position: transform.translation,
                 direction: Vec3::new(0.0, 0.0, -1.0),
             });
@@ -253,6 +264,9 @@ fn handle_input(
 
         if action_state.just_pressed(&PlayerAction::ActionRight) {
             bullet_event_writer.send(BulletEvent {
+                source: entity,
+                speed: burro.bullet_speed,
+                time_to_live: burro.bullet_time_alive,
                 position: transform.translation,
                 direction: Vec3::new(0.0, 0.0, 1.0),
             });
