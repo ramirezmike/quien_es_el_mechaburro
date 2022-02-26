@@ -61,7 +61,11 @@ pub fn load(
     assets_handler.add_audio(&mut game_assets.sfx_1, "audio/blip.wav");
     assets_handler.add_audio(&mut game_assets.sfx_2, "audio/select.wav");
     assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
-    assets_handler.add_material(&mut game_assets.title_screen_background, "textures/title_background.png", false);
+    assets_handler.add_material(
+        &mut game_assets.title_screen_background,
+        "textures/title_background.png",
+        false,
+    );
 }
 
 fn setup(

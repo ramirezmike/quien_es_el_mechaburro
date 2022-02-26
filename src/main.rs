@@ -6,8 +6,8 @@ use bevy::prelude::*;
 
 mod asset_loading;
 mod assets;
-mod mesh;
 mod audio;
+mod mesh;
 mod title_screen;
 
 fn main() {
