@@ -11,7 +11,6 @@ impl Default for Burro {
         Burro {
             bullet_speed: 6.0,
             bullet_time_alive: 3.0,
-
         }
     }
 }

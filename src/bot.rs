@@ -1,5 +1,5 @@
+use crate::{burro, player, player::PlayerAction};
 use bevy::prelude::*;
-use crate::{player, burro, player::PlayerAction};
 use leafwing_input_manager::prelude::*;
 
 pub struct BotPlugin;
@@ -11,8 +11,7 @@ impl Plugin for BotPlugin {
 }
 
 #[derive(Component, Default)]
-pub struct Bot {
-}
+pub struct Bot {}
 
 #[derive(Bundle)]
 pub struct BotBundle {
@@ -37,10 +36,7 @@ impl Default for BotBundle {
     }
 }
 
-
-fn move_bots(
-    mut bots: Query<(Entity, &Bot, &mut ActionState<PlayerAction>)>,
-) {
+fn move_bots(mut bots: Query<(Entity, &Bot, &mut ActionState<PlayerAction>)>) {
     for (entity, bot, mut action_state) in bots.iter_mut() {
         action_state.press(&PlayerAction::Right);
     }

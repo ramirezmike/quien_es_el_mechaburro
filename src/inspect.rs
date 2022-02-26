@@ -2,7 +2,7 @@ use crate::{mesh, player};
 use bevy::prelude::*;
 use bevy_inspector_egui::bevy_egui::EguiSettings;
 use bevy_inspector_egui::widgets::{InspectorQuery, InspectorQuerySingle};
-use bevy_inspector_egui::{Inspectable, InspectorPlugin, plugin::InspectorWindows};
+use bevy_inspector_egui::{plugin::InspectorWindows, Inspectable, InspectorPlugin};
 
 pub struct InspectPlugin;
 impl Plugin for InspectPlugin {
@@ -22,10 +22,7 @@ struct InspectorData {
     scrolls: InspectorQuery<Entity, With<mesh::ScrollingPane>>,
 }
 
-fn toggle(
-    input: ResMut<Input<KeyCode>>,
-    mut inspector_windows: ResMut<InspectorWindows>,
-) {
+fn toggle(input: ResMut<Input<KeyCode>>, mut inspector_windows: ResMut<InspectorWindows>) {
     if input.just_pressed(KeyCode::Grave) {
         let mut inspector_window_data = inspector_windows.window_data_mut::<InspectorData>();
         inspector_window_data.visible = !inspector_window_data.visible;

@@ -1,7 +1,7 @@
-use crate::{bullet::BulletEvent, collision, direction, AppState, burro};
+use crate::{bullet::BulletEvent, burro, collision, direction, AppState};
 use bevy::prelude::*;
-use std::collections::HashMap;
 use leafwing_input_manager::prelude::*;
+use std::collections::HashMap;
 
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
@@ -218,7 +218,15 @@ pub struct PlayerMoveEvent {
 
 fn handle_input(
     mut app_state: ResMut<State<AppState>>,
-    player: Query<(Entity, &ActionState<PlayerAction>, &Transform, &burro::Burro), With<Player>>,
+    player: Query<
+        (
+            Entity,
+            &ActionState<PlayerAction>,
+            &Transform,
+            &burro::Burro,
+        ),
+        With<Player>,
+    >,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
 ) {
@@ -232,10 +240,7 @@ fn handle_input(
         }
 
         if direction != direction::Direction::NEUTRAL {
-            player_move_event_writer.send(PlayerMoveEvent { 
-                entity,
-                direction 
-            });
+            player_move_event_writer.send(PlayerMoveEvent { entity, direction });
         }
 
         if action_state.just_pressed(&PlayerAction::Pause) {

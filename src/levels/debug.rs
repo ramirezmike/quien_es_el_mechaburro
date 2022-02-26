@@ -1,8 +1,10 @@
+use crate::{
+    asset_loading, assets::GameAssets, bot, cleanup, collision, game_camera, mesh, player, AppState,
+};
+use bevy::gltf::Gltf;
 use bevy::prelude::*;
-use crate::{asset_loading, assets::GameAssets, cleanup, collision, game_camera, mesh, player, bot, AppState};
 use bevy::window::WindowResized;
 use bevy_inspector_egui::bevy_egui::{egui, EguiContext};
-use bevy::gltf::Gltf;
 
 pub struct DebugRoomPlugin;
 impl Plugin for DebugRoomPlugin {
