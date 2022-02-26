@@ -6,6 +6,9 @@ use bevy::prelude::*;
 
 mod asset_loading;
 mod assets;
+mod mesh;
+mod audio;
+mod title_screen;
 
 fn main() {
     App::new()
@@ -14,6 +17,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
+        .add_plugin(audio::GameAudioPlugin)
+        .add_plugin(mesh::MeshPlugin)
+        .add_plugin(title_screen::TitlePlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
         .run();

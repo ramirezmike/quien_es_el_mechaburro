@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, AppState};
+use crate::{assets::GameAssets, title_screen, AppState};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -94,6 +94,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
 
     fn queue_assets_for_state(&mut self, state: &AppState, game_assets: &mut ResMut<GameAssets>) {
         match state {
+            AppState::TitleScreen => title_screen::load(self, game_assets),
             _ => (),
         }
     }

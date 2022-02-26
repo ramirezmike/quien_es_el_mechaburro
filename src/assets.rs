@@ -18,6 +18,7 @@ pub struct GameAssets {
     pub sfx_2: Handle<AudioSource>,
     pub level: Handle<Gltf>,
     pub donkey: Handle<Gltf>,
+    pub title_screen_background: asset_loading::GameTexture,
 }
 
 #[derive(Default)]
