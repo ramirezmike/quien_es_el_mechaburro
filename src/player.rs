@@ -218,19 +218,19 @@ pub struct PlayerMoveEvent {
 
 fn handle_input(
     mut app_state: ResMut<State<AppState>>,
-    player: Query<
+    mut player: Query<
         (
             Entity,
             &ActionState<PlayerAction>,
             &Transform,
-            &burro::Burro,
+            &mut burro::Burro,
         ),
         With<Player>,
     >,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
 ) {
-    for (entity, action_state, transform, burro) in player.iter() {
+    for (entity, action_state, transform, mut burro) in player.iter_mut() {
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
@@ -247,44 +247,50 @@ fn handle_input(
             app_state.push(AppState::Pause).unwrap();
         }
 
-        if action_state.just_pressed(&PlayerAction::ActionUp) {
-            bullet_event_writer.send(BulletEvent {
-                source: entity,
-                speed: burro.bullet_speed,
-                time_to_live: burro.bullet_time_alive,
-                position: transform.translation,
-                direction: Vec3::new(1.0, 0.0, 0.0),
-            });
-        }
+        if burro.can_fire() {
+            if action_state.pressed(&PlayerAction::ActionUp) {
+                bullet_event_writer.send(BulletEvent {
+                    source: entity,
+                    speed: burro.bullet_speed,
+                    time_to_live: burro.bullet_time_alive,
+                    position: transform.translation,
+                    direction: Vec3::new(1.0, 0.0, 0.0),
+                });
+                burro.fire();
+            }
 
-        if action_state.just_pressed(&PlayerAction::ActionDown) {
-            bullet_event_writer.send(BulletEvent {
-                source: entity,
-                speed: burro.bullet_speed,
-                time_to_live: burro.bullet_time_alive,
-                position: transform.translation,
-                direction: Vec3::new(-1.0, 0.0, 0.0),
-            });
-        }
+            if action_state.pressed(&PlayerAction::ActionDown) {
+                bullet_event_writer.send(BulletEvent {
+                    source: entity,
+                    speed: burro.bullet_speed,
+                    time_to_live: burro.bullet_time_alive,
+                    position: transform.translation,
+                    direction: Vec3::new(-1.0, 0.0, 0.0),
+                });
+                burro.fire();
+            }
 
-        if action_state.just_pressed(&PlayerAction::ActionLeft) {
-            bullet_event_writer.send(BulletEvent {
-                source: entity,
-                speed: burro.bullet_speed,
-                time_to_live: burro.bullet_time_alive,
-                position: transform.translation,
-                direction: Vec3::new(0.0, 0.0, -1.0),
-            });
-        }
+            if action_state.pressed(&PlayerAction::ActionLeft) {
+                bullet_event_writer.send(BulletEvent {
+                    source: entity,
+                    speed: burro.bullet_speed,
+                    time_to_live: burro.bullet_time_alive,
+                    position: transform.translation,
+                    direction: Vec3::new(0.0, 0.0, -1.0),
+                });
+                burro.fire();
+            }
 
-        if action_state.just_pressed(&PlayerAction::ActionRight) {
-            bullet_event_writer.send(BulletEvent {
-                source: entity,
-                speed: burro.bullet_speed,
-                time_to_live: burro.bullet_time_alive,
-                position: transform.translation,
-                direction: Vec3::new(0.0, 0.0, 1.0),
-            });
+            if action_state.pressed(&PlayerAction::ActionRight) {
+                bullet_event_writer.send(BulletEvent {
+                    source: entity,
+                    speed: burro.bullet_speed,
+                    time_to_live: burro.bullet_time_alive,
+                    position: transform.translation,
+                    direction: Vec3::new(0.0, 0.0, 1.0),
+                });
+                burro.fire();
+            }
         }
     }
 }

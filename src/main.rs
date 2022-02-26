@@ -27,6 +27,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
+        .add_plugin(burro::BurroPlugin)
         .add_plugin(audio::GameAudioPlugin)
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
