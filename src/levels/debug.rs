@@ -80,7 +80,8 @@ pub fn load(
     game_assets: &mut ResMut<GameAssets>,
 ) {
     assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
-    assets_handler.add_glb(&mut game_assets.burro, "models/burro.glb");
+    assets_handler.add_mesh(&mut game_assets.burro.mesh, "models/burro.gltf#Mesh0/Primitive0");
+    assets_handler.add_material(&mut game_assets.burro.texture, "textures/burro_01.png", false);
 }
 
 fn setup(
@@ -106,49 +107,37 @@ fn setup(
             });
     }
 
-    if let Some(gltf) = assets_gltf.get(&game_assets.burro) {
-        commands
-            .spawn_bundle((
-                Transform::from_xyz(0.0, 0.0, 0.0),
-                GlobalTransform::identity(),
-            ))
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle((
-                        Transform::from_rotation(Quat::from_rotation_y(
-                            std::f32::consts::FRAC_PI_2,
-                        )),
-                        GlobalTransform::identity(),
-                    ))
-                    .with_children(|parent| {
-                        parent.spawn_scene(gltf.scenes[0].clone());
-                    });
-            })
-            .insert_bundle(player::PlayerBundle::default())
-            .insert(CleanupMarker);
+    commands
+        .spawn_bundle(PbrBundle {
+            mesh: game_assets.burro.mesh.clone(),
+            material: game_assets.burro.texture.material.clone(),
+            transform: Transform::from_xyz(0.0, 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert_bundle(player::PlayerBundle::default())
+        .insert(CleanupMarker);
 
-        for i in 0..7 {
-            commands
-                .spawn_bundle((
-                    Transform::from_xyz(2.0, 0.0, 0.0),
-                    GlobalTransform::identity(),
-                ))
-                .with_children(|parent| {
-                    parent
-                        .spawn_bundle((
-                            Transform::from_rotation(Quat::from_rotation_y(
-                                std::f32::consts::FRAC_PI_2,
-                            )),
-                            GlobalTransform::identity(),
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn_scene(gltf.scenes[0].clone());
-                        });
-                })
-                .insert_bundle(bot::BotBundle::default())
-                .insert(CleanupMarker);
-        }
-    }
+//      for i in 0..0 {
+//          commands
+//              .spawn_bundle((
+//                  Transform::from_xyz(2.0, 0.0, 0.0),
+//                  GlobalTransform::identity(),
+//              ))
+//              .with_children(|parent| {
+//                  parent
+//                      .spawn_bundle((
+//                          Transform::from_rotation(Quat::from_rotation_y(
+//                              std::f32::consts::FRAC_PI_2,
+//                          )),
+//                          GlobalTransform::identity(),
+//                      ))
+//                      .with_children(|parent| {
+//                          parent.spawn_scene(gltf.scenes[0].clone());
+//                      });
+//              })
+//              .insert_bundle(bot::BotBundle::default())
+//              .insert(CleanupMarker);
+//      }
 
     collidables.reset();
 }

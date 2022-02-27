@@ -28,6 +28,18 @@ struct Bullet {
     source: Entity,
     speed: f32,
     direction: Vec3,
+    bullet_type: BulletType, 
+}
+
+enum BulletType {
+    Candy,
+    Laser,
+}
+
+impl Default for BulletType {
+    fn default() -> Self {
+        BulletType::Candy
+    }
 }
 
 fn handle_bullet_events(
@@ -55,6 +67,7 @@ fn handle_bullet_events(
                 time_alive: 0.0,
                 speed: bullet.speed,
                 direction: bullet.direction,
+                bullet_type: BulletType::Candy,
             })
             .insert(CleanupMarker);
     }

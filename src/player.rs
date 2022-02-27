@@ -80,7 +80,7 @@ fn move_player(
         } else {
             transform.translation.y += -player.speed * time.delta_seconds(); // gravity
         }
-        transform.translation.y = transform.translation.y.clamp(0.5, 1.0);
+        transform.translation.y = transform.translation.y.clamp(1.0, 1.5);
 
         let new_rotation = transform
             .rotation
