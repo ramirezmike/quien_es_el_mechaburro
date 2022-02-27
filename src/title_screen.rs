@@ -63,7 +63,7 @@ pub fn load(
     assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
     assets_handler.add_material(
         &mut game_assets.title_screen_background,
-        "textures/title_background.png",
+        "textures/background.png",
         false,
     );
 }
@@ -93,16 +93,16 @@ fn setup(
             20.0,
         ))
         .insert(CleanupMarker)
-        .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::X));
+        .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::Z));
 
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 0.50,
+        brightness: 1.00,
     });
 
     commands
         .spawn_bundle(PerspectiveCameraBundle {
-            transform: Transform::from_xyz(-0.0001, 5.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(0.0, 5.0, -0.0001).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
         .insert(CleanupMarker);
