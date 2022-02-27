@@ -44,20 +44,20 @@ impl Default for BulletType {
 
 fn handle_bullet_events(
     mut commands: Commands,
+    game_assets: Res<GameAssets>,
     mut bullet_reader: EventReader<BulletEvent>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    game_assets: Res<GameAssets>,
 ) {
     for bullet in bullet_reader.iter() {
         commands
             .spawn_bundle(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.7 })),
+                mesh: game_assets.candy.mesh.clone(),
                 material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
                 transform: Transform::from_xyz(
-                    bullet.position.x,
+                    bullet.position.x + bullet.direction.x,
                     bullet.position.y + 0.5,
-                    bullet.position.z,
+                    bullet.position.z + bullet.direction.z,
                 ),
                 ..Default::default()
             })
@@ -82,6 +82,9 @@ fn handle_bullets(
 ) {
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
+        transform.rotate(Quat::from_rotation_y(2.0 * time.delta_seconds()));
+        transform.rotate(Quat::from_rotation_x(1.75 * time.delta_seconds()));
+        transform.rotate(Quat::from_rotation_z(0.75 * time.delta_seconds()));
         bullet.time_alive += time.delta_seconds();
 
         if bullet.time_alive > bullet.time_to_live {

@@ -135,6 +135,30 @@ pub fn spawn_camera(mut commands: Commands) {
             transform: Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
+        .with_children(|parent| {
+            const HALF_SIZE: f32 = 100.0;
+            parent.spawn_bundle(DirectionalLightBundle {
+                directional_light: DirectionalLight {
+                    // Configure the projection to better fit the scene
+                    shadow_projection: OrthographicProjection {
+                        left: -HALF_SIZE,
+                        right: HALF_SIZE,
+                        bottom: -HALF_SIZE,
+                        top: HALF_SIZE,
+                        near: -10.0 * HALF_SIZE,
+                        far: 10.0 * HALF_SIZE,
+                        ..Default::default()
+                    },
+                    shadows_enabled: true,
+                    ..Default::default()
+                },
+                transform: Transform {
+                    rotation: Quat::from_rotation_x(-std::f32::consts::FRAC_PI_4),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        })
         .insert(PanOrbitCamera {
             radius,
             ..Default::default()

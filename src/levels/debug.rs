@@ -80,6 +80,7 @@ pub fn load(
     game_assets: &mut ResMut<GameAssets>,
 ) {
     assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
+    assets_handler.add_mesh(&mut game_assets.candy.mesh, "models/candy.gltf#Mesh0/Primitive0");
     assets_handler.add_mesh(&mut game_assets.burro.mesh, "models/burro.gltf#Mesh0/Primitive0");
     assets_handler.add_material(&mut game_assets.burro.texture, "textures/burro_01.png", false);
 }
