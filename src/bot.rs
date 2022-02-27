@@ -21,7 +21,7 @@ pub struct Bot {
     heading: Option<Cardinal>,
     shooting: Option<Cardinal>,
     mind_cooldown: f32,
-    target: Option::<Vec2>,
+    target: Option<Vec2>,
 }
 
 impl Default for Bot {
@@ -119,7 +119,7 @@ fn update_bot_ai(
             let z_diff = burro_position.y - target.y;
 
             if x_diff.abs() - z_diff.abs() < 0.1 {
-                // go diagonal 
+                // go diagonal
                 if burro_position.x > target.x {
                     if burro_position.y > target.y {
                         bot.heading = Some(Cardinal::SW);
@@ -198,7 +198,6 @@ fn update_bot_ai(
             //              "Shooting {:?} because Me{} {} You {} {}",
             //              bot.shooting, burro_x, burro_z, other_x, other_z
             //          );
-
         }
     }
 }
