@@ -20,6 +20,7 @@ pub struct Burro {
     pub bullet_speed: f32,
     pub bullet_time_alive: f32,
     pub fire_cooldown: f32,
+    pub invulnerability_cooldown: f32,
 }
 
 impl Default for Burro {
@@ -30,6 +31,7 @@ impl Default for Burro {
             bullet_speed: 6.0,
             bullet_time_alive: 3.0,
             fire_cooldown: 0.0,
+            invulnerability_cooldown: 0.0,
         }
     }
 }
@@ -46,7 +48,7 @@ impl Burro {
     pub fn hit(&mut self) {
         if let Some(health) = self.health.checked_sub(1) {
             self.health = health;
-            println!("Hit burro! Health {}", self.health);
+            self.invulnerability_cooldown = 3.0;
         }
     }
 
@@ -56,6 +58,10 @@ impl Burro {
 
     pub fn almost_dead(&self) -> bool {
         self.health == 1
+    }
+
+    pub fn is_invulnerable(&self) -> bool {
+        self.invulnerability_cooldown > 0.0
     }
 }
 
@@ -74,6 +80,10 @@ fn handle_burros(
         // handling firing cool down
         burro.fire_cooldown -= time.delta_seconds();
         burro.fire_cooldown = burro.fire_cooldown.clamp(-10.0, 3.0);
+
+        // handling invulnerability
+        burro.invulnerability_cooldown -= time.delta_seconds();
+        burro.invulnerability_cooldown = burro.invulnerability_cooldown.clamp(-10.0, 3.0);
     }
 }
 

@@ -21,6 +21,7 @@ pub struct Bot {
     heading: Option<Cardinal>,
     shooting: Option<Cardinal>,
     mind_cooldown: f32,
+    target: Option::<Vec2>,
 }
 
 impl Default for Bot {
@@ -29,6 +30,7 @@ impl Default for Bot {
             heading: None,
             shooting: None,
             mind_cooldown: 1.0,
+            target: None,
         }
     }
 }
@@ -99,7 +101,6 @@ fn update_bot_ai(
         if !bot.can_think() {
             continue;
         }
-        bot.mind_cooldown += 0.5;
 
         let burro_position = Vec2::new(transform.translation.x, transform.translation.z);
         let burro_x = transform.translation.x as isize;
@@ -107,6 +108,112 @@ fn update_bot_ai(
         let burro_fx = transform.translation.x;
         let burro_fz = transform.translation.z;
 
+        if let Some(target) = bot.target {
+            if burro_position.distance(target) < 0.5 {
+                bot.target = None;
+                bot.mind_cooldown = 1.0;
+                continue;
+            }
+
+            let x_diff = burro_position.x - target.x;
+            let z_diff = burro_position.y - target.y;
+
+            if x_diff.abs() - z_diff.abs() < 0.1 {
+                // go diagonal 
+                if burro_position.x > target.x {
+                    if burro_position.y > target.y {
+                        bot.heading = Some(Cardinal::SW);
+                    } else {
+                        bot.heading = Some(Cardinal::SE);
+                    }
+                } else {
+                    if burro_position.y > target.y {
+                        bot.heading = Some(Cardinal::NW);
+                    } else {
+                        bot.heading = Some(Cardinal::NE);
+                    }
+                }
+            } else if x_diff.abs() > z_diff.abs() {
+                // go vertical
+                if burro_position.x > target.x {
+                    bot.heading = Some(Cardinal::S);
+                } else {
+                    bot.heading = Some(Cardinal::N);
+                }
+            } else {
+                // go horizontal
+                if burro_position.y > target.y {
+                    bot.heading = Some(Cardinal::W);
+                } else {
+                    bot.heading = Some(Cardinal::E);
+                }
+            }
+        } else {
+            bot.target = Some(get_random_position());
+            //println!("New target: {:?}", bot.target);
+        }
+
+        let mut other_burros: Vec<_> = other_burros
+            .iter()
+            .filter(|(other_entity, _)| entity != *other_entity) // skip yourself
+            .map(|other| {
+                let position = Vec2::new(other.1.translation.x, other.1.translation.z);
+                (position.distance(burro_position), other)
+            })
+            .collect();
+
+        other_burros.sort_by_key(|o| o.0 as usize); // sort by distance to self
+
+        for (_, (other_entity, other_burro_transform)) in other_burros.iter().rev() {
+            if entity == *other_entity {
+                continue;
+            }
+
+            let other_x = other_burro_transform.translation.x as isize;
+            let other_z = other_burro_transform.translation.z as isize;
+            let other_fx = other_burro_transform.translation.x;
+            let other_fz = other_burro_transform.translation.z;
+
+            bot.shooting = None;
+
+            // shoot left or right to try to hit a burro
+            if burro_x == other_x {
+                if burro_z > other_z {
+                    bot.shooting = Some(Cardinal::W);
+                } else if burro_z < other_z {
+                    bot.shooting = Some(Cardinal::E);
+                }
+            }
+
+            // shoot up or down to try to hit a burro
+            if burro_z == other_z {
+                if burro_x > other_x {
+                    bot.shooting = Some(Cardinal::S);
+                } else if burro_x < other_x {
+                    bot.shooting = Some(Cardinal::N);
+                }
+            }
+
+            //          println!(
+            //              "Shooting {:?} because Me{} {} You {} {}",
+            //              bot.shooting, burro_x, burro_z, other_x, other_z
+            //          );
+
+        }
+    }
+}
+
+fn get_random_position() -> Vec2 {
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+
+    let x: f32 = rng.gen_range(-15.0..15.0);
+    let z: f32 = rng.gen_range(-15.0..15.0);
+
+    Vec2::new(x, z)
+}
+
+/*
         let mut other_burros: Vec<_> = other_burros
             .iter()
             .filter(|(other_entity, _)| entity != *other_entity) // skip yourself
@@ -197,7 +304,8 @@ fn update_bot_ai(
             }
         }
     }
-}
+
+*/
 
 fn update_virtual_controllers(mut bots: Query<(Entity, &Bot, &mut ActionState<PlayerAction>)>) {
     for (_, bot, mut action_state) in bots.iter_mut() {

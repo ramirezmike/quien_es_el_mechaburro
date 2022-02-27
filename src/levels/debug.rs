@@ -127,25 +127,27 @@ fn setup(
             .insert_bundle(player::PlayerBundle::default())
             .insert(CleanupMarker);
 
-        commands
-            .spawn_bundle((
-                Transform::from_xyz(2.0, 0.0, 0.0),
-                GlobalTransform::identity(),
-            ))
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle((
-                        Transform::from_rotation(Quat::from_rotation_y(
-                            std::f32::consts::FRAC_PI_2,
-                        )),
-                        GlobalTransform::identity(),
-                    ))
-                    .with_children(|parent| {
-                        parent.spawn_scene(gltf.scenes[0].clone());
-                    });
-            })
-            .insert_bundle(bot::BotBundle::default())
-            .insert(CleanupMarker);
+        for i in 0..7 {
+            commands
+                .spawn_bundle((
+                    Transform::from_xyz(2.0, 0.0, 0.0),
+                    GlobalTransform::identity(),
+                ))
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle((
+                            Transform::from_rotation(Quat::from_rotation_y(
+                                std::f32::consts::FRAC_PI_2,
+                            )),
+                            GlobalTransform::identity(),
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn_scene(gltf.scenes[0].clone());
+                        });
+                })
+                .insert_bundle(bot::BotBundle::default())
+                .insert(CleanupMarker);
+        }
     }
 
     collidables.reset();
