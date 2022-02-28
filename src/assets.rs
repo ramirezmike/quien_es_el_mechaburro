@@ -17,9 +17,18 @@ pub struct GameAssets {
     pub sfx_1: Handle<AudioSource>,
     pub sfx_2: Handle<AudioSource>,
     pub level: Handle<Gltf>,
-    pub burro: GameMesh,
     pub candy: GameMesh,
     pub title_screen_background: asset_loading::GameTexture,
+
+    pub burro: GameMesh,
+    pub pinata_texture: asset_loading::GameTexture,
+    pub meow_texture: asset_loading::GameTexture,
+    pub salud_texture: asset_loading::GameTexture,
+    pub mexico_texture: asset_loading::GameTexture,
+    pub medianoche_texture: asset_loading::GameTexture,
+    pub morir_texture: asset_loading::GameTexture,
+    pub gators_texture: asset_loading::GameTexture,
+    pub aguas_texture: asset_loading::GameTexture,
 }
 
 #[derive(Default)]

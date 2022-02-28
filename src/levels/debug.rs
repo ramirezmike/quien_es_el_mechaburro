@@ -1,5 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, bot, cleanup, collision, game_camera, mesh, player, AppState,
+    game_state,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -82,7 +83,14 @@ pub fn load(
     assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
     assets_handler.add_mesh(&mut game_assets.candy.mesh, "models/candy.gltf#Mesh0/Primitive0");
     assets_handler.add_mesh(&mut game_assets.burro.mesh, "models/burro.gltf#Mesh0/Primitive0");
-    assets_handler.add_material(&mut game_assets.burro.texture, "textures/burro_01.png", false);
+    assets_handler.add_material(&mut game_assets.pinata_texture, "textures/pinata.png", false);
+    assets_handler.add_material(&mut game_assets.meow_texture, "textures/meow.png", false);
+    assets_handler.add_material(&mut game_assets.salud_texture, "textures/salud.png", false);
+    assets_handler.add_material(&mut game_assets.mexico_texture, "textures/mexico.png", false);
+    assets_handler.add_material(&mut game_assets.medianoche_texture, "textures/medianoche.png", false);
+    assets_handler.add_material(&mut game_assets.morir_texture, "textures/morir.png", false);
+    assets_handler.add_material(&mut game_assets.gators_texture, "textures/gators.png", false);
+    assets_handler.add_material(&mut game_assets.aguas_texture, "textures/aguas.png", false);
 }
 
 fn setup(
@@ -91,6 +99,7 @@ fn setup(
     assets_gltf: Res<Assets<Gltf>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut collidables: ResMut<collision::Collidables>,
+    game_state: Res<game_state::GameState>,
 ) {
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
@@ -108,37 +117,39 @@ fn setup(
             });
     }
 
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: game_assets.burro.mesh.clone(),
-            material: game_assets.burro.texture.material.clone(),
-            transform: Transform::from_xyz(0.0, 1.0, 0.0),
-            ..Default::default()
-        })
-        .insert_bundle(player::PlayerBundle::default())
-        .insert(CleanupMarker);
+    game_state.burros
+        .iter()
+        .for_each(|b| {
+            let skin = match b.skin {
+                game_state::BurroSkin::Pinata => &game_assets.pinata_texture.material,
+                game_state::BurroSkin::Meow => &game_assets.meow_texture.material,
+                game_state::BurroSkin::Salud => &game_assets.salud_texture.material,
+                game_state::BurroSkin::Mexico => &game_assets.mexico_texture.material,
+                game_state::BurroSkin::Medianoche => &game_assets.medianoche_texture.material,
+                game_state::BurroSkin::Morir => &game_assets.morir_texture.material,
+                game_state::BurroSkin::Gators => &game_assets.gators_texture.material,
+                game_state::BurroSkin::Aguas => &game_assets.aguas_texture.material,
+            };
 
-//      for i in 0..0 {
-//          commands
-//              .spawn_bundle((
-//                  Transform::from_xyz(2.0, 0.0, 0.0),
-//                  GlobalTransform::identity(),
-//              ))
-//              .with_children(|parent| {
-//                  parent
-//                      .spawn_bundle((
-//                          Transform::from_rotation(Quat::from_rotation_y(
-//                              std::f32::consts::FRAC_PI_2,
-//                          )),
-//                          GlobalTransform::identity(),
-//                      ))
-//                      .with_children(|parent| {
-//                          parent.spawn_scene(gltf.scenes[0].clone());
-//                      });
-//              })
-//              .insert_bundle(bot::BotBundle::default())
-//              .insert(CleanupMarker);
-//      }
+            let burro_bundle = PbrBundle {
+                mesh: game_assets.burro.mesh.clone(),
+                material: skin.clone(),
+                transform: Transform::from_xyz(0.0, 1.0, 0.0),
+                ..Default::default()
+            };
+
+            if b.is_bot {
+                commands
+                    .spawn_bundle(burro_bundle)
+                    .insert(CleanupMarker)
+                    .insert_bundle(bot::BotBundle::default());
+            } else {
+                commands
+                    .spawn_bundle(burro_bundle)
+                    .insert(CleanupMarker)
+                    .insert_bundle(player::PlayerBundle::default());
+            }
+        });
 
     collidables.reset();
 }

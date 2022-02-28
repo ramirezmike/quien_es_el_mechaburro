@@ -13,6 +13,7 @@ mod burro;
 mod collision;
 mod direction;
 mod game_camera;
+mod game_state;
 //mod ingame;
 mod inspect;
 mod levels;
@@ -32,6 +33,7 @@ fn main() {
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
+        .add_plugin(game_state::GameStatePlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(title_screen::TitlePlugin)
         //.add_plugin(ingame::InGamePlugin)

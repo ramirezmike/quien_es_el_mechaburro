@@ -1,4 +1,4 @@
-use crate::{asset_loading, assets::GameAssets, audio::GameAudio, cleanup, mesh, AppState};
+use crate::{asset_loading, assets::GameAssets, audio::GameAudio, cleanup, mesh, AppState, game_state};
 use bevy::app::{AppExit, Events};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -243,6 +243,7 @@ fn update_menu_buttons(
     mut assets_handler: asset_loading::AssetsHandler,
     mut game_assets: ResMut<GameAssets>,
     mut audio: GameAudio,
+    mut game_state: ResMut<game_state::GameState>,
 ) {
     let action_state = action_state.single();
     let number_of_buttons = buttons.iter().count();
@@ -292,6 +293,8 @@ fn update_menu_buttons(
     if pressed_button {
         if *selected_button == 0 {
             audio.play_sfx(&game_assets.sfx_2);
+            *game_state = game_state::GameState::initialize(8, 7);
+
             assets_handler.load(AppState::Debug, &mut game_assets);
         }
         if *selected_button == 1 {
