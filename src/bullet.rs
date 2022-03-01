@@ -4,12 +4,11 @@ use bevy::prelude::*;
 pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BulletEvent>()
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(handle_bullet_events)
-                    .with_system(handle_bullets)
-            );
+        app.add_event::<BulletEvent>().add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(handle_bullet_events)
+                .with_system(handle_bullets),
+        );
     }
 }
 
@@ -19,7 +18,7 @@ pub struct BulletEvent {
     pub position: Vec3,
     pub direction: Vec3,
     pub time_to_live: f32,
-    pub bullet_type: BulletType, 
+    pub bullet_type: BulletType,
 }
 
 #[derive(Component)]
@@ -32,7 +31,7 @@ struct Bullet {
     source: Entity,
     speed: f32,
     direction: Vec3,
-    bullet_type: BulletType, 
+    bullet_type: BulletType,
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -56,56 +55,50 @@ fn handle_bullet_events(
 ) {
     for bullet in bullet_reader.iter() {
         commands
-            .spawn_bundle(
-                match bullet.bullet_type {
-                    BulletType::Candy => {
-                        PbrBundle {
-                            mesh: game_assets.candy.mesh.clone(),
-                            material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-                            transform: Transform::from_xyz(
-                                bullet.position.x + bullet.direction.x,
-                                bullet.position.y + 0.5,
-                                bullet.position.z + bullet.direction.z,
-                            ),
-                            ..Default::default()
+            .spawn_bundle(match bullet.bullet_type {
+                BulletType::Candy => PbrBundle {
+                    mesh: game_assets.candy.mesh.clone(),
+                    material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+                    transform: Transform::from_xyz(
+                        bullet.position.x + bullet.direction.x,
+                        bullet.position.y + 0.5,
+                        bullet.position.z + bullet.direction.z,
+                    ),
+                    ..Default::default()
+                },
+                BulletType::Laser => PbrBundle {
+                    mesh: game_assets.laser.mesh.clone(),
+                    material: materials.add(Color::rgb(0.6, 0.0, 0.0).into()),
+                    transform: {
+                        let mut transform = Transform::from_xyz(
+                            bullet.position.x + bullet.direction.x,
+                            bullet.position.y + 0.5,
+                            bullet.position.z + bullet.direction.z,
+                        );
+                        if bullet.direction.z != 0.0 {
+                            transform.rotate(Quat::from_rotation_y(std::f32::consts::PI / 2.0));
                         }
-                    },
-                    BulletType::Laser => {
-                        PbrBundle {
-                            mesh: game_assets.laser.mesh.clone(),
-                            material: materials.add(Color::rgb(0.6, 0.0, 0.0).into()),
-                            transform: {
-                                let mut transform = Transform::from_xyz(
-                                    bullet.position.x + bullet.direction.x,
-                                    bullet.position.y + 0.5,
-                                    bullet.position.z + bullet.direction.z,
-                                );
-                                if bullet.direction.z != 0.0 {
-                                    transform.rotate(Quat::from_rotation_y(std::f32::consts::PI / 2.0));
-                                }
 
-                                transform 
-                            },
-                            ..Default::default()
-                        }
-                    }
-                }
-            )
+                        transform
+                    },
+                    ..Default::default()
+                },
+            })
             .insert(Bullet {
                 source: bullet.source,
                 time_to_live: if bullet.bullet_type == BulletType::Laser {
-                                  bullet.time_to_live + 10.0
-                              } else {
-                                  bullet.time_to_live
-                              },
+                    bullet.time_to_live + 10.0
+                } else {
+                    bullet.time_to_live
+                },
                 time_alive: 0.0,
                 speed: if bullet.bullet_type == BulletType::Laser {
-                           bullet.speed + 2.0
-                       } else {
-                           bullet.speed
-                       },
+                    bullet.speed + 2.0
+                } else {
+                    bullet.speed
+                },
                 direction: bullet.direction,
-                bullet_type: bullet.bullet_type
+                bullet_type: bullet.bullet_type,
             })
             .insert(CleanupMarker);
     }

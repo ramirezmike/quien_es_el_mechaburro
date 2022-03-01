@@ -1,17 +1,17 @@
-use bevy::prelude::*;
 use crate::{game_state, AppState};
+use bevy::prelude::*;
 
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(handle_burros.label("handle_burros"))
-                    .with_system(handle_burro_death_events.after("handle_burros"))
-                    .with_system(handle_burro_flash_events)
-            )
-            .add_event::<BurroFlashEvent>()
-            .add_event::<BurroDeathEvent>();
+            SystemSet::on_update(AppState::InGame)
+                .with_system(handle_burros.label("handle_burros"))
+                .with_system(handle_burro_death_events.after("handle_burros"))
+                .with_system(handle_burro_flash_events),
+        )
+        .add_event::<BurroFlashEvent>()
+        .add_event::<BurroDeathEvent>();
     }
 }
 

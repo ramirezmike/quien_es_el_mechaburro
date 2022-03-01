@@ -9,13 +9,13 @@ impl Plugin for GameStatePlugin {
 
 #[derive(Default)]
 pub struct GameState {
-    pub burros: Vec::<BurroState>,
+    pub burros: Vec<BurroState>,
 }
 
 impl GameState {
     pub fn initialize(burro_count: usize, bot_count: usize) -> Self {
         let burro_count = burro_count.max(bot_count + 1);
-        let mut burros = vec!();
+        let mut burros = vec![];
         let skins = [
             BurroSkin::Pinata,
             BurroSkin::Meow,
@@ -45,9 +45,7 @@ impl GameState {
             });
         }
 
-        GameState {
-            burros
-        }
+        GameState { burros }
     }
 }
 

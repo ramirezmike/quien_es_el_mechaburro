@@ -1,4 +1,6 @@
-use crate::{asset_loading, assets::GameAssets, audio::GameAudio, cleanup, mesh, AppState, game_state};
+use crate::{
+    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, mesh, AppState,
+};
 use bevy::app::{AppExit, Events};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;

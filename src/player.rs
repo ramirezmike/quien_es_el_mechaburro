@@ -1,4 +1,6 @@
-use crate::{bullet::BulletType, bullet::BulletEvent, burro, collision, direction, AppState, game_state};
+use crate::{
+    bullet::BulletEvent, bullet::BulletType, burro, collision, direction, game_state, AppState,
+};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use std::collections::HashMap;
@@ -11,7 +13,7 @@ impl Plugin for PlayerPlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .with_system(handle_input.label("handle_input"))
-                    .with_system(move_player.after("handle_input"))
+                    .with_system(move_player.after("handle_input")),
             );
     }
 }
@@ -73,9 +75,11 @@ fn move_player(
         transform.translation = new_translation;
 
         if player.velocity.length() > 0.01 {
-            let bobbing_velocity =
-                (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0 * burro.random).sin()
-                    as f32;
+            let bobbing_velocity = (time.seconds_since_startup() as f32
+                * (2.0 * std::f32::consts::PI)
+                * 4.0
+                * burro.random)
+                .sin() as f32;
             transform.translation.y += bobbing_velocity * (time.delta_seconds() * 4.0);
         //          transform.rotate(Quat::from_rotation_x(
         //              bobbing_velocity * (time.delta_seconds() * 8.0),
@@ -265,7 +269,11 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(1.0, 0.0, 0.0),
-                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
+                    bullet_type: if burro.is_mechaburro {
+                        BulletType::Laser
+                    } else {
+                        BulletType::Candy
+                    },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -279,7 +287,11 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(-1.0, 0.0, 0.0),
-                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
+                    bullet_type: if burro.is_mechaburro {
+                        BulletType::Laser
+                    } else {
+                        BulletType::Candy
+                    },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -293,7 +305,11 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(0.0, 0.0, -1.0),
-                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
+                    bullet_type: if burro.is_mechaburro {
+                        BulletType::Laser
+                    } else {
+                        BulletType::Candy
+                    },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -307,7 +323,11 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(0.0, 0.0, 1.0),
-                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
+                    bullet_type: if burro.is_mechaburro {
+                        BulletType::Laser
+                    } else {
+                        BulletType::Candy
+                    },
                 });
                 burro.fire();
                 player.is_firing = true;

@@ -1,4 +1,4 @@
-use crate::{burro, player, player::PlayerAction, AppState, game_state};
+use crate::{burro, game_state, player, player::PlayerAction, AppState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use rand::seq::SliceRandom;
@@ -11,7 +11,11 @@ impl Plugin for BotPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
                 .with_system(update_bot_ai.label("ai"))
-                .with_system(update_virtual_controllers.after("ai").before("handle_input"))
+                .with_system(
+                    update_virtual_controllers
+                        .after("ai")
+                        .before("handle_input"),
+                ),
         );
     }
 }

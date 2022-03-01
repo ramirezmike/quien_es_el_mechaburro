@@ -1,21 +1,20 @@
+use crate::{assets::GameAssets, burro, cleanup, game_state, AppState};
 use bevy::prelude::*;
-use crate::{assets::GameAssets, AppState, game_state, burro, cleanup};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 pub struct MechaPickerPlugin;
 impl Plugin for MechaPickerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-                SystemSet::on_enter(AppState::MechaPicker)
-                    .with_system(setup)
-            )
+        app.add_system_set(SystemSet::on_enter(AppState::MechaPicker).with_system(setup))
             .add_event::<PickMechaEvent>()
-            .add_system_set(SystemSet::on_exit(AppState::MechaPicker).with_system(cleanup::<CleanupMarker>))
+            .add_system_set(
+                SystemSet::on_exit(AppState::MechaPicker).with_system(cleanup::<CleanupMarker>),
+            )
             .add_system_set(
                 SystemSet::on_update(AppState::MechaPicker)
                     .with_system(pick_mecha)
-                    .with_system(handle_mecha_pick_event)
+                    .with_system(handle_mecha_pick_event),
             )
             .insert_resource(TextDisplayTimers::default());
     }
@@ -28,7 +27,7 @@ struct TextMarker;
 struct CleanupMarker;
 
 struct PickMechaEvent {
-    burro_skin: game_state::BurroSkin
+    burro_skin: game_state::BurroSkin,
 }
 
 #[derive(Default)]
@@ -47,7 +46,9 @@ fn setup(
     text_display_timers.has_picked = false;
 
     // UI camera
-    commands.spawn_bundle(UiCameraBundle::default()).insert(CleanupMarker);
+    commands
+        .spawn_bundle(UiCameraBundle::default())
+        .insert(CleanupMarker);
     // Text with one section
     commands
         .spawn_bundle(TextBundle {
@@ -55,17 +56,17 @@ fn setup(
                 align_self: AlignSelf::Center,
                 //justify_content: JustifyContent::Center,
                 //position_type: PositionType::Absolute,
-//              margin: Rect {
-//                  left: Val::Auto,
-//                  right: Val::Auto,
-//                  ..Default::default()
-//              },
-//              position: Rect {
-//                  left: Val::Auto,
-//                  right: Val::Auto,
-//                  //top: Val::Percent(50.0),
-//                  ..Default::default()
-//              },
+                //              margin: Rect {
+                //                  left: Val::Auto,
+                //                  right: Val::Auto,
+                //                  ..Default::default()
+                //              },
+                //              position: Rect {
+                //                  left: Val::Auto,
+                //                  right: Val::Auto,
+                //                  //top: Val::Percent(50.0),
+                //                  ..Default::default()
+                //              },
                 ..Default::default()
             },
             text: Text::with_section(
@@ -99,7 +100,7 @@ fn handle_mecha_pick_event(
             if burro.burro_skin == event.burro_skin {
                 *handle = game_assets.mechaburro_texture.material.clone();
                 burro.is_mechaburro = true;
-                mecha_set = true; 
+                mecha_set = true;
                 break;
             }
         }
@@ -117,12 +118,17 @@ fn pick_mecha(
     mut pick_mecha_event_writer: EventWriter<PickMechaEvent>,
     game_state: Res<game_state::GameState>,
 ) {
-    if text_display_timers.has_picked { return; }
+    if text_display_timers.has_picked {
+        return;
+    }
 
     text_display_timers.name_change_cooldown -= time.delta_seconds();
-    text_display_timers.name_change_cooldown = text_display_timers.name_change_cooldown.clamp(-10.0, 3.0);
+    text_display_timers.name_change_cooldown =
+        text_display_timers.name_change_cooldown.clamp(-10.0, 3.0);
     text_display_timers.overall_name_selection_cooldown -= time.delta_seconds();
-    text_display_timers.overall_name_selection_cooldown = text_display_timers.overall_name_selection_cooldown.clamp(-10.0, 3.0);
+    text_display_timers.overall_name_selection_cooldown = text_display_timers
+        .overall_name_selection_cooldown
+        .clamp(-10.0, 3.0);
 
     if text_display_timers.name_change_cooldown > 0.0 {
         return;
@@ -131,15 +137,18 @@ fn pick_mecha(
     let mut rng = thread_rng();
     if text_display_timers.overall_name_selection_cooldown < 0.0 {
         // select mechaburro
-        let actual_choices = game_state.burros.iter().filter(|b| b.is_bot).collect::<Vec::<_>>();
+        let actual_choices = game_state
+            .burros
+            .iter()
+            .filter(|b| b.is_bot)
+            .collect::<Vec<_>>();
         if let Some(choice) = actual_choices.choose(&mut rng) {
-            pick_mecha_event_writer.send(PickMechaEvent { 
-                burro_skin: choice.skin
+            pick_mecha_event_writer.send(PickMechaEvent {
+                burro_skin: choice.skin,
             });
 
             for mut text in texts.iter_mut() {
-                text.sections[0].value = 
-                match choice.skin {
+                text.sections[0].value = match choice.skin {
                     game_state::BurroSkin::Pinata => "Pinata",
                     game_state::BurroSkin::Meow => "Meow",
                     game_state::BurroSkin::Salud => "Salud",
@@ -148,12 +157,22 @@ fn pick_mecha(
                     game_state::BurroSkin::Morir => "Morir",
                     game_state::BurroSkin::Gators => "Gators",
                     game_state::BurroSkin::Aguas => "Aguas",
-                }.to_string();
+                }
+                .to_string();
             }
         }
     } else {
         // change name
-        let display_texts = ["Pinata", "Meow", "Salud", "Mexico", "Medianoche", "Morir", "Gators", "Aguas"];
+        let display_texts = [
+            "Pinata",
+            "Meow",
+            "Salud",
+            "Mexico",
+            "Medianoche",
+            "Morir",
+            "Gators",
+            "Aguas",
+        ];
 
         for mut text in texts.iter_mut() {
             if let Some(choice) = display_texts.choose(&mut rng) {
