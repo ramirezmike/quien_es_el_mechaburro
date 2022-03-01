@@ -20,8 +20,8 @@ impl Plugin for TitlePlugin {
 #[derive(Component)]
 struct CleanupMarker;
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const NORMAL_BUTTON: Color = Color::rgba(1.00, 1.00, 1.00, 0.0);
+const HOVERED_BUTTON: Color = Color::rgb(1.00, 1.00, 0.75);
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub enum MenuAction {
@@ -60,7 +60,7 @@ pub fn load(
     assets_handler.add_audio(&mut game_assets.bgm_1, "audio/chill.wav");
     assets_handler.add_audio(&mut game_assets.sfx_1, "audio/blip.wav");
     assets_handler.add_audio(&mut game_assets.sfx_2, "audio/select.wav");
-    assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
+    assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
     assets_handler.add_material(
         &mut game_assets.title_screen_background,
         "textures/background.png",
@@ -148,7 +148,7 @@ fn setup(
                 TextStyle {
                     font: game_assets.font.clone(),
                     font_size: 40.0,
-                    color: Color::rgba(0.8, 0.8, 0.8, 1.0),
+                    color: Color::rgba(0.0, 0.0, 0.0, 1.0),
                 },
                 TextAlignment::default(),
             ),
@@ -184,7 +184,7 @@ fn setup(
                     TextStyle {
                         font: game_assets.font.clone(),
                         font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
+                        color: Color::rgb(0.0, 0.0, 0.0),
                     },
                     Default::default(),
                 ),
@@ -221,7 +221,7 @@ fn setup(
                     TextStyle {
                         font: game_assets.font.clone(),
                         font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
+                        color: Color::rgb(0.0, 0.0, 0.0),
                     },
                     Default::default(),
                 ),

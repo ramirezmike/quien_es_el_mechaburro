@@ -1,4 +1,4 @@
-use crate::{burro, player, player::PlayerAction};
+use crate::{burro, player, player::PlayerAction, AppState, game_state};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use rand::seq::SliceRandom;
@@ -8,10 +8,10 @@ pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(update_bot_ai.label("ai")).add_system(
-            update_virtual_controllers
-                .after("ai")
-                .before("handle_input"),
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(update_bot_ai.label("ai"))
+                .with_system(update_virtual_controllers.after("ai").before("handle_input"))
         );
     }
 }
@@ -62,11 +62,11 @@ pub struct BotBundle {
     input_manager: InputManagerBundle<PlayerAction>,
 }
 
-impl Default for BotBundle {
-    fn default() -> Self {
+impl BotBundle {
+    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
         BotBundle {
             player: player::Player::new(),
-            burro: burro::Burro::default(),
+            burro: burro::Burro::new(burro_skin),
             bot: Bot::default(),
             input_manager: InputManagerBundle {
                 input_map: InputMap::default(),

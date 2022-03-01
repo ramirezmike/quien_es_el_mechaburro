@@ -1,4 +1,4 @@
-use crate::{bullet::BulletEvent, burro, collision, direction, AppState};
+use crate::{bullet::BulletType, bullet::BulletEvent, burro, collision, direction, AppState, game_state};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use std::collections::HashMap;
@@ -8,8 +8,11 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<PlayerAction>::default())
             .add_event::<PlayerMoveEvent>()
-            .add_system(handle_input.label("handle_input"))
-            .add_system(move_player.after("handle_input"));
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(handle_input.label("handle_input"))
+                    .with_system(move_player.after("handle_input"))
+            );
     }
 }
 
@@ -35,7 +38,7 @@ impl ZeroSignum for Vec3 {
 
 fn move_player(
     time: Res<Time>,
-    mut player_transform: Query<(Entity, &mut Transform, &mut Player)>,
+    mut player_transform: Query<(Entity, &mut Transform, &mut Player, &burro::Burro)>,
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
     collidables: Res<collision::Collidables>,
 ) {
@@ -44,7 +47,7 @@ fn move_player(
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
-    for (entity, mut transform, mut player) in player_transform.iter_mut() {
+    for (entity, mut transform, mut player, burro) in player_transform.iter_mut() {
         let speed: f32 = player.speed;
         let rotation_speed: f32 = player.rotation_speed;
         let friction: f32 = player.friction;
@@ -71,7 +74,7 @@ fn move_player(
 
         if player.velocity.length() > 0.01 {
             let bobbing_velocity =
-                (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0).sin()
+                (time.seconds_since_startup() as f32 * (2.0 * std::f32::consts::PI) * 4.0 * burro.random).sin()
                     as f32;
             transform.translation.y += bobbing_velocity * (time.delta_seconds() * 4.0);
         //          transform.rotate(Quat::from_rotation_x(
@@ -105,6 +108,8 @@ pub enum PlayerAction {
     ActionLeft,
     ActionRight,
     Pause,
+
+    Debug,
 }
 
 impl PlayerAction {
@@ -156,20 +161,17 @@ pub struct PlayerBundle {
     input_manager: InputManagerBundle<PlayerAction>,
 }
 
-impl Default for PlayerBundle {
-    fn default() -> Self {
+impl PlayerBundle {
+    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
         PlayerBundle {
             player: Player::new(),
-            burro: burro::Burro::default(),
+            burro: burro::Burro::new(burro_skin),
             input_manager: InputManagerBundle {
                 input_map: PlayerBundle::default_input_map(),
                 action_state: ActionState::default(),
             },
         }
     }
-}
-
-impl PlayerBundle {
     fn default_input_map() -> InputMap<PlayerAction> {
         use PlayerAction::*;
         let mut input_map = InputMap::default();
@@ -208,6 +210,7 @@ impl PlayerBundle {
 
         // Other
         input_map.insert(Pause, KeyCode::Escape);
+        input_map.insert(Debug, KeyCode::X);
 
         input_map
     }
@@ -247,6 +250,10 @@ fn handle_input(
             app_state.push(AppState::Pause).unwrap();
         }
 
+        if action_state.just_pressed(&PlayerAction::Debug) {
+            burro.hit();
+        }
+
         if burro.can_fire() {
             use std::f32::consts::PI;
 
@@ -258,6 +265,7 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(1.0, 0.0, 0.0),
+                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -271,6 +279,7 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(-1.0, 0.0, 0.0),
+                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -284,6 +293,7 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(0.0, 0.0, -1.0),
+                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
                 });
                 burro.fire();
                 player.is_firing = true;
@@ -297,6 +307,7 @@ fn handle_input(
                     time_to_live: burro.bullet_time_alive,
                     position: transform.translation,
                     direction: Vec3::new(0.0, 0.0, 1.0),
+                    bullet_type: if burro.is_mechaburro { BulletType::Laser } else { BulletType::Candy },
                 });
                 burro.fire();
                 player.is_firing = true;

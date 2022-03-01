@@ -1,11 +1,15 @@
 use bevy::prelude::*;
+use crate::{game_state, AppState};
 
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(handle_burros.label("handle_burros"))
-            .add_system(handle_burro_death_events.after("handle_burros"))
-            .add_system(handle_burro_flash_events)
+        app.add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(handle_burros.label("handle_burros"))
+                    .with_system(handle_burro_death_events.after("handle_burros"))
+                    .with_system(handle_burro_flash_events)
+            )
             .add_event::<BurroFlashEvent>()
             .add_event::<BurroDeathEvent>();
     }
@@ -22,6 +26,7 @@ struct BurroFlashEvent {
 
 #[derive(Component)]
 pub struct Burro {
+    pub burro_skin: game_state::BurroSkin,
     pub max_health: usize,
     pub health: usize,
     pub bullet_speed: f32,
@@ -29,11 +34,17 @@ pub struct Burro {
     pub fire_cooldown: f32,
     pub invulnerability_cooldown: f32,
     pub is_visible: bool,
+    pub is_mechaburro: bool,
+    pub random: f32,
 }
 
-impl Default for Burro {
-    fn default() -> Self {
+impl Burro {
+    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+
         Burro {
+            burro_skin,
             max_health: 3,
             health: 3,
             bullet_speed: 6.0,
@@ -41,13 +52,13 @@ impl Default for Burro {
             fire_cooldown: 0.0,
             invulnerability_cooldown: 0.0,
             is_visible: true,
+            is_mechaburro: false,
+            random: rng.gen_range(0.5..1.0),
         }
     }
-}
 
-impl Burro {
     pub fn can_fire(&self) -> bool {
-        self.fire_cooldown <= 0.0
+        self.fire_cooldown <= 0.0 && !self.is_invulnerable()
     }
 
     pub fn fire(&mut self) {
@@ -79,16 +90,22 @@ impl Burro {
 }
 
 fn handle_burro_flash_events(
-    mut assets_materials: ResMut<Assets<StandardMaterial>>,
-    materials: Query<&Handle<StandardMaterial>>,
-    children: Query<&Children>,
-    mut burros: Query<&mut Burro>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut burros: Query<(&mut Burro, &Handle<StandardMaterial>)>,
     mut flash_event_reader: EventReader<BurroFlashEvent>,
 ) {
     for event in flash_event_reader.iter() {
-        if let Ok(mut burro) = burros.get_mut(event.entity) {
+        if let Ok((mut burro, material_handle)) = burros.get_mut(event.entity) {
             burro.is_visible = event.show;
-            println!("Entity: {:?} visible: {}", event.entity, burro.is_visible);
+            if let Some(mut material) = materials.get_mut(material_handle) {
+                if event.show {
+                    material.alpha_mode = AlphaMode::Opaque;
+                    material.base_color.set_a(1.0);
+                } else {
+                    material.alpha_mode = AlphaMode::Blend;
+                    material.base_color.set_a(0.6);
+                }
+            }
         }
     }
 }
@@ -100,8 +117,9 @@ fn handle_burros(
     mut burro_death_event_writer: EventWriter<BurroDeathEvent>,
     mut flash_event_writer: EventWriter<BurroFlashEvent>,
 ) {
-    let current_sin = time.seconds_since_startup().sin();
     for (entity, mut burro) in burros.iter_mut() {
+        let current_sin = (time.seconds_since_startup() as f32 * (1.0 + burro.random) * 8.0).sin();
+
         // handling burro deaths
         if burro.health == 0 {
             burro_death_event_writer.send(BurroDeathEvent { entity });

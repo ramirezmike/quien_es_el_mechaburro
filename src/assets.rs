@@ -18,6 +18,7 @@ pub struct GameAssets {
     pub sfx_2: Handle<AudioSource>,
     pub level: Handle<Gltf>,
     pub candy: GameMesh,
+    pub laser: GameMesh,
     pub title_screen_background: asset_loading::GameTexture,
 
     pub burro: GameMesh,
@@ -29,6 +30,7 @@ pub struct GameAssets {
     pub morir_texture: asset_loading::GameTexture,
     pub gators_texture: asset_loading::GameTexture,
     pub aguas_texture: asset_loading::GameTexture,
+    pub mechaburro_texture: asset_loading::GameTexture,
 }
 
 #[derive(Default)]

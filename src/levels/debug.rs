@@ -82,6 +82,7 @@ pub fn load(
 ) {
     assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
     assets_handler.add_mesh(&mut game_assets.candy.mesh, "models/candy.gltf#Mesh0/Primitive0");
+    assets_handler.add_mesh(&mut game_assets.laser.mesh, "models/laser.gltf#Mesh0/Primitive0");
     assets_handler.add_mesh(&mut game_assets.burro.mesh, "models/burro.gltf#Mesh0/Primitive0");
     assets_handler.add_material(&mut game_assets.pinata_texture, "textures/pinata.png", false);
     assets_handler.add_material(&mut game_assets.meow_texture, "textures/meow.png", false);
@@ -91,6 +92,7 @@ pub fn load(
     assets_handler.add_material(&mut game_assets.morir_texture, "textures/morir.png", false);
     assets_handler.add_material(&mut game_assets.gators_texture, "textures/gators.png", false);
     assets_handler.add_material(&mut game_assets.aguas_texture, "textures/aguas.png", false);
+    assets_handler.add_material(&mut game_assets.mechaburro_texture, "textures/mechaburro.png", false);
 }
 
 fn setup(
@@ -100,6 +102,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut collidables: ResMut<collision::Collidables>,
     game_state: Res<game_state::GameState>,
+    mut app_state: ResMut<State<AppState>>,
 ) {
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
@@ -142,16 +145,18 @@ fn setup(
                 commands
                     .spawn_bundle(burro_bundle)
                     .insert(CleanupMarker)
-                    .insert_bundle(bot::BotBundle::default());
+                    .insert_bundle(bot::BotBundle::new(b.skin));
             } else {
                 commands
                     .spawn_bundle(burro_bundle)
                     .insert(CleanupMarker)
-                    .insert_bundle(player::PlayerBundle::default());
+                    .insert_bundle(player::PlayerBundle::new(b.skin));
             }
         });
 
     collidables.reset();
+
+    app_state.push(AppState::MechaPicker).unwrap();
 }
 
 fn update() {}
