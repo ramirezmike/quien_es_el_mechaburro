@@ -1,11 +1,15 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::PerspectiveProjection;
+use noise::{NoiseFn, Perlin};
+use crate::{inspect};
 
 pub struct GameCameraPlugin;
 impl Plugin for GameCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(pan_orbit_camera);
+        app.insert_resource(Perlin::new())
+            .add_system(handle_camera_shake)
+            .add_system(pan_orbit_camera);
     }
 }
 
@@ -23,6 +27,41 @@ impl Default for PanOrbitCamera {
             radius: 5.0,
             upside_down: false,
         }
+    }
+}
+
+fn handle_camera_shake(
+    time: Res<Time>,
+    perlin: Res<Perlin>,
+    mut query: Query<(&mut PanOrbitCamera, &mut Transform, &PerspectiveProjection)>,
+    inspector_data: Res<inspect::InspectorData>,
+) {
+    let delta_seconds = time.delta_seconds() as f64;
+    let perlin_value_1 = perlin.get([delta_seconds, 37.7, 2.8]) as f32;
+    let perlin_value_2 = perlin.get([delta_seconds, 38.7, 2.8]) as f32;
+    let perlin_value_3 = perlin.get([delta_seconds, 39.7, 2.8]) as f32;
+
+
+    let shake = inspector_data.camera_shake;
+    
+    let max_yaw = inspector_data.max_camera_yaw;
+    let max_pitch = inspector_data.max_camera_pitch;
+    let max_roll = inspector_data.max_camera_roll;
+
+
+    let yaw = Quat::from_rotation_y(max_yaw * shake * perlin_value_1);
+    let pitch = Quat::from_rotation_x(max_pitch * shake * perlin_value_2);
+    let roll = Quat::from_rotation_z(max_roll * shake * perlin_value_3);
+
+    for (_, mut transform, _) in query.iter_mut() {
+//      transform.rotation = yaw;
+//      transform.rotation = pitch;
+//      transform.rotation = roll;
+
+        let perlin_value = ((perlin.get([-delta_seconds, delta_seconds]) as f32) + 0.05) * 0.0001;
+        println!("{}", perlin_value);
+//        transform.translation += Vec3::new(perlin_value, 0.0, 0.0) * 0.5;
+        transform.rotation *= Quat::from_rotation_y(perlin_value);
     }
 }
 
