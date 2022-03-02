@@ -10,6 +10,7 @@ impl Plugin for GameStatePlugin {
 #[derive(Default)]
 pub struct GameState {
     pub burros: Vec<BurroState>,
+    pub dead_burros: Vec<BurroSkin>,
 }
 
 impl GameState {
@@ -47,7 +48,11 @@ impl GameState {
             });
         }
 
-        GameState { burros }
+        GameState { burros, dead_burros: vec!() }
+    }
+
+    pub fn on_new_level(&mut self) {
+        self.dead_burros = vec!();
     }
 }
 

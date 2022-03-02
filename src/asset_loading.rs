@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, levels, title_screen, AppState, cleanup};
+use crate::{assets::GameAssets, cleanup, levels, title_screen, AppState};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -8,10 +8,7 @@ impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NextState>()
             .init_resource::<AssetsLoading>()
-            .add_system_set(
-                SystemSet::on_enter(AppState::Loading)
-                    .with_system(setup)
-            )
+            .add_system_set(SystemSet::on_enter(AppState::Loading).with_system(setup))
             .add_system_set(
                 SystemSet::on_exit(AppState::Loading).with_system(cleanup::<CleanupMarker>),
             )
@@ -137,7 +134,7 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
     }
 }
 
-fn setup( 
+fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     // mut audio: GameAudio, #TODO loading specific music?

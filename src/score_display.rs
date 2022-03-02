@@ -1,70 +1,33 @@
 use crate::{asset_loading, assets::GameAssets, burro, cleanup, game_state, AppState};
 use bevy::prelude::*;
 
-pub struct InGameUIPlugin;
-impl Plugin for InGameUIPlugin {
+pub struct ScoreDisplayPlugin;
+impl Plugin for ScoreDisplayPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Debug).with_system(setup))
+        app.add_system_set(
+            SystemSet::on_enter(AppState::ScoreDisplay).with_system(setup),
+        )
+
             .add_system_set(
-                SystemSet::on_enter(AppState::ScoreDisplay).with_system(cleanup::<CleanupMarker>),
-            )
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(update_hearts)
-                    .with_system(detect_round_over),
-            );
+            SystemSet::on_exit(AppState::ScoreDisplay).with_system(cleanup::<CleanupMarker>),
+        );
     }
+}
+
+enum ScoreState {
+    Initial,
+    Adding,
+    Displaying,
 }
 
 #[derive(Component)]
 struct CleanupMarker;
 
-fn detect_round_over(mut app_state: ResMut<State<AppState>>, burros: Query<&burro::Burro>) {
-    if burros.iter().count() == 1 {
-        app_state.push(AppState::ScoreDisplay).unwrap();
-    }
-}
-
-fn update_hearts(
-    game_state: Res<game_state::GameState>,
-    burros: Query<&burro::Burro>,
-    mut hearts: Query<&mut Visibility, With<UiImage>>,
-) {
-    game_state.burros.iter().for_each(|burro_state| {
-        let burro = burros
-            .iter()
-            .filter(|b| b.burro_skin == burro_state.skin)
-            .last();
-
-        if let Some(burro) = burro {
-            burro_state
-                .hearts
-                .iter()
-                .enumerate()
-                .for_each(|(i, entity)| {
-                    if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
-                        heart_visibility.is_visible = i < burro.health;
-                    }
-                });
-        } else {
-            // burro must be dead already
-            burro_state
-                .hearts
-                .iter()
-                .enumerate()
-                .for_each(|(i, entity)| {
-                    if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
-                        heart_visibility.is_visible = false;
-                    }
-                });
-        }
-    });
-}
-
 fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     mut game_state: ResMut<game_state::GameState>,
+    mut app_state: ResMut<State<AppState>>,
 ) {
     commands
         .spawn_bundle(UiCameraBundle::default())
@@ -74,8 +37,8 @@ fn setup(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                position_type: PositionType::Absolute,
+                align_self: AlignSelf::Center,
+                margin: Rect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::FlexEnd,
                 ..Default::default()
@@ -83,7 +46,6 @@ fn setup(
             color: Color::NONE.into(),
             ..Default::default()
         })
-        .insert(CleanupMarker)
         .with_children(|parent| {
             parent
                 .spawn_bundle(NodeBundle {
@@ -169,59 +131,28 @@ fn setup(
                             let padding = 40.0;
 
                             game_state.burros.iter_mut().for_each(|mut burro| {
-                                burro.hearts = vec![];
-                                burro.hearts.push(
-                                    parent
-                                        .spawn_bundle(ImageBundle {
-                                            style: Style {
-                                                size: Size::new(Val::Px(20.0), Val::Auto),
-                                                margin: Rect {
-                                                    top: Val::Px(100.0),
-                                                    left: Val::Px(padding),
-                                                    ..Default::default()
-                                                },
+                                parent
+                                    .spawn_bundle(TextBundle {
+                                        style: Style {
+                                            size: Size::new(Val::Px(20.0), Val::Auto),
+                                            margin: Rect {
+                                                top: Val::Px(100.0),
+                                                left: Val::Px(padding),
                                                 ..Default::default()
                                             },
-                                            image: game_assets.heart_texture.image.clone().into(),
                                             ..Default::default()
-                                        })
-                                        .id(),
-                                );
-
-                                burro.hearts.push(
-                                    parent
-                                        .spawn_bundle(ImageBundle {
-                                            style: Style {
-                                                size: Size::new(Val::Px(20.0), Val::Auto),
-                                                margin: Rect {
-                                                    top: Val::Px(100.0),
-                                                    ..Default::default()
-                                                },
-                                                ..Default::default()
+                                        },
+                                        text: Text::with_section(
+                                            format!("{}", burro.score).to_string(),
+                                            TextStyle {
+                                                font: game_assets.font.clone(),
+                                                font_size: 20.0,
+                                                color: Color::WHITE,
                                             },
-                                            image: game_assets.heart_texture.image.clone().into(),
-                                            ..Default::default()
-                                        })
-                                        .id(),
-                                );
-
-                                burro.hearts.push(
-                                    parent
-                                        .spawn_bundle(ImageBundle {
-                                            style: Style {
-                                                size: Size::new(Val::Px(20.0), Val::Auto),
-                                                margin: Rect {
-                                                    top: Val::Px(100.0),
-                                                    right: Val::Px(padding),
-                                                    ..Default::default()
-                                                },
-                                                ..Default::default()
-                                            },
-                                            image: game_assets.heart_texture.image.clone().into(),
-                                            ..Default::default()
-                                        })
-                                        .id(),
-                                );
+                                            TextAlignment::default(),
+                                        ),
+                                        ..Default::default()
+                                    });
                             });
                         });
                 });

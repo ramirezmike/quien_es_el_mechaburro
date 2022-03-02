@@ -59,7 +59,7 @@ fn setup(
             ..Default::default()
         })
         .with_children(|parent| {
-            parent 
+            parent
                 .spawn_bundle(TextBundle {
                     style: Style {
                         position_type: PositionType::Relative,
@@ -84,7 +84,7 @@ fn setup(
                 })
                 .insert(CleanupMarker);
 
-            parent 
+            parent
                 .spawn_bundle(TextBundle {
                     style: Style {
                         position_type: PositionType::Relative,

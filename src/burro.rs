@@ -17,6 +17,7 @@ impl Plugin for BurroPlugin {
 
 struct BurroDeathEvent {
     entity: Entity,
+    skin: game_state::BurroSkin, 
 }
 
 struct BurroFlashEvent {
@@ -122,7 +123,7 @@ fn handle_burros(
 
         // handling burro deaths
         if burro.health == 0 {
-            burro_death_event_writer.send(BurroDeathEvent { entity });
+            burro_death_event_writer.send(BurroDeathEvent { entity, skin: burro.burro_skin });
             continue;
         }
 
@@ -153,9 +154,11 @@ fn handle_burros(
 fn handle_burro_death_events(
     mut commands: Commands,
     mut burro_death_event_reader: EventReader<BurroDeathEvent>,
+    mut game_state: ResMut<game_state::GameState>,
 ) {
     for death_event in burro_death_event_reader.iter() {
         commands.entity(death_event.entity).despawn_recursive();
+        game_state.dead_burros.push(death_event.skin);
         // probably do a bunch of UI/animation stuff here and play sounds or something
     }
 }

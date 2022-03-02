@@ -20,6 +20,7 @@ mod levels;
 mod mecha_picker;
 mod mesh;
 mod player;
+mod score_display;
 mod title_screen;
 
 fn main() {
@@ -42,6 +43,7 @@ fn main() {
         .add_plugin(inspect::InspectPlugin)
         .add_plugin(levels::debug::DebugRoomPlugin)
         .add_plugin(player::PlayerPlugin)
+        .add_plugin(score_display::ScoreDisplayPlugin)
         .add_plugin(collision::WorldCollisionPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
@@ -58,6 +60,7 @@ pub enum AppState {
     TitleScreen,
     ModelLoading,
     MechaPicker,
+    ScoreDisplay,
     Loading,
 }
 
