@@ -33,6 +33,7 @@ impl GameState {
                 score: 0,
                 skin: skins[i],
                 is_bot: false,
+                hearts: vec![],
             });
         }
 
@@ -42,6 +43,7 @@ impl GameState {
                 score: 0,
                 skin: skins[burro_count - bot_count + i],
                 is_bot: true,
+                hearts: vec![],
             });
         }
 
@@ -60,6 +62,7 @@ pub enum BurroSkin {
     Gators,
     Aguas,
 }
+
 impl Default for BurroSkin {
     fn default() -> Self {
         BurroSkin::Pinata
@@ -71,4 +74,5 @@ pub struct BurroState {
     pub score: usize,
     pub skin: BurroSkin,
     pub is_bot: bool,
+    pub hearts: Vec<Entity>,
 }

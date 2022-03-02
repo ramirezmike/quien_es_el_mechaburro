@@ -45,28 +45,12 @@ fn setup(
     text_display_timers.overall_name_selection_cooldown = 3.0;
     text_display_timers.has_picked = false;
 
-    // UI camera
-    commands
-        .spawn_bundle(UiCameraBundle::default())
-        .insert(CleanupMarker);
     // Text with one section
     commands
         .spawn_bundle(TextBundle {
             style: Style {
                 align_self: AlignSelf::Center,
-                //justify_content: JustifyContent::Center,
-                //position_type: PositionType::Absolute,
-                //              margin: Rect {
-                //                  left: Val::Auto,
-                //                  right: Val::Auto,
-                //                  ..Default::default()
-                //              },
-                //              position: Rect {
-                //                  left: Val::Auto,
-                //                  right: Val::Auto,
-                //                  //top: Val::Percent(50.0),
-                //                  ..Default::default()
-                //              },
+                margin: Rect::all(Val::Auto),
                 ..Default::default()
             },
             text: Text::with_section(

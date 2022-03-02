@@ -1,5 +1,6 @@
 use crate::{
-    bullet::BulletEvent, bullet::BulletType, burro, collision, direction, game_state, AppState,
+    assets::GameAssets, bullet::BulletEvent, bullet::BulletType, burro, collision, direction,
+    game_state, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -96,6 +97,18 @@ fn move_player(
         // don't rotate if we're not moving or if uhh rotation isnt a number?? why isn't it a number? who did this
         if !new_rotation.is_nan() && player.velocity.length() > 0.0001 && !player.is_firing {
             transform.rotation = rotation;
+        }
+
+        // make the burros all squishy like
+        if transform.scale.x != 1.0 || transform.scale.y != 1.0 {
+            let new_scale = transform
+                .scale
+                .lerp(Vec3::new(1.0, 1.0, 1.0), time.delta_seconds() * 4.0);
+            if new_scale.is_nan() || transform.scale.distance(new_scale) < 0.0001 {
+                transform.scale = Vec3::new(1.0, 1.0, 1.0);
+            } else {
+                transform.scale = new_scale;
+            }
         }
     }
 }
@@ -233,11 +246,16 @@ fn handle_input(
         &mut Transform,
         &mut burro::Burro,
         &mut Player,
+        &mut Handle<StandardMaterial>,
     )>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
+    game_assets: Res<GameAssets>,
+    mut skin_index: Local<usize>,
 ) {
-    for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
+    for (entity, action_state, mut transform, mut burro, mut player, mut material) in
+        player.iter_mut()
+    {
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
@@ -255,7 +273,23 @@ fn handle_input(
         }
 
         if action_state.just_pressed(&PlayerAction::Debug) {
-            burro.hit();
+            *skin_index += 1;
+            if *skin_index > 7 {
+                *skin_index = 0;
+            }
+
+            let skin = match *skin_index {
+                1 => &game_assets.meow_texture.material,
+                2 => &game_assets.salud_texture.material,
+                3 => &game_assets.mexico_texture.material,
+                4 => &game_assets.medianoche_texture.material,
+                5 => &game_assets.morir_texture.material,
+                6 => &game_assets.gators_texture.material,
+                7 => &game_assets.aguas_texture.material,
+                8 => &game_assets.mechaburro_texture.material,
+                _ => &game_assets.pinata_texture.material,
+            };
+            *material = skin.clone();
         }
 
         if burro.can_fire() {
@@ -278,6 +312,7 @@ fn handle_input(
                 burro.fire();
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, 0.0);
+                transform.scale = Vec3::new(0.7, 1.4, 1.0);
             }
 
             if action_state.pressed(&PlayerAction::ActionDown) {
@@ -296,6 +331,7 @@ fn handle_input(
                 burro.fire();
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI);
+                transform.scale = Vec3::new(0.7, 1.4, 1.0);
             }
 
             if action_state.pressed(&PlayerAction::ActionLeft) {
@@ -314,6 +350,7 @@ fn handle_input(
                 burro.fire();
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI / 2.0);
+                transform.scale = Vec3::new(0.7, 1.4, 1.0);
             }
 
             if action_state.pressed(&PlayerAction::ActionRight) {
@@ -332,6 +369,7 @@ fn handle_input(
                 burro.fire();
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, (3.0 * PI) / 2.0);
+                transform.scale = Vec3::new(0.7, 1.4, 1.0);
             }
         }
     }

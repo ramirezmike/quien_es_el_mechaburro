@@ -69,6 +69,49 @@ pub fn load(
         "textures/mechaburro.png",
         false,
     );
+
+    assets_handler.add_material(
+        &mut game_assets.pinata_logo_texture,
+        "textures/pinata_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.meow_logo_texture,
+        "textures/meow_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.salud_logo_texture,
+        "textures/salud_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.mexico_logo_texture,
+        "textures/mexico_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.medianoche_logo_texture,
+        "textures/medianoche_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.morir_logo_texture,
+        "textures/morir_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.gators_logo_texture,
+        "textures/gators_icon.png",
+        true,
+    );
+    assets_handler.add_material(
+        &mut game_assets.aguas_logo_texture,
+        "textures/aguas_icon.png",
+        true,
+    );
+
+    assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
 }
 
 fn setup(

@@ -1,5 +1,6 @@
 use crate::{
-    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, mesh, AppState,
+    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, mesh,
+    AppState,
 };
 use bevy::app::{AppExit, Events};
 use bevy::prelude::*;
@@ -9,7 +10,9 @@ pub struct TitlePlugin;
 impl Plugin for TitlePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<MenuAction>::default())
-            .add_system_set(SystemSet::on_enter(AppState::TitleScreen).with_system(setup))
+            .add_system_set(
+                SystemSet::on_enter(AppState::TitleScreen).with_system(setup), //.with_system(game_camera::spawn_camera)
+            )
             .add_system_set(
                 SystemSet::on_update(AppState::TitleScreen).with_system(update_menu_buttons),
             )
@@ -68,6 +71,11 @@ pub fn load(
         "textures/background.png",
         false,
     );
+    assets_handler.add_material(
+        &mut game_assets.title_screen_logo,
+        "textures/logo.png",
+        true,
+    );
 }
 
 fn setup(
@@ -97,6 +105,16 @@ fn setup(
         .insert(CleanupMarker)
         .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::Z));
 
+    commands
+        .spawn_bundle(mesh::MeshBuilder::plane(
+            &mut meshes,
+            &mut images,
+            &game_assets.title_screen_logo,
+            3.0,
+            1.0,
+        ))
+        .insert(CleanupMarker);
+
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 1.00,
@@ -121,7 +139,7 @@ fn setup(
                         far: 10.0 * HALF_SIZE,
                         ..Default::default()
                     },
-                    shadows_enabled: true,
+                    shadows_enabled: false,
                     ..Default::default()
                 },
                 transform: Transform {
@@ -149,7 +167,7 @@ fn setup(
                 "by michael ramirez".to_string(),
                 TextStyle {
                     font: game_assets.font.clone(),
-                    font_size: 40.0,
+                    font_size: 20.0,
                     color: Color::rgba(0.0, 0.0, 0.0, 1.0),
                 },
                 TextAlignment::default(),

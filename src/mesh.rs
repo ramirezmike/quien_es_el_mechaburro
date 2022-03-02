@@ -1,4 +1,4 @@
-use crate::asset_loading::GameTexture;
+use crate::{asset_loading::GameTexture, assets::GameAssets};
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy::render::render_resource::AddressMode;
@@ -38,6 +38,39 @@ impl MeshBuilder {
         }
     }
 
+    pub fn plane(
+        meshes: &mut ResMut<Assets<Mesh>>,
+        images: &mut ResMut<Assets<Image>>,
+        game_texture: &GameTexture,
+        size: f32,
+        z_index: f32,
+    ) -> PbrBundle {
+        let image = images.get_mut(game_texture.image.clone());
+
+        let mut mesh = Mesh::from(shape::Plane::default());
+        //      if let Some(VertexAttributeValues::Float32x2(uvs)) =
+        //          mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0)
+        //      {
+        //          for uv in uvs {
+        //              uv[0] *= size / 4.0;
+        //              uv[1] *= size / 4.0;
+        //          }
+        //      }
+
+        PbrBundle {
+            transform: {
+                let mut transform = Transform::from_scale(Vec3::splat(size));
+                transform.translation.y = z_index;
+                //transform.rotate(Quat::from_rotation_y(2.0 * std::f32::consts::PI));
+
+                transform
+            },
+            material: game_texture.material.clone(),
+            mesh: meshes.add(mesh),
+            ..Default::default()
+        }
+    }
+
     pub fn plane_repeating(
         meshes: &mut ResMut<Assets<Mesh>>,
         images: &mut ResMut<Assets<Image>>,
@@ -69,7 +102,20 @@ impl MeshBuilder {
     }
 }
 
-fn scroll_meshes(time: Res<Time>, mut scroll_meshes: Query<(&mut ScrollingPane, &mut Transform)>) {
+fn scroll_meshes(
+    time: Res<Time>,
+    mut scroll_meshes: Query<(&mut ScrollingPane, &mut Transform)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
+    game_assets: Res<GameAssets>,
+) {
+    // this might be bad to do every frame
+    let image = images.get_mut(&game_assets.title_screen_background.image.clone());
+    if let Some(image) = image {
+        image.sampler_descriptor.address_mode_u = AddressMode::Repeat;
+        image.sampler_descriptor.address_mode_v = AddressMode::Repeat;
+    }
+
     for (mut pane, mut transform) in scroll_meshes.iter_mut() {
         /*
             pub offset: f32,

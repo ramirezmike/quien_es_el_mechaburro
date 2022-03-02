@@ -83,6 +83,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         self.add_asset(&mut game_texture.image, path);
         game_texture.material = self.materials.add(StandardMaterial {
             base_color_texture: Some(game_texture.image.clone()),
+            unlit: true,
             alpha_mode: if transparent {
                 AlphaMode::Blend
             } else {
@@ -118,6 +119,7 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
     }
 
     if ready {
+        println!("Loaded");
         assets_handler.assets_loading.asset_handles = vec![]; // clear list since we've loaded everything
         assets_handler
             .state

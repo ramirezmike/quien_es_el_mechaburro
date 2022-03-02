@@ -14,7 +14,7 @@ mod collision;
 mod direction;
 mod game_camera;
 mod game_state;
-//mod ingame;
+mod ingame_ui;
 mod inspect;
 mod levels;
 mod mecha_picker;
@@ -38,7 +38,7 @@ fn main() {
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(mecha_picker::MechaPickerPlugin)
         .add_plugin(title_screen::TitlePlugin)
-        //.add_plugin(ingame::InGamePlugin)
+        .add_plugin(ingame_ui::InGameUIPlugin)
         .add_plugin(inspect::InspectPlugin)
         .add_plugin(levels::debug::DebugRoomPlugin)
         .add_plugin(player::PlayerPlugin)
