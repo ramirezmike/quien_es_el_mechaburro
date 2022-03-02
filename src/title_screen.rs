@@ -177,78 +177,77 @@ fn setup(
         .insert(CleanupMarker);
 
     commands
-        .spawn_bundle(ButtonBundle {
+        .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
+                size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
                 position_type: PositionType::Absolute,
-                position: Rect {
-                    bottom: Val::Percent(15.0),
-                    left: Val::Percent(45.0),
-                    ..Default::default()
-                },
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::FlexStart,
                 ..Default::default()
             },
-            color: NORMAL_BUTTON.into(),
+            color: Color::NONE.into(),
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
-                text: Text::with_section(
-                    "Start",
-                    TextStyle {
-                        font: game_assets.font.clone(),
-                        font_size: 40.0,
-                        color: Color::rgb(0.0, 0.0, 0.0),
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        position_type: PositionType::Relative,
+                        ..Default::default()
                     },
-                    Default::default(),
-                ),
-                ..Default::default()
-            });
-        })
-        .insert(CleanupMarker);
+                    color: NORMAL_BUTTON.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "Start",
+                            TextStyle {
+                                font: game_assets.font.clone(),
+                                font_size: 40.0,
+                                color: Color::rgb(0.0, 0.0, 0.0),
+                            },
+                            Default::default(),
+                        ),
+                        ..Default::default()
+                    });
+                })
+                .insert(CleanupMarker);
 
-    commands
-        .spawn_bundle(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    bottom: Val::Percent(5.0),
-                    left: Val::Percent(45.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            color: NORMAL_BUTTON.into(),
-            ..Default::default()
-        })
-        .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
-                text: Text::with_section(
-                    "Quit",
-                    TextStyle {
-                        font: game_assets.font.clone(),
-                        font_size: 40.0,
-                        color: Color::rgb(0.0, 0.0, 0.0),
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        position_type: PositionType::Relative,
+                        ..Default::default()
                     },
-                    Default::default(),
-                ),
-                ..Default::default()
-            });
-        })
-        .insert(CleanupMarker);
+                    color: NORMAL_BUTTON.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "Quit",
+                            TextStyle {
+                                font: game_assets.font.clone(),
+                                font_size: 40.0,
+                                color: Color::rgb(0.0, 0.0, 0.0),
+                            },
+                            Default::default(),
+                        ),
+                        ..Default::default()
+                    });
+                })
+                .insert(CleanupMarker);
+        });
 
     audio.play_bgm(&game_assets.bgm_1);
 }
