@@ -45,30 +45,71 @@ fn setup(
     text_display_timers.overall_name_selection_cooldown = 3.0;
     text_display_timers.has_picked = false;
 
-    // Text with one section
     commands
-        .spawn_bundle(TextBundle {
+        .spawn_bundle(NodeBundle {
             style: Style {
                 align_self: AlignSelf::Center,
                 margin: Rect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::FlexStart,
                 ..Default::default()
             },
-            text: Text::with_section(
-                "MECHABURRO!",
-                TextStyle {
-                    font: game_assets.font.clone(),
-                    font_size: 100.0,
-                    color: Color::BLACK,
-                },
-                TextAlignment {
-                    horizontal: HorizontalAlign::Center,
-                    ..Default::default()
-                },
-            ),
+            color: Color::NONE.into(),
             ..Default::default()
         })
-        .insert(CleanupMarker)
-        .insert(TextMarker);
+        .with_children(|parent| {
+            parent 
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "Y el \nMechaburro es..",
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 60.0,
+                            color: Color::BLACK,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+                .insert(CleanupMarker);
+
+            parent 
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "MECHABURRO!",
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 100.0,
+                            color: Color::BLACK,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+                .insert(CleanupMarker)
+                .insert(TextMarker);
+        });
 }
 
 fn handle_mecha_pick_event(
