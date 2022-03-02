@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, levels, title_screen, AppState};
+use crate::{assets::GameAssets, levels, title_screen, AppState, cleanup};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -9,10 +9,20 @@ impl Plugin for AssetLoadingPlugin {
         app.init_resource::<NextState>()
             .init_resource::<AssetsLoading>()
             .add_system_set(
+                SystemSet::on_enter(AppState::Loading)
+                    .with_system(setup)
+            )
+            .add_system_set(
+                SystemSet::on_exit(AppState::Loading).with_system(cleanup::<CleanupMarker>),
+            )
+            .add_system_set(
                 SystemSet::on_update(AppState::Loading).with_system(check_assets_ready),
             );
     }
 }
+
+#[derive(Component)]
+struct CleanupMarker;
 
 #[derive(Default)]
 pub struct GameTexture {
@@ -119,11 +129,45 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
     }
 
     if ready {
-        println!("Loaded");
         assets_handler.assets_loading.asset_handles = vec![]; // clear list since we've loaded everything
         assets_handler
             .state
             .set(assets_handler.next_state.state)
             .unwrap(); // move to next state
     }
+}
+
+fn setup( 
+    mut commands: Commands,
+    game_assets: Res<GameAssets>,
+    // mut audio: GameAudio, #TODO loading specific music?
+) {
+    commands
+        .spawn_bundle(UiCameraBundle::default())
+        .insert(CleanupMarker);
+
+    commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexEnd,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            text: Text::with_section(
+                "Loading..".to_string(),
+                TextStyle {
+                    font: game_assets.font.clone(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+                TextAlignment::default(),
+            ),
+            ..Default::default()
+        })
+        .insert(CleanupMarker);
 }

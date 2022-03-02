@@ -45,6 +45,7 @@ fn main() {
         .add_plugin(collision::WorldCollisionPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .run();
 }
 
