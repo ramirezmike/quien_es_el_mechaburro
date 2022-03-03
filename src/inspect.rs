@@ -1,4 +1,4 @@
-use crate::{asset_loading, assets::GameAssets, mesh, player};
+use crate::{asset_loading, assets::GameAssets, game_camera, mesh, player};
 use bevy::prelude::*;
 use bevy::window::WindowResized;
 use bevy_inspector_egui::bevy_egui::EguiSettings;

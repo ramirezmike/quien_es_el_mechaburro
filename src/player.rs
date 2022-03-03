@@ -11,6 +11,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<PlayerAction>::default())
             .add_event::<PlayerMoveEvent>()
+            .add_system_set(SystemSet::on_update(AppState::MechaPicker).with_system(move_player))
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
                     .with_system(handle_input.label("handle_input"))

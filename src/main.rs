@@ -12,6 +12,7 @@ mod bullet;
 mod burro;
 mod collision;
 mod direction;
+mod follow_text;
 mod game_camera;
 mod game_state;
 mod ingame_ui;
@@ -35,6 +36,7 @@ fn main() {
         .add_plugin(audio::GameAudioPlugin)
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
+        .add_plugin(follow_text::FollowTextPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(mesh::MeshPlugin)

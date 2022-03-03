@@ -1,6 +1,6 @@
 use crate::{
-    asset_loading, assets::GameAssets, bot, burro::Burro, cleanup, collision, game_camera,
-    game_state, mesh, player, AppState,
+    asset_loading, assets::GameAssets, bot, burro::Burro, cleanup, collision, follow_text,
+    game_camera, game_state, mesh, player, AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -143,7 +143,10 @@ fn setup(
     mut clear_color: ResMut<ClearColor>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
+    mut camera_settings: ResMut<game_camera::CameraSettings>,
 ) {
+    camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
+
     *clear_color = ClearColor(Color::rgb(1.0, 0.65, 0.62));
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
@@ -199,10 +202,43 @@ fn setup(
                 .insert(CleanupMarker)
                 .insert_bundle(bot::BotBundle::new(b.skin));
         } else {
-            commands
+            let entity = commands
                 .spawn_bundle(burro_bundle)
                 .insert(CleanupMarker)
-                .insert_bundle(player::PlayerBundle::new(b.skin));
+                .insert_bundle(player::PlayerBundle::new(b.skin))
+                .id();
+
+            commands
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        align_self: AlignSelf::FlexEnd,
+                        position_type: PositionType::Absolute,
+                        position: Rect {
+                            bottom: Val::Px(5.0),
+                            left: Val::Px(15.0),
+                            ..Default::default()
+                        },
+                        size: Size {
+                            width: Val::Px(200.0),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "P1".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::YELLOW,
+                        },
+                        TextAlignment {
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+                .insert(CleanupMarker)
+                .insert(follow_text::FollowText { following: entity });
         }
     });
 
