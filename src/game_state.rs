@@ -1,9 +1,36 @@
+use crate::AppState;
 use bevy::prelude::*;
+use std::collections::HashMap;
 
 pub struct GameStatePlugin;
 impl Plugin for GameStatePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(GameState::default());
+        app.insert_resource(GameState::default())
+            .add_event::<ScoreAddEvent>()
+            .add_system_set(
+                SystemSet::on_update(AppState::ScoreDisplay).with_system(handle_score_add_event),
+            );
+    }
+}
+
+pub struct ScoreAddEvent;
+
+fn handle_score_add_event(
+    mut score_add_event_reader: EventReader<ScoreAddEvent>,
+    mut game_state: ResMut<GameState>,
+) {
+    if score_add_event_reader.iter().count() > 0 {
+        let burro_points: HashMap<BurroSkin, usize> = game_state
+            .dead_burros
+            .iter()
+            .enumerate()
+            .map(|(i, b)| (*b, i))
+            .into_iter()
+            .collect();
+
+        for mut burro in game_state.burros.iter_mut() {
+            burro.score += burro_points.get(&burro.skin).unwrap_or(&7);
+        }
     }
 }
 
@@ -11,6 +38,8 @@ impl Plugin for GameStatePlugin {
 pub struct GameState {
     pub burros: Vec<BurroState>,
     pub dead_burros: Vec<BurroSkin>,
+    pub current_level: usize,
+    pub current_level_over: bool,
 }
 
 impl GameState {
@@ -48,15 +77,20 @@ impl GameState {
             });
         }
 
-        GameState { burros, dead_burros: vec!() }
+        GameState {
+            burros,
+            dead_burros: vec![],
+            current_level: 0,
+            current_level_over: false,
+        }
     }
 
     pub fn on_new_level(&mut self) {
-        self.dead_burros = vec!();
+        self.dead_burros = vec![];
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BurroSkin {
     Pinata,
     Meow,

@@ -1,6 +1,6 @@
 use crate::{
-    asset_loading, assets::GameAssets, bot, cleanup, collision, game_camera, game_state, mesh,
-    player, AppState,
+    asset_loading, assets::GameAssets, bot, burro::Burro, cleanup, collision, game_camera,
+    game_state, mesh, player, AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -13,10 +13,22 @@ impl Plugin for DebugRoomPlugin {
                 .with_system(game_camera::spawn_camera)
                 .with_system(setup),
         )
-        .add_system_set(SystemSet::on_exit(AppState::Debug).with_system(cleanup::<CleanupMarker>))
+        .add_system_set(SystemSet::on_update(AppState::InGame).with_system(check_for_next_level))
         .add_system_set(
-            SystemSet::on_update(AppState::Debug).with_system(game_camera::pan_orbit_camera),
+            SystemSet::on_exit(AppState::InGame)
+                .with_system(cleanup::<CleanupMarker>)
         );
+    }
+}
+
+fn check_for_next_level(
+    mut game_state: ResMut<game_state::GameState>,
+    mut assets_handler: asset_loading::AssetsHandler,
+    mut game_assets: ResMut<GameAssets>,
+) {
+    if game_state.current_level_over {
+        game_state.current_level += 1;
+        assets_handler.load_next_level(&game_state, &mut game_assets);
     }
 }
 
@@ -28,6 +40,8 @@ pub fn load(
     game_assets: &mut ResMut<GameAssets>,
 ) {
     assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
+    assets_handler.add_audio(&mut game_assets.bloop_sfx, "audio/bloop.wav");
+    assets_handler.add_audio(&mut game_assets.laser_sfx, "audio/laser.wav");
     assets_handler.add_mesh(
         &mut game_assets.candy.mesh,
         "models/candy.gltf#Mesh0/Primitive0",
@@ -116,6 +130,7 @@ pub fn load(
 
 fn setup(
     mut commands: Commands,
+    mut scene_spawner: ResMut<SceneSpawner>,
     game_assets: Res<GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -129,14 +144,14 @@ fn setup(
     });
 
     if let Some(gltf) = assets_gltf.get(&game_assets.level) {
-        commands
+        let parent = commands
             .spawn_bundle((
                 Transform::from_xyz(0.0, 0.0, 0.0),
                 GlobalTransform::identity(),
             ))
-            .with_children(|parent| {
-                parent.spawn_scene(gltf.scenes[0].clone());
-            });
+            .insert(CleanupMarker)
+            .id();
+        scene_spawner.spawn_as_child(gltf.scenes[0].clone(), parent);
     }
 
     game_state.burros.iter().for_each(|b| {

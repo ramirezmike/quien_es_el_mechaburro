@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, cleanup, levels, title_screen, AppState};
+use crate::{assets::GameAssets, cleanup, levels, title_screen, AppState, game_state};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -68,6 +68,21 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         self.next_state.state = next_state;
         self.asset_server.watch_for_changes().unwrap();
         self.state.set(AppState::Loading).unwrap();
+    }
+
+    pub fn load_next_level(&mut self, game_state: &game_state::GameState, game_assets: &mut ResMut<GameAssets>) {
+        let next_state = self.get_next_state(game_state);
+        self.queue_assets_for_state(&next_state, game_assets);
+        self.next_state.state = next_state;
+        self.asset_server.watch_for_changes().unwrap();
+        self.state.set(AppState::Loading).unwrap();
+    }
+
+    fn get_next_state(&self, game_state: &game_state::GameState) -> AppState {
+        match game_state.current_level {
+            0 => AppState::Debug,
+            _ => AppState::WinnerDisplay
+        }
     }
 
     pub fn add_mesh(&mut self, mesh: &mut Handle<Mesh>, path: &str) {

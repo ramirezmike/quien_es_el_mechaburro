@@ -250,8 +250,11 @@ fn handle_input(
     )>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
-    game_assets: Res<GameAssets>,
-    mut skin_index: Local<usize>,
+    //    game_assets: Res<GameAssets>,
+    //    mut skin_index: Local<usize>,
+    mut commands: Commands,
+    mut burros: Query<Entity, With<burro::Burro>>,
+    mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
     for (entity, action_state, mut transform, mut burro, mut player, mut material) in
         player.iter_mut()
@@ -273,23 +276,58 @@ fn handle_input(
         }
 
         if action_state.just_pressed(&PlayerAction::Debug) {
-            *skin_index += 1;
-            if *skin_index > 7 {
-                *skin_index = 0;
-            }
+            let entity = burros.iter().last().unwrap();
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Pinata,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Meow,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Salud,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Mexico,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Medianoche,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Morir,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Gators,
+            });
+            burro_death_event_writer.send(burro::BurroDeathEvent {
+                entity,
+                skin: game_state::BurroSkin::Aguas,
+            });
 
-            let skin = match *skin_index {
-                1 => &game_assets.meow_texture.material,
-                2 => &game_assets.salud_texture.material,
-                3 => &game_assets.mexico_texture.material,
-                4 => &game_assets.medianoche_texture.material,
-                5 => &game_assets.morir_texture.material,
-                6 => &game_assets.gators_texture.material,
-                7 => &game_assets.aguas_texture.material,
-                8 => &game_assets.mechaburro_texture.material,
-                _ => &game_assets.pinata_texture.material,
-            };
-            *material = skin.clone();
+            ///// changing skin
+            //          *skin_index += 1;
+            //          if *skin_index > 7 {
+            //              *skin_index = 0;
+            //          }
+
+            //          let skin = match *skin_index {
+            //              1 => &game_assets.meow_texture.material,
+            //              2 => &game_assets.salud_texture.material,
+            //              3 => &game_assets.mexico_texture.material,
+            //              4 => &game_assets.medianoche_texture.material,
+            //              5 => &game_assets.morir_texture.material,
+            //              6 => &game_assets.gators_texture.material,
+            //              7 => &game_assets.aguas_texture.material,
+            //              8 => &game_assets.mechaburro_texture.material,
+            //              _ => &game_assets.pinata_texture.material,
+            //          };
+            //          *material = skin.clone();
         }
 
         if burro.can_fire() {

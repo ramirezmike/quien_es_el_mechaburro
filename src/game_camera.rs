@@ -201,3 +201,12 @@ pub fn spawn_camera(mut commands: Commands) {
             ..Default::default()
         });
 }
+
+pub fn despawn_camera(
+    mut commands: Commands,
+    cameras: Query<Entity, With<PanOrbitCamera>>,
+) {
+    for entity in cameras.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}

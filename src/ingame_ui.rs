@@ -19,8 +19,12 @@ impl Plugin for InGameUIPlugin {
 #[derive(Component)]
 struct CleanupMarker;
 
-fn detect_round_over(mut app_state: ResMut<State<AppState>>, burros: Query<&burro::Burro>) {
-    if burros.iter().count() == 1 {
+fn detect_round_over(
+    game_state: Res<game_state::GameState>,
+    mut app_state: ResMut<State<AppState>>,
+    burros: Query<&burro::Burro>,
+) {
+    if burros.iter().count() <= 1 && !game_state.current_level_over {
         app_state.push(AppState::ScoreDisplay).unwrap();
     }
 }

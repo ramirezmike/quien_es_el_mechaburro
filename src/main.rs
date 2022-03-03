@@ -22,6 +22,7 @@ mod mesh;
 mod player;
 mod score_display;
 mod title_screen;
+mod winner;
 
 fn main() {
     App::new()
@@ -45,6 +46,7 @@ fn main() {
         .add_plugin(player::PlayerPlugin)
         .add_plugin(score_display::ScoreDisplayPlugin)
         .add_plugin(collision::WorldCollisionPlugin)
+        .add_plugin(winner::WinnerPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
@@ -62,6 +64,7 @@ pub enum AppState {
     MechaPicker,
     ScoreDisplay,
     Loading,
+    WinnerDisplay,
 }
 
 fn bootstrap(

@@ -314,7 +314,7 @@ fn update_menu_buttons(
             audio.play_sfx(&game_assets.sfx_2);
             *game_state = game_state::GameState::initialize(8, 7);
 
-            assets_handler.load(AppState::Debug, &mut game_assets);
+            assets_handler.load_next_level(&game_state, &mut game_assets);
         }
         if *selected_button == 1 {
             exit.send(AppExit);

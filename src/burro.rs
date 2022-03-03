@@ -15,9 +15,9 @@ impl Plugin for BurroPlugin {
     }
 }
 
-struct BurroDeathEvent {
-    entity: Entity,
-    skin: game_state::BurroSkin, 
+pub struct BurroDeathEvent {
+    pub entity: Entity,
+    pub skin: game_state::BurroSkin,
 }
 
 struct BurroFlashEvent {
@@ -123,7 +123,10 @@ fn handle_burros(
 
         // handling burro deaths
         if burro.health == 0 {
-            burro_death_event_writer.send(BurroDeathEvent { entity, skin: burro.burro_skin });
+            burro_death_event_writer.send(BurroDeathEvent {
+                entity,
+                skin: burro.burro_skin,
+            });
             continue;
         }
 
