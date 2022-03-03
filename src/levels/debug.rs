@@ -14,10 +14,7 @@ impl Plugin for DebugRoomPlugin {
                 .with_system(setup),
         )
         .add_system_set(SystemSet::on_update(AppState::InGame).with_system(check_for_next_level))
-        .add_system_set(
-            SystemSet::on_exit(AppState::InGame)
-                .with_system(cleanup::<CleanupMarker>)
-        );
+        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>));
     }
 }
 

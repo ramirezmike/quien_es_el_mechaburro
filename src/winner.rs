@@ -1,4 +1,4 @@
-use crate::{asset_loading, assets::GameAssets, burro, cleanup, game_state, AppState, game_camera};
+use crate::{asset_loading, assets::GameAssets, burro, cleanup, game_camera, game_state, AppState};
 use bevy::prelude::*;
 
 pub struct WinnerPlugin;
@@ -7,9 +7,10 @@ impl Plugin for WinnerPlugin {
         app.add_system_set(SystemSet::on_enter(AppState::WinnerDisplay).with_system(setup))
             .insert_resource(Timers::default())
             .add_system_set(
-                SystemSet::on_exit(AppState::WinnerDisplay).with_system(cleanup::<CleanupMarker>)
-                .with_system(destroy_everything)
-                .with_system(game_camera::despawn_camera),
+                SystemSet::on_exit(AppState::WinnerDisplay)
+                    .with_system(cleanup::<CleanupMarker>)
+                    .with_system(destroy_everything)
+                    .with_system(game_camera::despawn_camera),
             )
             .add_system_set(
                 SystemSet::on_update(AppState::WinnerDisplay).with_system(update_display),
@@ -26,10 +27,7 @@ struct Timers {
     display_set: bool,
 }
 
-fn destroy_everything(
-    mut commands: Commands,
-    entities: Query<Entity>,
-) {
+fn destroy_everything(mut commands: Commands, entities: Query<Entity>) {
     for entity in entities.iter() {
         commands.entity(entity).despawn_recursive();
     }
@@ -164,7 +162,7 @@ fn update_display(
             ..Default::default()
         })
         .insert(CleanupMarker)
-    .with_children(|parent| {
+        .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
                     style: Style {
@@ -193,8 +191,7 @@ fn update_display(
                     ..Default::default()
                 })
                 .insert(CleanupMarker);
-    });
-
+        });
 }
 
 fn setup(mut commands: Commands, game_assets: Res<GameAssets>, mut timers: ResMut<Timers>) {

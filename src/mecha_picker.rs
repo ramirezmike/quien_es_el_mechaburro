@@ -34,6 +34,7 @@ struct PickMechaEvent {
 struct TextDisplayTimers {
     name_change_cooldown: f32,
     overall_name_selection_cooldown: f32,
+    mecha_display_cooldown: f32,
     has_picked: bool,
 }
 
@@ -113,30 +114,24 @@ fn setup(
 }
 
 fn handle_mecha_pick_event(
-    mut app_state: ResMut<State<AppState>>,
     mut pick_mecha_event_reader: EventReader<PickMechaEvent>,
     game_state: Res<game_state::GameState>,
     game_assets: Res<GameAssets>,
     mut burros: Query<(&mut burro::Burro, &mut Handle<StandardMaterial>)>,
 ) {
-    let mut mecha_set = false;
     for event in pick_mecha_event_reader.iter() {
         for (mut burro, mut handle) in burros.iter_mut() {
             if burro.burro_skin == event.burro_skin {
                 *handle = game_assets.mechaburro_texture.material.clone();
                 burro.is_mechaburro = true;
-                mecha_set = true;
                 break;
             }
         }
     }
-
-    if mecha_set {
-        app_state.set(AppState::InGame).unwrap();
-    }
 }
 
 fn pick_mecha(
+    mut app_state: ResMut<State<AppState>>,
     time: Res<Time>,
     mut texts: Query<&mut Text, With<TextMarker>>,
     mut text_display_timers: ResMut<TextDisplayTimers>,
@@ -144,6 +139,14 @@ fn pick_mecha(
     game_state: Res<game_state::GameState>,
 ) {
     if text_display_timers.has_picked {
+        text_display_timers.mecha_display_cooldown -= time.delta_seconds();
+        text_display_timers.mecha_display_cooldown =
+            text_display_timers.mecha_display_cooldown.clamp(-10.0, 3.0);
+
+        if text_display_timers.mecha_display_cooldown <= 0.0 {
+            app_state.set(AppState::InGame).unwrap();
+        }
+
         return;
     }
 
@@ -171,6 +174,8 @@ fn pick_mecha(
             pick_mecha_event_writer.send(PickMechaEvent {
                 burro_skin: choice.skin,
             });
+            text_display_timers.mecha_display_cooldown = 3.0;
+            text_display_timers.has_picked = true;
 
             for mut text in texts.iter_mut() {
                 text.sections[0].value = match choice.skin {
