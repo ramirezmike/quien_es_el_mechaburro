@@ -122,6 +122,12 @@ pub fn load(
         true,
     );
 
+    assets_handler.add_material(
+        &mut game_assets.level_background,
+        "textures/no_manches.png",
+        true,
+    );
+
     assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
 }
 
@@ -134,7 +140,11 @@ fn setup(
     mut collidables: ResMut<collision::Collidables>,
     game_state: Res<game_state::GameState>,
     mut app_state: ResMut<State<AppState>>,
+    mut clear_color: ResMut<ClearColor>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
 ) {
+    *clear_color = ClearColor(Color::rgb(1.0, 0.65, 0.62));
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.50,
@@ -151,22 +161,35 @@ fn setup(
         scene_spawner.spawn_as_child(gltf.scenes[0].clone(), parent);
     }
 
+    //  commands.spawn_bundle(mesh::MeshBuilder::plane_repeating(
+    //      &mut meshes,
+    //      &mut images,
+    //      &game_assets.level_background,
+    //      80.0,
+    //      Some(Vec3::new(0.0, -3.0, 0.0)),
+    //      Some(Quat::from_rotation_y(std::f32::consts::PI / 2.0)),
+    //  ))
+    //  .insert(CleanupMarker)
+    //  .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::X * 3.0));
+
     game_state.burros.iter().for_each(|b| {
-        let skin = match b.skin {
-            game_state::BurroSkin::Pinata => &game_assets.pinata_texture.material,
-            game_state::BurroSkin::Meow => &game_assets.meow_texture.material,
-            game_state::BurroSkin::Salud => &game_assets.salud_texture.material,
-            game_state::BurroSkin::Mexico => &game_assets.mexico_texture.material,
-            game_state::BurroSkin::Medianoche => &game_assets.medianoche_texture.material,
-            game_state::BurroSkin::Morir => &game_assets.morir_texture.material,
-            game_state::BurroSkin::Gators => &game_assets.gators_texture.material,
-            game_state::BurroSkin::Aguas => &game_assets.aguas_texture.material,
+        let (skin, position) = match b.skin {
+            game_state::BurroSkin::Pinata => (&game_assets.pinata_texture.material, (-14.0, -14.0)),
+            game_state::BurroSkin::Meow => (&game_assets.meow_texture.material, (-14.0, 14.0)),
+            game_state::BurroSkin::Salud => (&game_assets.salud_texture.material, (14.0, -14.0)),
+            game_state::BurroSkin::Mexico => (&game_assets.mexico_texture.material, (14.0, 14.0)),
+            game_state::BurroSkin::Medianoche => {
+                (&game_assets.medianoche_texture.material, (-4.0, -4.0))
+            }
+            game_state::BurroSkin::Morir => (&game_assets.morir_texture.material, (-4.0, 4.0)),
+            game_state::BurroSkin::Gators => (&game_assets.gators_texture.material, (4.0, -4.0)),
+            game_state::BurroSkin::Aguas => (&game_assets.aguas_texture.material, (4.0, 4.0)),
         };
 
         let burro_bundle = PbrBundle {
             mesh: game_assets.burro.mesh.clone(),
             material: skin.clone(),
-            transform: Transform::from_xyz(0.0, 1.0, 0.0),
+            transform: Transform::from_xyz(position.0, 1.0, position.1),
             ..Default::default()
         };
 

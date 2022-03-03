@@ -1,4 +1,4 @@
-use crate::{burro, game_state, player, player::PlayerAction, AppState, collision};
+use crate::{burro, collision, game_state, player, player::PlayerAction, AppState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use rand::thread_rng;
@@ -127,8 +127,10 @@ fn update_bot_ai(
 
             if x_diff.abs() - z_diff.abs() < 0.1 {
                 // go diagonal
-                if burro_position.x > target.x && collidables.is_walkable(burro_fx - buffer, burro_fz) {
-                    if burro_position.y > target.y { 
+                if burro_position.x > target.x
+                    && collidables.is_walkable(burro_fx - buffer, burro_fz)
+                {
+                    if burro_position.y > target.y {
                         if collidables.is_walkable(burro_fx, burro_fz - buffer) {
                             bot.heading = Some(Cardinal::SW);
                         } else {
@@ -142,7 +144,7 @@ fn update_bot_ai(
                         bot.mind_cooldown = 0.0;
                     }
                 } else if collidables.is_walkable(burro_fx + buffer, burro_fz) {
-                    if burro_position.y > target.y { 
+                    if burro_position.y > target.y {
                         if collidables.is_walkable(burro_fx, burro_fz - buffer) {
                             bot.heading = Some(Cardinal::NW);
                         } else {

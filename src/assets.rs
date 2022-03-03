@@ -21,6 +21,7 @@ pub struct GameAssets {
     pub level: Handle<Gltf>,
     pub candy: GameMesh,
     pub laser: GameMesh,
+    pub level_background: asset_loading::GameTexture,
     pub title_screen_background: asset_loading::GameTexture,
     pub title_screen_logo: asset_loading::GameTexture,
 

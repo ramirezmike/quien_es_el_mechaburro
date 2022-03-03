@@ -1,4 +1,4 @@
-use crate::inspect;
+use crate::{assets, inspect, mesh};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::PerspectiveProjection;
@@ -162,7 +162,7 @@ fn get_primary_window_size(windows: &Res<Windows>) -> Vec2 {
     Vec2::new(window.width() as f32, window.height() as f32)
 }
 
-pub fn spawn_camera(mut commands: Commands) {
+pub fn spawn_camera(mut commands: Commands, game_assets: Res<assets::GameAssets>) {
     let translation = Vec3::new(-25.0, 25.0, 0.0);
 
     let radius = translation.length();
@@ -177,6 +177,7 @@ pub fn spawn_camera(mut commands: Commands) {
             parent.spawn_bundle(DirectionalLightBundle {
                 directional_light: DirectionalLight {
                     // Configure the projection to better fit the scene
+                    illuminance: 10000.0,
                     shadow_projection: OrthographicProjection {
                         left: -HALF_SIZE,
                         right: HALF_SIZE,

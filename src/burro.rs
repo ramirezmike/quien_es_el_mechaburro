@@ -131,7 +131,7 @@ fn handle_burros(
         }
 
         // handling firing cool down
-        burro.fire_cooldown -= time.delta_seconds();
+        burro.fire_cooldown -= if burro.is_mechaburro { 2.0 } else { 1.0 } * time.delta_seconds();
         burro.fire_cooldown = burro.fire_cooldown.clamp(-10.0, 3.0);
 
         // handling invulnerability

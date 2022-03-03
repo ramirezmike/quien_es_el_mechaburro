@@ -279,39 +279,39 @@ fn handle_input(
             println!("Translation: {:?}", transform.translation);
 
             // kill burros
-//          let entity = burros.iter().last().unwrap();
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Pinata,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Meow,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Salud,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Mexico,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Medianoche,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Morir,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Gators,
-//          });
-//          burro_death_event_writer.send(burro::BurroDeathEvent {
-//              entity,
-//              skin: game_state::BurroSkin::Aguas,
-//          });
+            //          let entity = burros.iter().last().unwrap();
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Pinata,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Meow,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Salud,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Mexico,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Medianoche,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Morir,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Gators,
+            //          });
+            //          burro_death_event_writer.send(burro::BurroDeathEvent {
+            //              entity,
+            //              skin: game_state::BurroSkin::Aguas,
+            //          });
 
             ///// changing skin
             //          *skin_index += 1;

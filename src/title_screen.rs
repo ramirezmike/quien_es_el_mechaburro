@@ -101,6 +101,8 @@ fn setup(
             &mut images,
             &game_assets.title_screen_background,
             20.0,
+            None,
+            None,
         ))
         .insert(CleanupMarker)
         .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::Z));

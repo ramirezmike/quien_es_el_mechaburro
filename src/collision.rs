@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::primitives::Aabb;
-use std::collections::HashMap;
 use rand::seq::SliceRandom;
+use std::collections::HashMap;
 
 pub struct WorldCollisionPlugin;
 impl Plugin for WorldCollisionPlugin {
@@ -25,7 +25,7 @@ impl Collidables {
 
     pub fn get_random_spot(&self) -> Option<Vec2> {
         use rand::Rng;
-        let aabbs: Vec::<_> = self.aabbs.iter().collect();
+        let aabbs: Vec<_> = self.aabbs.iter().collect();
         let mut rng = rand::thread_rng();
 
         if let Some((_, aabb)) = aabbs.choose(&mut rng) {
@@ -43,8 +43,7 @@ impl Collidables {
         }
 
         for (_, aabb) in self.aabbs.iter() {
-            if x <= aabb.max.x && x >= aabb.min.x
-                && z <= aabb.max.z && z >= aabb.min.z {
+            if x <= aabb.max.x && x >= aabb.min.x && z <= aabb.max.z && z >= aabb.min.z {
                 return true;
             }
         }

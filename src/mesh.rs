@@ -76,6 +76,8 @@ impl MeshBuilder {
         images: &mut ResMut<Assets<Image>>,
         game_texture: &GameTexture,
         size: f32,
+        position: Option<Vec3>,
+        rotation: Option<Quat>,
     ) -> PbrBundle {
         let image = images.get_mut(game_texture.image.clone());
         if let Some(image) = image {
@@ -94,7 +96,14 @@ impl MeshBuilder {
         }
 
         PbrBundle {
-            transform: Transform::from_scale(Vec3::splat(size)),
+            transform: {
+                let mut transform = Transform::from_scale(Vec3::splat(size));
+                transform.translation = position.unwrap_or(transform.translation);
+                transform.rotation = rotation.unwrap_or(transform.rotation);
+                //transform.rotate(Quat::from_rotation_y(2.0 * std::f32::consts::PI));
+
+                transform
+            },
             material: game_texture.material.clone(),
             mesh: meshes.add(mesh),
             ..Default::default()
