@@ -36,7 +36,7 @@ pub fn load(
     assets_handler: &mut asset_loading::AssetsHandler,
     game_assets: &mut ResMut<GameAssets>,
 ) {
-    assets_handler.add_glb(&mut game_assets.level, "models/level_01.glb");
+    assets_handler.add_glb(&mut game_assets.level, "models/level_00.glb");
     assets_handler.add_audio(&mut game_assets.bloop_sfx, "audio/bloop.wav");
     assets_handler.add_audio(&mut game_assets.laser_sfx, "audio/laser.wav");
     assets_handler.add_mesh(
@@ -187,5 +187,3 @@ fn setup(
 
     app_state.push(AppState::MechaPicker).unwrap();
 }
-
-fn update() {}

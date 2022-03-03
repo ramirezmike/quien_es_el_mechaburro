@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::primitives::Aabb;
 use std::collections::HashMap;
+use rand::seq::SliceRandom;
 
 pub struct WorldCollisionPlugin;
 impl Plugin for WorldCollisionPlugin {
@@ -20,6 +21,35 @@ impl Collidables {
     pub fn reset(&mut self) {
         self.aabbs = HashMap::new();
         self.load_attempts = 0;
+    }
+
+    pub fn get_random_spot(&self) -> Option<Vec2> {
+        use rand::Rng;
+        let aabbs: Vec::<_> = self.aabbs.iter().collect();
+        let mut rng = rand::thread_rng();
+
+        if let Some((_, aabb)) = aabbs.choose(&mut rng) {
+            let x: f32 = rng.gen_range(aabb.min.x..aabb.max.x);
+            let z: f32 = rng.gen_range(aabb.min.z..aabb.max.z);
+            Some(Vec2::new(x, z))
+        } else {
+            None
+        }
+    }
+
+    pub fn is_walkable(&self, x: f32, z: f32) -> bool {
+        if self.aabbs.is_empty() {
+            return true;
+        }
+
+        for (_, aabb) in self.aabbs.iter() {
+            if x <= aabb.max.x && x >= aabb.min.x
+                && z <= aabb.max.z && z >= aabb.min.z {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn fit_in(&self, current: &Vec3, new: &mut Vec3, velocity: &mut Vec3) {
