@@ -8,6 +8,7 @@ impl Plugin for WinnerPlugin {
             .insert_resource(Timers::default())
             .add_system_set(
                 SystemSet::on_exit(AppState::WinnerDisplay).with_system(cleanup::<CleanupMarker>)
+                .with_system(destroy_everything)
                 .with_system(game_camera::despawn_camera),
             )
             .add_system_set(
@@ -23,6 +24,15 @@ struct CleanupMarker;
 struct Timers {
     cooldown: f32,
     display_set: bool,
+}
+
+fn destroy_everything(
+    mut commands: Commands,
+    entities: Query<Entity>,
+) {
+    for entity in entities.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 fn update_display(
