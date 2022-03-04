@@ -9,6 +9,11 @@ impl Plugin for BulletPlugin {
                 SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>),
             )
             .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(handle_bullet_events)
+                    .with_system(handle_bullets),
+            )
+            .add_system_set(
                 SystemSet::on_update(AppState::MechaPicker)
                     .with_system(handle_bullet_events)
                     .with_system(handle_bullets),

@@ -1,4 +1,4 @@
-use crate::AppState;
+use crate::{character_select::BurroCharacter, AppState};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -40,13 +40,22 @@ pub struct GameState {
     pub dead_burros: Vec<BurroSkin>,
     pub current_level: usize,
     pub current_level_over: bool,
+    pub players: Vec<BurroCharacter>,
 }
 
 impl GameState {
-    pub fn initialize(burro_count: usize, bot_count: usize) -> Self {
+    pub fn get_skin_player_map(&self) -> HashMap<BurroSkin, usize> {
+        let mut map: HashMap<BurroSkin, usize> = HashMap::new();
+        for player in self.players.iter() {
+            map.insert(player.selected_burro, player.player);
+        }
+        map
+    }
+
+    pub fn initialize(burro_count: usize, bot_count: usize, players: Vec<BurroCharacter>) -> Self {
         let burro_count = burro_count.max(bot_count + 1);
         let mut burros = vec![];
-        let skins = [
+        let skins = vec![
             BurroSkin::Pinata,
             BurroSkin::Meow,
             BurroSkin::Salud,
@@ -56,22 +65,27 @@ impl GameState {
             BurroSkin::Gators,
             BurroSkin::Aguas,
         ];
+        let picked_skins = players.iter().map(|b| b.selected_burro).collect::<Vec<_>>();
+        let mut skins = skins
+            .iter()
+            .filter(|s| !picked_skins.contains(s))
+            .collect::<Vec<_>>();
 
         // human players
-        for i in 0..burro_count - bot_count {
+        for p in players.iter() {
             burros.push(BurroState {
                 score: 0,
-                skin: skins[i],
+                skin: p.selected_burro,
                 is_bot: false,
                 hearts: vec![],
             });
         }
 
         // bots
-        for i in 0..bot_count {
+        for i in 0..8 - players.len() {
             burros.push(BurroState {
                 score: 0,
-                skin: skins[burro_count - bot_count + i],
+                skin: *skins[i],
                 is_bot: true,
                 hearts: vec![],
             });
@@ -82,6 +96,7 @@ impl GameState {
             dead_burros: vec![],
             current_level: 0,
             current_level_over: false,
+            players: players,
         }
     }
 

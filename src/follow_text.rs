@@ -27,8 +27,7 @@ fn update_text_position(
                 {
                     Some(coords) => {
                         style.position.left = Val::Px(coords.x - calculated.size.width / 2.0);
-                        style.position.bottom =
-                            Val::Px((coords.y * 1.4) - calculated.size.height / 2.0);
+                        style.position.bottom = Val::Px((coords.y) - calculated.size.height / 2.0);
                     }
                     None => {
                         // A hack to hide the text when the it's behind the camera

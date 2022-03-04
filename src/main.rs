@@ -10,10 +10,12 @@ mod audio;
 mod bot;
 mod bullet;
 mod burro;
+mod character_select;
 mod collision;
 mod direction;
 mod follow_text;
 mod game_camera;
+mod game_controller;
 mod game_state;
 mod hit;
 mod ingame_ui;
@@ -38,9 +40,11 @@ fn main() {
         .add_plugin(audio::GameAudioPlugin)
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
+        .add_plugin(character_select::CharacterSelectPlugin)
         .add_plugin(follow_text::FollowTextPlugin)
         .add_plugin(hit::HitPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
+        .add_plugin(game_controller::GameControllerPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(mecha_picker::MechaPickerPlugin)
@@ -66,6 +70,7 @@ pub enum AppState {
     Debug,
     InGame,
     TitleScreen,
+    CharacterSelect,
     ModelLoading,
     MechaPicker,
     ScoreDisplay,

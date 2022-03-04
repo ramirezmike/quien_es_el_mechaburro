@@ -15,6 +15,15 @@ impl Plugin for BotPlugin {
                         .after("ai")
                         .before("handle_input"),
                 ),
+        )
+        .add_system_set(
+            SystemSet::on_update(AppState::ScoreDisplay)
+                .with_system(update_bot_ai.label("ai"))
+                .with_system(
+                    update_virtual_controllers
+                        .after("ai")
+                        .before("handle_input"),
+                ),
         );
     }
 }

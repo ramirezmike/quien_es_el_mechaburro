@@ -1,6 +1,6 @@
 use crate::{
     assets::GameAssets, bullet::BulletEvent, bullet::BulletType, burro, collision, direction,
-    game_state, AppState,
+    game_controller, game_state, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -13,7 +13,14 @@ impl Plugin for PlayerPlugin {
             .add_event::<PlayerMoveEvent>()
             .add_system_set(SystemSet::on_update(AppState::MechaPicker).with_system(move_player))
             .add_system_set(
+                SystemSet::on_update(AppState::ScoreDisplay)
+                    .with_system(handle_controllers.before("handle_input"))
+                    .with_system(handle_input.label("handle_input"))
+                    .with_system(move_player.after("handle_input")),
+            )
+            .add_system_set(
                 SystemSet::on_update(AppState::InGame)
+                    .with_system(handle_controllers.before("handle_input"))
                     .with_system(handle_input.label("handle_input"))
                     .with_system(move_player.after("handle_input")),
             );
@@ -237,6 +244,64 @@ impl PlayerBundle {
 pub struct PlayerMoveEvent {
     pub entity: Entity,
     pub direction: direction::Direction,
+}
+
+fn handle_controllers(
+    controllers: Res<game_controller::GameController>,
+    game_state: Res<game_state::GameState>,
+    mut players: Query<(Entity, &burro::Burro, &mut ActionState<PlayerAction>)>,
+) {
+    for (_, burro, mut action_state) in players.iter_mut() {
+        if let Some(current_player) = game_state
+            .players
+            .iter()
+            .filter(|b| b.selected_burro == burro.burro_skin)
+            .last()
+        {
+            if let Some(pressed) = controllers.pressed.get(&current_player.player) {
+                // release all buttons
+                // this probably affects durations but for
+                // this game it might not be a big deal
+                action_state.release(&PlayerAction::Left);
+                action_state.release(&PlayerAction::Right);
+                action_state.release(&PlayerAction::Up);
+                action_state.release(&PlayerAction::Down);
+                action_state.release(&PlayerAction::ActionLeft);
+                action_state.release(&PlayerAction::ActionRight);
+                action_state.release(&PlayerAction::ActionUp);
+                action_state.release(&PlayerAction::ActionDown);
+                action_state.release(&PlayerAction::Pause);
+
+                if pressed.contains(&game_controller::GameButton::Left) {
+                    action_state.press(&PlayerAction::Left);
+                }
+                if pressed.contains(&game_controller::GameButton::Right) {
+                    action_state.press(&PlayerAction::Right);
+                }
+                if pressed.contains(&game_controller::GameButton::Up) {
+                    action_state.press(&PlayerAction::Up);
+                }
+                if pressed.contains(&game_controller::GameButton::Down) {
+                    action_state.press(&PlayerAction::Down);
+                }
+                if pressed.contains(&game_controller::GameButton::ActionDown) {
+                    action_state.press(&PlayerAction::ActionDown);
+                }
+                if pressed.contains(&game_controller::GameButton::ActionUp) {
+                    action_state.press(&PlayerAction::ActionUp);
+                }
+                if pressed.contains(&game_controller::GameButton::ActionLeft) {
+                    action_state.press(&PlayerAction::ActionLeft);
+                }
+                if pressed.contains(&game_controller::GameButton::ActionRight) {
+                    action_state.press(&PlayerAction::ActionRight);
+                }
+                if pressed.contains(&game_controller::GameButton::Start) {
+                    action_state.press(&PlayerAction::Pause);
+                }
+            }
+        }
+    }
 }
 
 fn handle_input(

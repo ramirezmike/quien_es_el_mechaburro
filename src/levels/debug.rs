@@ -192,7 +192,11 @@ fn setup(
         let burro_bundle = PbrBundle {
             mesh: game_assets.burro.mesh.clone(),
             material: skin.clone(),
-            transform: Transform::from_xyz(position.0, 1.0, position.1),
+            transform: {
+                let mut transform = Transform::from_xyz(position.0, 1.0, position.1);
+                transform.rotation = Quat::from_axis_angle(Vec3::Y, std::f32::consts::PI);
+                transform
+            },
             ..Default::default()
         };
 
@@ -208,6 +212,13 @@ fn setup(
                 .insert_bundle(player::PlayerBundle::new(b.skin))
                 .id();
 
+            let player_map = game_state.get_skin_player_map();
+            let (text, color) = match player_map[&b.skin] {
+                1 => ("P2", Color::GREEN),
+                2 => ("P3", Color::RED),
+                3 => ("P4", Color::BLUE),
+                _ => ("P1", Color::YELLOW),
+            };
             commands
                 .spawn_bundle(TextBundle {
                     style: Style {
@@ -225,11 +236,11 @@ fn setup(
                         ..Default::default()
                     },
                     text: Text::with_section(
-                        "P1".to_string(),
+                        text.to_string(),
                         TextStyle {
                             font: game_assets.font.clone(),
                             font_size: 40.0,
-                            color: Color::YELLOW,
+                            color: color,
                         },
                         TextAlignment {
                             ..Default::default()
