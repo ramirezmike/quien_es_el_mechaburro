@@ -1,0 +1,172 @@
+use crate::{assets::GameAssets, audio::GameAudio, cleanup, title_screen::MenuAction, AppState};
+use bevy::app::{AppExit, Events};
+use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
+
+pub struct PausePlugin;
+impl Plugin for PausePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::Pause).with_system(setup))
+            .add_system_set(SystemSet::on_update(AppState::Pause).with_system(update_menu_buttons))
+            .add_system_set(
+                SystemSet::on_exit(AppState::Pause).with_system(cleanup::<CleanupMarker>),
+            );
+    }
+}
+
+#[derive(Component)]
+struct CleanupMarker;
+
+const NORMAL_BUTTON: Color = Color::rgba(1.00, 1.00, 1.00, 0.0);
+const HOVERED_BUTTON: Color = Color::rgb(1.00, 1.00, 0.75);
+
+fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
+    commands
+        .spawn_bundle(InputManagerBundle {
+            input_map: MenuAction::default_input_map(),
+            action_state: ActionState::default(),
+        })
+        .insert(CleanupMarker);
+
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
+                position_type: PositionType::Absolute,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::FlexStart,
+                ..Default::default()
+            },
+            color: Color::NONE.into(),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        position_type: PositionType::Relative,
+                        ..Default::default()
+                    },
+                    color: NORMAL_BUTTON.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "Continue",
+                            TextStyle {
+                                font: game_assets.font.clone(),
+                                font_size: 40.0,
+                                color: Color::rgb(0.0, 0.0, 0.0),
+                            },
+                            Default::default(),
+                        ),
+                        ..Default::default()
+                    });
+                })
+                .insert(CleanupMarker);
+
+            parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(250.0), Val::Px(100.0)),
+                        margin: Rect::all(Val::Auto),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        position_type: PositionType::Relative,
+                        ..Default::default()
+                    },
+                    color: NORMAL_BUTTON.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "Quit",
+                            TextStyle {
+                                font: game_assets.font.clone(),
+                                font_size: 40.0,
+                                color: Color::rgb(0.0, 0.0, 0.0),
+                            },
+                            Default::default(),
+                        ),
+                        ..Default::default()
+                    });
+                })
+                .insert(CleanupMarker);
+        });
+}
+
+fn update_menu_buttons(
+    mut selected_button: Local<usize>,
+    mut exit: ResMut<Events<AppExit>>,
+    buttons: Query<Entity, With<Button>>,
+    mut button_colors: Query<&mut UiColor, With<Button>>,
+    interaction_query: Query<(Entity, &Interaction), (Changed<Interaction>, With<Button>)>,
+    action_state: Query<&ActionState<MenuAction>>,
+    game_assets: Res<GameAssets>,
+    mut app_state: ResMut<State<AppState>>,
+    mut audio: GameAudio,
+) {
+    let action_state = action_state.single();
+    let number_of_buttons = buttons.iter().count();
+    let mut pressed_button = action_state.pressed(&MenuAction::Select);
+
+    if action_state.just_pressed(&MenuAction::Up) {
+        audio.play_sfx(&game_assets.sfx_1);
+        *selected_button = selected_button
+            .checked_sub(1)
+            .unwrap_or(number_of_buttons - 1);
+    }
+    if action_state.just_pressed(&MenuAction::Down) {
+        audio.play_sfx(&game_assets.sfx_1);
+        let new_selected_button = selected_button.checked_add(1).unwrap_or(0);
+        *selected_button = if new_selected_button > number_of_buttons - 1 {
+            0
+        } else {
+            new_selected_button
+        };
+    }
+
+    // mouse
+    for (button_entity, interaction) in interaction_query.iter() {
+        match *interaction {
+            Interaction::Clicked => pressed_button = true,
+            Interaction::Hovered => {
+                *selected_button = buttons
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, x)| *x == button_entity)
+                    .map(|(i, _)| i)
+                    .last()
+                    .unwrap_or(*selected_button)
+            }
+            _ => (),
+        }
+    }
+
+    for (i, mut color) in button_colors.iter_mut().enumerate() {
+        if i == *selected_button {
+            *color = HOVERED_BUTTON.into();
+        } else {
+            *color = NORMAL_BUTTON.into();
+        }
+    }
+
+    if pressed_button {
+        if *selected_button == 0 {
+            app_state.pop().unwrap();
+        }
+        if *selected_button == 1 {
+            exit.send(AppExit);
+            //          for entity in entities.iter() {
+            //              commands.entity(entity).despawn_recursive();
+            //          }
+        }
+    }
+}

@@ -15,11 +15,13 @@ mod direction;
 mod follow_text;
 mod game_camera;
 mod game_state;
+mod hit;
 mod ingame_ui;
 mod inspect;
 mod levels;
 mod mecha_picker;
 mod mesh;
+mod pause;
 mod player;
 mod score_display;
 mod title_screen;
@@ -37,6 +39,7 @@ fn main() {
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
         .add_plugin(follow_text::FollowTextPlugin)
+        .add_plugin(hit::HitPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(mesh::MeshPlugin)
@@ -45,6 +48,7 @@ fn main() {
         .add_plugin(ingame_ui::InGameUIPlugin)
         .add_plugin(inspect::InspectPlugin)
         .add_plugin(levels::debug::DebugRoomPlugin)
+        .add_plugin(pause::PausePlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(score_display::ScoreDisplayPlugin)
         .add_plugin(collision::WorldCollisionPlugin)

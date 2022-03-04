@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, audio, burro, cleanup, inspect, AppState};
+use crate::{assets::GameAssets, audio, burro, cleanup, hit::CreateHitEvent, inspect, AppState};
 use bevy::prelude::*;
 
 pub struct BulletPlugin;
@@ -125,6 +125,7 @@ fn handle_bullets(
     mut bullets: Query<(Entity, &mut Bullet, &mut Transform), Without<burro::Burro>>,
     mut burros: Query<(Entity, &Transform, &mut burro::Burro), Without<Bullet>>,
     inspector: Res<inspect::InspectorData>,
+    mut create_hit_event_writer: EventWriter<CreateHitEvent>,
 ) {
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
@@ -154,6 +155,10 @@ fn handle_bullets(
             if bullet_position.distance(burro_position) <= inspector.bullet_distance {
                 commands.entity(entity).despawn_recursive();
                 burro.hit();
+                create_hit_event_writer.send(CreateHitEvent {
+                    position: burro_transform.translation,
+                    is_candy: bullet.bullet_type == BulletType::Candy,
+                });
 
                 continue 'bullets;
             }
