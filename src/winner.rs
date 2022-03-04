@@ -174,7 +174,7 @@ fn update_display(
                     },
                     text: Text::with_section(
                         if winner.is_bot {
-                            "Aww shucks!".to_string()
+                            "Ay que pena!".to_string()
                         } else {
                             "Congratulations!".to_string()
                         },

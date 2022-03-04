@@ -1,4 +1,6 @@
-use crate::{asset_loading, assets::GameAssets, burro, cleanup, game_state, AppState};
+use crate::{
+    asset_loading, assets::GameAssets, burro, cleanup, game_camera, game_state, player, AppState,
+};
 use bevy::prelude::*;
 
 pub struct ScoreDisplayPlugin;
@@ -7,7 +9,9 @@ impl Plugin for ScoreDisplayPlugin {
         app.add_system_set(SystemSet::on_enter(AppState::ScoreDisplay).with_system(setup))
             .insert_resource(ScoreState::default())
             .add_system_set(
-                SystemSet::on_update(AppState::ScoreDisplay).with_system(display_scores),
+                SystemSet::on_update(AppState::ScoreDisplay)
+                    .with_system(display_scores)
+                    .with_system(follow_winner),
             )
             .add_system_set(
                 SystemSet::on_exit(AppState::ScoreDisplay).with_system(cleanup::<CleanupMarker>),
@@ -55,6 +59,15 @@ fn setup(
     *score_state = ScoreState::default();
 
     game_state.current_level_over = true;
+}
+
+fn follow_winner(
+    player: Query<&Transform, With<player::Player>>,
+    mut camera_settings: ResMut<game_camera::CameraSettings>,
+) {
+    for p in player.iter() {
+        camera_settings.set_camera(2.0, p.translation, 0.4, true, 5.0, 5.0);
+    }
 }
 
 fn display_scores(

@@ -63,8 +63,13 @@ impl<'w, 's> AssetsHandler<'w, 's> {
             .push(asset.clone_untyped());
     }
 
-    pub fn load(&mut self, next_state: AppState, game_assets: &mut ResMut<GameAssets>) {
-        self.queue_assets_for_state(&next_state, game_assets);
+    pub fn load(
+        &mut self,
+        next_state: AppState,
+        game_assets: &mut ResMut<GameAssets>,
+        game_state: &ResMut<game_state::GameState>,
+    ) {
+        self.queue_assets_for_state(&next_state, game_assets, game_state);
         self.next_state.state = next_state;
         self.asset_server.watch_for_changes().unwrap();
         self.state.set(AppState::Loading).unwrap();
@@ -72,11 +77,11 @@ impl<'w, 's> AssetsHandler<'w, 's> {
 
     pub fn load_next_level(
         &mut self,
-        game_state: &game_state::GameState,
+        game_state: &ResMut<game_state::GameState>,
         game_assets: &mut ResMut<GameAssets>,
     ) {
         let next_state = self.get_next_state(game_state);
-        self.queue_assets_for_state(&next_state, game_assets);
+        self.queue_assets_for_state(&next_state, game_assets, game_state);
         self.next_state.state = next_state;
         self.asset_server.watch_for_changes().unwrap();
         self.state.set(AppState::Loading).unwrap();
@@ -85,6 +90,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
     fn get_next_state(&self, game_state: &game_state::GameState) -> AppState {
         match game_state.current_level {
             0 => AppState::Debug,
+            1 => AppState::Debug,
             _ => AppState::WinnerDisplay,
         }
     }
@@ -119,10 +125,15 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         });
     }
 
-    fn queue_assets_for_state(&mut self, state: &AppState, game_assets: &mut ResMut<GameAssets>) {
+    fn queue_assets_for_state(
+        &mut self,
+        state: &AppState,
+        game_assets: &mut ResMut<GameAssets>,
+        game_state: &ResMut<game_state::GameState>,
+    ) {
         match state {
             AppState::TitleScreen => title_screen::load(self, game_assets),
-            AppState::Debug => levels::debug::load(self, game_assets),
+            AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
         }
     }

@@ -5,8 +5,8 @@ use crate::{
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 
-pub struct DebugRoomPlugin;
-impl Plugin for DebugRoomPlugin {
+pub struct Level02Plugin;
+impl Plugin for Level02Plugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_enter(AppState::Debug)
@@ -35,13 +35,8 @@ struct CleanupMarker;
 pub fn load(
     assets_handler: &mut asset_loading::AssetsHandler,
     game_assets: &mut ResMut<GameAssets>,
-    game_state: &ResMut<game_state::GameState>,
 ) {
-    match game_state.current_level {
-        1 => assets_handler.add_glb(&mut game_assets.level, "models/level_02.glb"),
-        _ => assets_handler.add_glb(&mut game_assets.level, "models/level_00.glb"),
-    }
-
+    assets_handler.add_glb(&mut game_assets.level, "models/level_00.glb");
     assets_handler.add_audio(&mut game_assets.bloop_sfx, "audio/bloop.wav");
     assets_handler.add_audio(&mut game_assets.laser_sfx, "audio/laser.wav");
     assets_handler.add_mesh(
@@ -143,7 +138,7 @@ fn setup(
     assets_gltf: Res<Assets<Gltf>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut collidables: ResMut<collision::Collidables>,
-    mut game_state: ResMut<game_state::GameState>,
+    game_state: Res<game_state::GameState>,
     mut app_state: ResMut<State<AppState>>,
     mut clear_color: ResMut<ClearColor>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -152,7 +147,6 @@ fn setup(
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
 
-    game_state.current_level_over = false;
     *clear_color = ClearColor(Color::rgb(1.0, 0.65, 0.62));
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,

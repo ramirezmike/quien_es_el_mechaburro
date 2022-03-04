@@ -81,8 +81,9 @@ pub enum AppState {
 fn bootstrap(
     mut assets_handler: asset_loading::AssetsHandler,
     mut game_assets: ResMut<assets::GameAssets>,
+    game_state: ResMut<game_state::GameState>,
 ) {
-    assets_handler.load(AppState::TitleScreen, &mut game_assets);
+    assets_handler.load(AppState::TitleScreen, &mut game_assets, &game_state);
 }
 
 pub fn cleanup<T: Component>(mut commands: Commands, entities: Query<Entity, With<T>>) {
