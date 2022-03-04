@@ -16,6 +16,7 @@ impl Plugin for CharacterSelectPlugin {
                 SystemSet::on_update(AppState::CharacterSelect)
                     .with_system(update_character_selection)
                     .with_system(handle_controllers)
+                    .with_system(handle_labels)
                     .with_system(update_burro_skins),
             )
             .add_system_set(
@@ -33,6 +34,11 @@ struct LocalCooldown {
 
 #[derive(Component)]
 pub struct CharacterSelectCleanupMarker;
+
+#[derive(Component)]
+pub struct BurroName {
+    player: usize
+}
 
 #[derive(Component, Clone, Copy)]
 pub struct BurroCharacter {
@@ -88,7 +94,9 @@ fn setup(
     mut audio: GameAudio,
     mut app_state: ResMut<State<AppState>>,
     mut local_cooldown: ResMut<LocalCooldown>,
+    mut clear_color: ResMut<ClearColor>,
 ) {
+    *clear_color = ClearColor(Color::rgb(0.0, 0.0, 0.0));
     local_cooldown.cooldown = 0.2;
     commands
         .spawn_bundle(UiCameraBundle::default())
@@ -234,15 +242,232 @@ fn setup(
         })
         .insert(CharacterSelectCleanupMarker);
 
-    //  commands
-    //      .spawn_bundle(UiCameraBundle::default())
-    //      .insert(CleanupMarker);
-    //  commands
-    //      .spawn_bundle(InputManagerBundle {
-    //          input_map: MenuAction::default_input_map(),
-    //          action_state: ActionState::default(),
-    //      })
-    //      .insert(CleanupMarker);
+
+
+    commands
+        .spawn_bundle(UiCameraBundle::default())
+        .insert(CharacterSelectCleanupMarker);
+
+
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                position_type: PositionType::Relative,
+                margin: Rect {
+                    top: Val::Px(20.0),
+                    ..Default::default()
+                },
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                ..Default::default()
+            },
+            color: Color::NONE.into(),
+            ..Default::default()
+        })
+        .insert(CharacterSelectCleanupMarker)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect {
+                            left: Val::Auto,
+                            right: Val::Auto,
+                            bottom: Val::Auto,
+                            top: Val::Auto,
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "Choose your Burro!".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+            .insert(CharacterSelectCleanupMarker);
+        });
+
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                position_type: PositionType::Absolute,
+                margin: Rect {
+                    top: Val::Px(40.0),
+                    ..Default::default()
+                },
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                ..Default::default()
+            },
+            color: Color::NONE.into(),
+            ..Default::default()
+        })
+        .insert(CharacterSelectCleanupMarker)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect {
+                            left: Val::Percent(20.0),
+                            right: Val::Auto,
+                            bottom: Val::Auto,
+                            top: Val::Auto,
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "Press Start".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+            .insert(CharacterSelectCleanupMarker)
+            .insert(BurroName {
+                player: 0
+            });
+
+            parent
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect {
+                            left: Val::Percent(30.0),
+                            right: Val::Auto,
+                            bottom: Val::Auto,
+                            top: Val::Auto,
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "P2 Press Start".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+            .insert(CharacterSelectCleanupMarker)
+            .insert(BurroName {
+                player: 1
+            });
+
+        });
+
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                position_type: PositionType::Absolute,
+                margin: Rect {
+                    top: Val::Percent(60.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            color: Color::NONE.into(),
+            ..Default::default()
+        })
+        .insert(CharacterSelectCleanupMarker)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect {
+                            left: Val::Percent(10.0),
+                            right: Val::Auto,
+                            bottom: Val::Auto,
+                            top: Val::Percent(45.0),
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "P3 Press Start".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+            .insert(CharacterSelectCleanupMarker)
+            .insert(BurroName {
+                player: 2
+            });
+
+            parent
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Relative,
+                        margin: Rect {
+                            left: Val::Percent(30.0),
+                            right: Val::Auto,
+                            bottom: Val::Auto,
+                            top: Val::Percent(45.0),
+                        },
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    text: Text::with_section(
+                        "P4 Press Start".to_string(),
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..Default::default()
+                        },
+                    ),
+                    ..Default::default()
+                })
+            .insert(CharacterSelectCleanupMarker)
+            .insert(BurroName {
+                player: 3
+            });
+
+        });
+
 
     //  commands
     //      .spawn_bundle(mesh::MeshBuilder::plane_repeating(
@@ -501,6 +726,8 @@ fn update_character_selection(
             .filter(|(_, b, _)| b.is_playing)
             .map(|(_, b, _)| b.clone())
             .collect();
+
+        audio.play_sfx(&game_assets.fanfare_sfx);
         *game_state = game_state::GameState::initialize(8, 7, players);
         assets_handler.load_next_level(&game_state, &mut game_assets);
     }
@@ -529,6 +756,33 @@ fn update_burro_skins(
         *handle = skin.clone();
 
         visibility.is_visible = burro.is_playing;
+    }
+}
+
+fn handle_labels(
+    mut burro_names: Query<(&BurroName, &mut Text)>,
+    players: Query<(Entity, &BurroCharacter)>,
+) {
+    for (name, mut text) in burro_names.iter_mut() {
+        for (_, player) in players.iter() {
+            if player.player == name.player {
+                if player.is_playing {
+                    text.sections[0].value = match player.selected_burro {
+                        game_state::BurroSkin::Pinata => "Pinata",
+                        game_state::BurroSkin::Meow => "Meow",
+                        game_state::BurroSkin::Salud => "Salud",
+                        game_state::BurroSkin::Mexico => "Mexico",
+                        game_state::BurroSkin::Medianoche => "Medianoche",
+                        game_state::BurroSkin::Morir => "Morir",
+                        game_state::BurroSkin::Gators => "Gators",
+                        game_state::BurroSkin::Aguas => "Aguas",
+                    }
+                    .to_string();
+                } else {
+                    text.sections[0].value = format!("P{} Press Start", player.player + 1);
+                }
+            }
+        }
     }
 }
 

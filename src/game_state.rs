@@ -29,7 +29,8 @@ fn handle_score_add_event(
             .collect();
 
         for mut burro in game_state.burros.iter_mut() {
-            burro.score += burro_points.get(&burro.skin).unwrap_or(&7);
+            let new_score = burro_points.get(&burro.skin).unwrap_or(&7);
+            burro.score += new_score;
         }
     }
 }

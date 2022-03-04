@@ -345,39 +345,39 @@ fn handle_input(
             println!("Translation: {:?}", transform.translation);
 
             // kill burros
-            //          let entity = burros.iter().last().unwrap();
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Pinata,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Meow,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Salud,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Mexico,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Medianoche,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Morir,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Gators,
-            //          });
-            //          burro_death_event_writer.send(burro::BurroDeathEvent {
-            //              entity,
-            //              skin: game_state::BurroSkin::Aguas,
-            //          });
+                        let entity = burros.iter().last().unwrap();
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Pinata,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Meow,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Salud,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Mexico,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Medianoche,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Morir,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Gators,
+                        });
+                        burro_death_event_writer.send(burro::BurroDeathEvent {
+                            entity,
+                            skin: game_state::BurroSkin::Aguas,
+                        });
 
             ///// changing skin
             //          *skin_index += 1;
@@ -420,9 +420,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, 0.0);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            }
-
-            if action_state.pressed(&PlayerAction::ActionDown) {
+            } else if action_state.pressed(&PlayerAction::ActionDown) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,
@@ -439,9 +437,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            }
-
-            if action_state.pressed(&PlayerAction::ActionLeft) {
+            } else if action_state.pressed(&PlayerAction::ActionLeft) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,
@@ -458,9 +454,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI / 2.0);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            }
-
-            if action_state.pressed(&PlayerAction::ActionRight) {
+            } else if action_state.pressed(&PlayerAction::ActionRight) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,

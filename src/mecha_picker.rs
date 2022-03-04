@@ -167,6 +167,7 @@ fn setup(
             color: Color::NONE.into(),
             ..Default::default()
         })
+        .insert(CleanupMarker)
         .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
@@ -271,7 +272,7 @@ fn pick_mecha(
         let actual_choices = game_state
             .burros
             .iter()
-            .filter(|b| b.is_bot)
+            .filter(|b| b.is_bot || game_state.current_level > 0)
             .collect::<Vec<_>>();
         if let Some(choice) = actual_choices.choose(&mut rng) {
             pick_mecha_event_writer.send(PickMechaEvent {

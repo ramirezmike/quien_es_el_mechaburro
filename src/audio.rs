@@ -35,8 +35,9 @@ pub struct GameAudio<'w, 's> {
 
 impl<'w, 's> GameAudio<'w, 's> {
     pub fn play_bgm(&mut self, handle: &Handle<AudioSource>) {
+        self.audio.stop_channel(&self.audio_state.bgm_channel.channel);
         self.audio.set_volume_in_channel(
-            self.audio_state.bgm_channel.volume,
+            0.6,
             &self.audio_state.bgm_channel.channel,
         );
         self.audio
@@ -45,7 +46,7 @@ impl<'w, 's> GameAudio<'w, 's> {
 
     pub fn play_sfx(&mut self, handle: &Handle<AudioSource>) {
         self.audio.set_volume_in_channel(
-            self.audio_state.sfx_channel.volume,
+            0.5,
             &self.audio_state.sfx_channel.channel,
         );
         self.audio

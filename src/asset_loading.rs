@@ -88,9 +88,15 @@ impl<'w, 's> AssetsHandler<'w, 's> {
     }
 
     fn get_next_state(&self, game_state: &game_state::GameState) -> AppState {
+        println!("Loading level {}", game_state.current_level);
         match game_state.current_level {
             0 => AppState::Debug,
             1 => AppState::Debug,
+            2 => AppState::Debug,
+            3 => AppState::Debug,
+            4 => AppState::Debug,
+            5 => AppState::Debug,
+            6 => AppState::Debug,
             _ => AppState::WinnerDisplay,
         }
     }

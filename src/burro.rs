@@ -1,4 +1,4 @@
-use crate::{game_state, AppState};
+use crate::{game_state, AppState, follow_text};
 use bevy::prelude::*;
 
 pub struct BurroPlugin;
@@ -158,9 +158,15 @@ fn handle_burro_death_events(
     mut commands: Commands,
     mut burro_death_event_reader: EventReader<BurroDeathEvent>,
     mut game_state: ResMut<game_state::GameState>,
+    follow_texts: Query<(Entity, &follow_text::FollowText)>,
 ) {
     for death_event in burro_death_event_reader.iter() {
         commands.entity(death_event.entity).despawn_recursive();
+        for (text_entity, text) in follow_texts.iter() {
+            if text.following == death_event.entity {
+                commands.entity(text_entity).despawn_recursive();
+            }
+        }
         game_state.dead_burros.push(death_event.skin);
         // probably do a bunch of UI/animation stuff here and play sounds or something
     }

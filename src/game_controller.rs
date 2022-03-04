@@ -52,6 +52,32 @@ fn gamepad_test(
             }
         }
 
+        // The joysticks are represented using a separate axis for X and Y
+//      let axis_rx = GamepadAxis(gamepad, GamepadAxisType::RightStickX);
+//      let axis_ry = GamepadAxis(gamepad, GamepadAxisType::RightStickY);
+
+//      if let (Some(x), Some(y)) = (axes.get(axis_rx), axes.get(axis_ry)) {
+//          // combine X and Y into one vector
+//          let left_stick_pos = Vec2::new(x, y);
+
+//          // implement a dead-zone to ignore small inputs
+//          if left_stick_pos.length() > 0.1 {
+//              // do something with the position of the left stick
+//              if x > 0.0 {
+//                  pressed_buttons.push(GameButton::ActionRight);
+//              }
+//              if x < 0.0 {
+//                  pressed_buttons.push(GameButton::ActionLeft);
+//              }
+//              if y > 0.0 {
+//                  pressed_buttons.push(GameButton::ActionUp);
+//              }
+//              if y < 0.0 {
+//                  pressed_buttons.push(GameButton::ActionDown);
+//              }
+//          }
+//      }
+
         let axis_dx = GamepadAxis(gamepad, GamepadAxisType::DPadX);
         let axis_dy = GamepadAxis(gamepad, GamepadAxisType::DPadY);
 

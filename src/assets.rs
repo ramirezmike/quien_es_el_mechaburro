@@ -18,6 +18,7 @@ pub struct GameAssets {
     pub sfx_2: Handle<AudioSource>,
     pub laser_sfx: Handle<AudioSource>,
     pub bloop_sfx: Handle<AudioSource>,
+    pub fanfare_sfx: Handle<AudioSource>,
     pub level: Handle<Gltf>,
     pub candy: GameMesh,
     pub laser: GameMesh,
