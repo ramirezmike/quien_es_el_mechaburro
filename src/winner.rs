@@ -1,4 +1,7 @@
-use crate::{asset_loading, audio::GameAudio, assets::GameAssets, burro, cleanup, game_camera, game_state, AppState};
+use crate::{
+    asset_loading, assets::GameAssets, audio::GameAudio, burro, cleanup, game_camera, game_state,
+    AppState,
+};
 use bevy::prelude::*;
 
 pub struct WinnerPlugin;
@@ -70,7 +73,7 @@ fn update_display(
     burros.sort_by_key(|b| b.score);
 
     for b in burros.iter() {
-        println!("{:?} {}",b.skin,b.score);
+        println!("{:?} {}", b.skin, b.score);
     }
 
     let winner = burros
@@ -197,7 +200,7 @@ fn update_display(
                 })
                 .insert(CleanupMarker);
         });
-        audio.play_sfx(&game_assets.fanfare_sfx);
+    audio.play_sfx(&game_assets.fanfare_sfx);
 }
 
 fn setup(mut commands: Commands, game_assets: Res<GameAssets>, mut timers: ResMut<Timers>) {

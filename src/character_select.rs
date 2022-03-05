@@ -37,7 +37,7 @@ pub struct CharacterSelectCleanupMarker;
 
 #[derive(Component)]
 pub struct BurroName {
-    player: usize
+    player: usize,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -242,12 +242,9 @@ fn setup(
         })
         .insert(CharacterSelectCleanupMarker);
 
-
-
     commands
         .spawn_bundle(UiCameraBundle::default())
         .insert(CharacterSelectCleanupMarker);
-
 
     commands
         .spawn_bundle(NodeBundle {
@@ -295,7 +292,7 @@ fn setup(
                     ),
                     ..Default::default()
                 })
-            .insert(CharacterSelectCleanupMarker);
+                .insert(CharacterSelectCleanupMarker);
         });
 
     commands
@@ -344,10 +341,8 @@ fn setup(
                     ),
                     ..Default::default()
                 })
-            .insert(CharacterSelectCleanupMarker)
-            .insert(BurroName {
-                player: 0
-            });
+                .insert(CharacterSelectCleanupMarker)
+                .insert(BurroName { player: 0 });
 
             parent
                 .spawn_bundle(TextBundle {
@@ -377,11 +372,8 @@ fn setup(
                     ),
                     ..Default::default()
                 })
-            .insert(CharacterSelectCleanupMarker)
-            .insert(BurroName {
-                player: 1
-            });
-
+                .insert(CharacterSelectCleanupMarker)
+                .insert(BurroName { player: 1 });
         });
 
     commands
@@ -428,10 +420,8 @@ fn setup(
                     ),
                     ..Default::default()
                 })
-            .insert(CharacterSelectCleanupMarker)
-            .insert(BurroName {
-                player: 2
-            });
+                .insert(CharacterSelectCleanupMarker)
+                .insert(BurroName { player: 2 });
 
             parent
                 .spawn_bundle(TextBundle {
@@ -461,13 +451,9 @@ fn setup(
                     ),
                     ..Default::default()
                 })
-            .insert(CharacterSelectCleanupMarker)
-            .insert(BurroName {
-                player: 3
-            });
-
+                .insert(CharacterSelectCleanupMarker)
+                .insert(BurroName { player: 3 });
         });
-
 
     //  commands
     //      .spawn_bundle(mesh::MeshBuilder::plane_repeating(

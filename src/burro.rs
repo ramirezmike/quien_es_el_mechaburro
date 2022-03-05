@@ -1,4 +1,4 @@
-use crate::{game_state, AppState, follow_text};
+use crate::{follow_text, game_state, AppState};
 use bevy::prelude::*;
 
 pub struct BurroPlugin;

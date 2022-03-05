@@ -2,7 +2,7 @@
 
 An entry for the [first Bevy game jam][jam] following the theme of "Unfair Advantage." It was made in a week using the wonderful [Bevy game engine][bevy]. You can play the game [here][itch], rate it in the jam [here][rate] and check out the other submissions [here][submissions].
 
-¿Quien es el MechaBurro? is a local multiplayer game with bots inspired by twin-stick shooters, aspects of mario kart and a card game I played with my family growing up called "Burro." 
+¿Quien es el MechaBurro? is a singleplayer/local multiplayer game (up to 4 players) with bots (8 total burros) inspired by twin-stick shooters, aspects of mario kart and a card game I played with my family growing up called "Burro." 
 
 Players choose to play as one of 8 different burro piñatas and then attempt to be the last burro standing in each level of the game. Burros can shoot candy in just the cardinal directions but are able to move independently from where they're aiming. When hit, burros will flash momentairly and be invulnurable to damage but will also be unable to shoot. Shot candies have a limited range before disappearing and burros have a cooldown period before being able to shoot again.
 

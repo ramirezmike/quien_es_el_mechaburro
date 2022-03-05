@@ -1,6 +1,6 @@
 use crate::{
-    asset_loading, assets::GameAssets, bot, burro::BurroDeathEvent, burro::Burro, cleanup, collision, follow_text,
-    game_camera, game_state, mesh, player, AppState,
+    asset_loading, assets::GameAssets, bot, burro::Burro, burro::BurroDeathEvent, cleanup,
+    collision, follow_text, game_camera, game_state, mesh, player, AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -19,12 +19,17 @@ impl Plugin for DebugRoomPlugin {
             cooldown: 0.0,
         })
         .add_event::<PlayersDiedEarlyEvent>()
-        .add_system_set(SystemSet::on_update(AppState::InGame).with_system(check_for_next_level).with_system(check_for_all_players_dead)
-                        .with_system(handle_players_died_early))
-        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>)
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(check_for_next_level)
+                .with_system(check_for_all_players_dead)
+                .with_system(handle_players_died_early),
+        )
+        .add_system_set(
+            SystemSet::on_exit(AppState::InGame)
+                .with_system(cleanup::<CleanupMarker>)
                 .with_system(game_camera::despawn_camera),
-                        );
-                    
+        );
     }
 }
 
@@ -61,11 +66,11 @@ fn handle_players_died_early(
         round_end_timer.cooldown = round_end_timer.cooldown.clamp(-10.0, 5.0);
 
         if round_end_timer.cooldown <= 0.0 {
-           for (entity, remaining_burro) in remaining_burros.iter() {
-               burro_death_event_writer.send(BurroDeathEvent {
-                   entity,
-                   skin: remaining_burro.burro_skin,
-               });
+            for (entity, remaining_burro) in remaining_burros.iter() {
+                burro_death_event_writer.send(BurroDeathEvent {
+                    entity,
+                    skin: remaining_burro.burro_skin,
+                });
             }
         }
     } else {
@@ -83,11 +88,14 @@ fn check_for_all_players_dead(
     game_state: Res<game_state::GameState>,
     mut players_died_early_event_writer: EventWriter<PlayersDiedEarlyEvent>,
 ) {
-    let are_any_players_alive = game_state.burros.iter()
+    let are_any_players_alive = game_state
+        .burros
+        .iter()
         .filter(|b| !b.is_bot && !game_state.dead_burros.contains(&b.skin))
-        .count() > 0;
+        .count()
+        > 0;
 
-    if !are_any_players_alive  {
+    if !are_any_players_alive {
         players_died_early_event_writer.send(PlayersDiedEarlyEvent);
     }
 }
@@ -231,10 +239,10 @@ fn setup(
     *clear_color = match game_state.current_level {
         0 => ClearColor(Color::rgb(0.55, 0.92, 0.96)), //light blue
         1 => ClearColor(Color::rgb(1.0, 0.65, 0.62)),  // orange
-        2 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green 
+        2 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green
         3 => ClearColor(Color::rgb(0.81, 0.72, 0.94)), // purple
         4 => ClearColor(Color::rgb(1.0, 0.65, 0.62)),  // orange
-        5 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green 
+        5 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green
         6 => ClearColor(Color::rgb(0.81, 0.72, 0.94)), // purple
         _ => ClearColor(Color::rgb(1.0, 0.65, 0.62)),
     };
@@ -265,105 +273,143 @@ fn setup(
     //  .insert(CleanupMarker)
     //  .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::X * 3.0));
 
-
     use game_state::BurroSkin::*;
-    let level_positions: HashMap::<usize, HashMap::<game_state::BurroSkin, (f32, f32)>> =
+    let level_positions: HashMap<usize, HashMap<game_state::BurroSkin, (f32, f32)>> =
         HashMap::from([
             // level 1
-            (0, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-14.0, 14.0)),
-                (Salud, (14.0, -14.0)),
-                (Mexico, (14.0, 14.0)),
-                (Medianoche, (-4.0, -4.0)),
-                (Morir, (-4.0, 4.0)),
-                (Gators, (4.0, -4.0)),
-                (Aguas, (4.0, 4.0)),
-            ])),
-
+            (
+                0,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-14.0, 14.0)),
+                    (Salud, (14.0, -14.0)),
+                    (Mexico, (14.0, 14.0)),
+                    (Medianoche, (-4.0, -4.0)),
+                    (Morir, (-4.0, 4.0)),
+                    (Gators, (4.0, -4.0)),
+                    (Aguas, (4.0, 4.0)),
+                ]),
+            ),
             // level 2
-            (1, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-14.0, 14.0)),
-                (Salud, (14.0, -14.0)),
-                (Mexico, (14.0, 14.0)),
-                (Medianoche, (-8.0, -8.0)),
-                (Morir, (-8.0, 8.0)),
-                (Gators, (8.0, -8.0)),
-                (Aguas, (8.0, 8.0)),
-            ])),
-
+            (
+                1,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-14.0, 14.0)),
+                    (Salud, (14.0, -14.0)),
+                    (Mexico, (14.0, 14.0)),
+                    (Medianoche, (-8.0, -8.0)),
+                    (Morir, (-8.0, 8.0)),
+                    (Gators, (8.0, -8.0)),
+                    (Aguas, (8.0, 8.0)),
+                ]),
+            ),
             // level 3
-            (2, HashMap::from([
-                (Pinata, (-14.0, -4.0)),
-                (Meow, (-12.0, 4.0)),
-                (Salud, (14.0, -4.0)),
-                (Mexico, (12.0, 4.0)),
-                (Medianoche, (-6.0, -8.0)),
-                (Morir, (-6.0, 8.0)),
-                (Gators, (6.0, -10.0)),
-                (Aguas, (6.0, 10.0)),
-            ])),
-
+            (
+                2,
+                HashMap::from([
+                    (Pinata, (-14.0, -4.0)),
+                    (Meow, (-12.0, 4.0)),
+                    (Salud, (14.0, -4.0)),
+                    (Mexico, (12.0, 4.0)),
+                    (Medianoche, (-6.0, -8.0)),
+                    (Morir, (-6.0, 8.0)),
+                    (Gators, (6.0, -10.0)),
+                    (Aguas, (6.0, 10.0)),
+                ]),
+            ),
             // level 4
-            (3, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-14.0, 14.0)),
-                (Salud, (-5.0, -13.0)),
-                (Mexico, (-5.0, 13.0)),
-                (Medianoche, (-6.0, 0.0)),
-                (Morir, (8.0, 0.0)),
-                (Gators, (0.0, -8.0)),
-                (Aguas, (0.0, 8.0)),
-            ])),
-
+            (
+                3,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-14.0, 14.0)),
+                    (Salud, (-5.0, -13.0)),
+                    (Mexico, (-5.0, 13.0)),
+                    (Medianoche, (-6.0, 0.0)),
+                    (Morir, (8.0, 0.0)),
+                    (Gators, (0.0, -8.0)),
+                    (Aguas, (0.0, 8.0)),
+                ]),
+            ),
             // level 5
-            (4, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-6.0, 14.0)),
-                (Salud, (6.0, -3.0)),
-                (Mexico, (6.0, 3.0)),
-                (Medianoche, (-6.0, 0.0)),
-                (Morir, (6.0, 0.0)),
-                (Gators, (0.0, -8.0)),
-                (Aguas, (14.0, 12.0)),
-            ])),
-
+            (
+                4,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-6.0, 14.0)),
+                    (Salud, (6.0, -3.0)),
+                    (Mexico, (6.0, 3.0)),
+                    (Medianoche, (-6.0, 0.0)),
+                    (Morir, (6.0, 0.0)),
+                    (Gators, (0.0, -8.0)),
+                    (Aguas, (14.0, 12.0)),
+                ]),
+            ),
             // level 6
-            (5, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-14.0, 14.0)),
-                (Salud, (14.0, -14.0)),
-                (Mexico, (14.0, 14.0)),
-                (Medianoche, (-8.0, 0.0)),
-                (Morir, (8.0, 0.0)),
-                (Gators, (0.0, -8.0)),
-                (Aguas, (0.0, 8.0)),
-            ])),
-
+            (
+                5,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-14.0, 14.0)),
+                    (Salud, (14.0, -14.0)),
+                    (Mexico, (14.0, 14.0)),
+                    (Medianoche, (-8.0, 0.0)),
+                    (Morir, (8.0, 0.0)),
+                    (Gators, (0.0, -8.0)),
+                    (Aguas, (0.0, 8.0)),
+                ]),
+            ),
             // level 7
-            (6, HashMap::from([
-                (Pinata, (-14.0, -14.0)),
-                (Meow, (-14.0, 14.0)),
-                (Salud, (14.0, -14.0)),
-                (Mexico, (14.0, 14.0)),
-                (Medianoche, (-4.0, -4.0)),
-                (Morir, (-4.0, 4.0)),
-                (Gators, (4.0, -4.0)),
-                (Aguas, (4.0, 4.0)),
-            ])),
+            (
+                6,
+                HashMap::from([
+                    (Pinata, (-14.0, -14.0)),
+                    (Meow, (-14.0, 14.0)),
+                    (Salud, (14.0, -14.0)),
+                    (Mexico, (14.0, 14.0)),
+                    (Medianoche, (-4.0, -4.0)),
+                    (Morir, (-4.0, 4.0)),
+                    (Gators, (4.0, -4.0)),
+                    (Aguas, (4.0, 4.0)),
+                ]),
+            ),
         ]);
 
     game_state.burros.iter().for_each(|b| {
         let (skin, position) = match b.skin {
-            Pinata => (&game_assets.pinata_texture.material, level_positions[&game_state.current_level][&Pinata]),
-            Meow => (&game_assets.meow_texture.material, level_positions[&game_state.current_level][&Meow]),
-            Salud => (&game_assets.salud_texture.material, level_positions[&game_state.current_level][&Salud]),
-            Mexico => (&game_assets.mexico_texture.material, level_positions[&game_state.current_level][&Mexico]),
-            Medianoche => (&game_assets.medianoche_texture.material, level_positions[&game_state.current_level][&Medianoche]),
-            Morir => (&game_assets.morir_texture.material, level_positions[&game_state.current_level][&Morir]),
-            Gators => (&game_assets.gators_texture.material, level_positions[&game_state.current_level][&Gators]),
-            Aguas => (&game_assets.aguas_texture.material, level_positions[&game_state.current_level][&Aguas]),
+            Pinata => (
+                &game_assets.pinata_texture.material,
+                level_positions[&game_state.current_level][&Pinata],
+            ),
+            Meow => (
+                &game_assets.meow_texture.material,
+                level_positions[&game_state.current_level][&Meow],
+            ),
+            Salud => (
+                &game_assets.salud_texture.material,
+                level_positions[&game_state.current_level][&Salud],
+            ),
+            Mexico => (
+                &game_assets.mexico_texture.material,
+                level_positions[&game_state.current_level][&Mexico],
+            ),
+            Medianoche => (
+                &game_assets.medianoche_texture.material,
+                level_positions[&game_state.current_level][&Medianoche],
+            ),
+            Morir => (
+                &game_assets.morir_texture.material,
+                level_positions[&game_state.current_level][&Morir],
+            ),
+            Gators => (
+                &game_assets.gators_texture.material,
+                level_positions[&game_state.current_level][&Gators],
+            ),
+            Aguas => (
+                &game_assets.aguas_texture.material,
+                level_positions[&game_state.current_level][&Aguas],
+            ),
         };
 
         let burro_bundle = PbrBundle {
@@ -452,9 +498,7 @@ fn setup(
         .with_children(|parent| {
             parent
                 .spawn_bundle(TextBundle {
-                    visibility: Visibility {
-                        is_visible: false,
-                    },
+                    visibility: Visibility { is_visible: false },
                     style: Style {
                         position_type: PositionType::Relative,
                         margin: Rect {
