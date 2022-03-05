@@ -10,7 +10,7 @@ At the start of each round, one burro is chosen randomly to be upgraded to the M
 
 The round ends when only one burro remains or 5 seconds after all human players have lost. Points are based on order of elimination with the first eliminated getting 0 points and each burro after getting 1 more than the previously eliminiated burro. Points are accumulated across rounds and the burro with the most points at the end of the game is declared the winner.
 
-Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
+The "jam-release" branch represents what the code was when the game was submitted for the game jam. Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
 
 
 https://user-images.githubusercontent.com/1421719/156888152-78e98f83-8fd9-477f-be48-6857a1cfe1ec.mp4
