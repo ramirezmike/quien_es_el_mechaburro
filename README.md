@@ -12,6 +12,10 @@ The round ends when only one burro remains or 5 seconds after all human players 
 
 Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
 
+
+https://user-images.githubusercontent.com/1421719/156888152-78e98f83-8fd9-477f-be48-6857a1cfe1ec.mp4
+
+
 # Running the Game
 
 To run the game locally
