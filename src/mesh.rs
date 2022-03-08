@@ -40,22 +40,11 @@ impl MeshBuilder {
 
     pub fn plane(
         meshes: &mut ResMut<Assets<Mesh>>,
-        images: &mut ResMut<Assets<Image>>,
         game_texture: &GameTexture,
         size: f32,
         z_index: f32,
     ) -> PbrBundle {
-        let image = images.get_mut(game_texture.image.clone());
-
-        let mut mesh = Mesh::from(shape::Plane::default());
-        //      if let Some(VertexAttributeValues::Float32x2(uvs)) =
-        //          mesh.attribute_mut(Mesh::ATTRIBUTE_UV_0)
-        //      {
-        //          for uv in uvs {
-        //              uv[0] *= size / 4.0;
-        //              uv[1] *= size / 4.0;
-        //          }
-        //      }
+        let mesh = Mesh::from(shape::Plane::default());
 
         PbrBundle {
             transform: {
@@ -114,7 +103,6 @@ impl MeshBuilder {
 fn scroll_meshes(
     time: Res<Time>,
     mut scroll_meshes: Query<(&mut ScrollingPane, &mut Transform)>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
     game_assets: Res<GameAssets>,
 ) {

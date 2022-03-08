@@ -1,6 +1,6 @@
 use crate::{
-    assets::GameAssets, bullet::BulletEvent, bullet::BulletType, burro, collision, direction,
-    game_controller, game_state, AppState,
+    bullet::BulletEvent, bullet::BulletType, burro, collision, direction, game_controller,
+    game_state, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -312,19 +312,15 @@ fn handle_input(
         &mut Transform,
         &mut burro::Burro,
         &mut Player,
-        &mut Handle<StandardMaterial>,
     )>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<BulletEvent>,
     //    game_assets: Res<GameAssets>,
     //    mut skin_index: Local<usize>,
-    mut commands: Commands,
-    mut burros: Query<Entity, With<burro::Burro>>,
+    burros: Query<Entity, With<burro::Burro>>,
     mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
-    for (entity, action_state, mut transform, mut burro, mut player, mut material) in
-        player.iter_mut()
-    {
+    for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {

@@ -1,4 +1,4 @@
-use crate::{asset_loading, assets::GameAssets, burro, cleanup, game_state, AppState};
+use crate::{assets::GameAssets, burro, cleanup, game_state, AppState};
 use bevy::prelude::*;
 
 pub struct InGameUIPlugin;
@@ -52,15 +52,11 @@ fn update_hearts(
                 });
         } else {
             // burro must be dead already
-            burro_state
-                .hearts
-                .iter()
-                .enumerate()
-                .for_each(|(i, entity)| {
-                    if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
-                        heart_visibility.is_visible = false;
-                    }
-                });
+            burro_state.hearts.iter().for_each(|entity| {
+                if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
+                    heart_visibility.is_visible = false;
+                }
+            });
         }
     });
 }

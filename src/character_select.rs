@@ -65,7 +65,6 @@ pub enum MenuAction {
 }
 impl MenuAction {
     pub fn default_input_map(player: GamePlayer) -> InputMap<MenuAction> {
-        use MenuAction::*;
         let mut input_map = match player {
             GamePlayer::One => {
                 let mut input_map = InputMap::default();
@@ -89,10 +88,6 @@ impl MenuAction {
 fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut images: ResMut<Assets<Image>>,
-    mut audio: GameAudio,
-    mut app_state: ResMut<State<AppState>>,
     mut local_cooldown: ResMut<LocalCooldown>,
     mut clear_color: ResMut<ClearColor>,
 ) {
@@ -454,164 +449,6 @@ fn setup(
                 .insert(CharacterSelectCleanupMarker)
                 .insert(BurroName { player: 3 });
         });
-
-    //  commands
-    //      .spawn_bundle(mesh::MeshBuilder::plane_repeating(
-    //          &mut meshes,
-    //          &mut images,
-    //          &game_assets.title_screen_background,
-    //          20.0,
-    //          None,
-    //          None,
-    //      ))
-    //      .insert(CleanupMarker)
-    //      .insert_bundle(mesh::MeshBuilder::add_scrolling_bundle(-Vec3::Z));
-
-    //  commands
-    //      .spawn_bundle(mesh::MeshBuilder::plane(
-    //          &mut meshes,
-    //          &mut images,
-    //          &game_assets.title_screen_logo,
-    //          3.0,
-    //          1.0,
-    //      ))
-    //      .insert(CleanupMarker);
-
-    //  commands.insert_resource(AmbientLight {
-    //      color: Color::WHITE,
-    //      brightness: 1.00,
-    //  });
-
-    //  commands
-    //      .spawn_bundle(PerspectiveCameraBundle {
-    //          transform: Transform::from_xyz(0.0, 5.0, -0.0001).looking_at(Vec3::ZERO, Vec3::Y),
-    //          ..Default::default()
-    //      })
-    //      .with_children(|parent| {
-    //          const HALF_SIZE: f32 = 100.0;
-    //          parent.spawn_bundle(DirectionalLightBundle {
-    //              directional_light: DirectionalLight {
-    //                  // Configure the projection to better fit the scene
-    //                  shadow_projection: OrthographicProjection {
-    //                      left: -HALF_SIZE,
-    //                      right: HALF_SIZE,
-    //                      bottom: -HALF_SIZE,
-    //                      top: HALF_SIZE,
-    //                      near: -10.0 * HALF_SIZE,
-    //                      far: 10.0 * HALF_SIZE,
-    //                      ..Default::default()
-    //                  },
-    //                  shadows_enabled: false,
-    //                  ..Default::default()
-    //              },
-    //              transform: Transform {
-    //                  rotation: Quat::from_rotation_x(-std::f32::consts::FRAC_PI_4),
-    //                  ..Default::default()
-    //              },
-    //              ..Default::default()
-    //          });
-    //      })
-    //      .insert(CleanupMarker);
-
-    //  commands
-    //      .spawn_bundle(TextBundle {
-    //          style: Style {
-    //              align_self: AlignSelf::FlexEnd,
-    //              position_type: PositionType::Absolute,
-    //              position: Rect {
-    //                  bottom: Val::Px(5.0),
-    //                  left: Val::Px(15.0),
-    //                  ..Default::default()
-    //              },
-    //              ..Default::default()
-    //          },
-    //          text: Text::with_section(
-    //              "by michael ramirez".to_string(),
-    //              TextStyle {
-    //                  font: game_assets.font.clone(),
-    //                  font_size: 20.0,
-    //                  color: Color::rgba(0.0, 0.0, 0.0, 1.0),
-    //              },
-    //              TextAlignment::default(),
-    //          ),
-    //          ..Default::default()
-    //      })
-    //      .insert(CleanupMarker);
-
-    //  commands
-    //      .spawn_bundle(NodeBundle {
-    //          style: Style {
-    //              size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
-    //              position_type: PositionType::Absolute,
-    //              justify_content: JustifyContent::Center,
-    //              flex_direction: FlexDirection::ColumnReverse,
-    //              align_items: AlignItems::FlexStart,
-    //              ..Default::default()
-    //          },
-    //          color: Color::NONE.into(),
-    //          ..Default::default()
-    //      })
-    //      .with_children(|parent| {
-    //          parent
-    //              .spawn_bundle(ButtonBundle {
-    //                  style: Style {
-    //                      size: Size::new(Val::Px(200.0), Val::Px(100.0)),
-    //                      margin: Rect::all(Val::Auto),
-    //                      justify_content: JustifyContent::Center,
-    //                      align_items: AlignItems::Center,
-    //                      position_type: PositionType::Relative,
-    //                      ..Default::default()
-    //                  },
-    //                  color: NORMAL_BUTTON.into(),
-    //                  ..Default::default()
-    //              })
-    //              .with_children(|parent| {
-    //                  parent.spawn_bundle(TextBundle {
-    //                      text: Text::with_section(
-    //                          "Start",
-    //                          TextStyle {
-    //                              font: game_assets.font.clone(),
-    //                              font_size: 40.0,
-    //                              color: Color::rgb(0.0, 0.0, 0.0),
-    //                          },
-    //                          Default::default(),
-    //                      ),
-    //                      ..Default::default()
-    //                  });
-    //              })
-    //              .insert(CleanupMarker);
-
-    //          parent
-    //              .spawn_bundle(ButtonBundle {
-    //                  style: Style {
-    //                      size: Size::new(Val::Px(200.0), Val::Px(100.0)),
-    //                      margin: Rect::all(Val::Auto),
-    //                      justify_content: JustifyContent::Center,
-    //                      align_items: AlignItems::Center,
-    //                      position_type: PositionType::Relative,
-    //                      ..Default::default()
-    //                  },
-    //                  color: NORMAL_BUTTON.into(),
-    //                  ..Default::default()
-    //              })
-    //              .with_children(|parent| {
-    //                  parent.spawn_bundle(TextBundle {
-    //                      text: Text::with_section(
-    //                          "Quit",
-    //                          TextStyle {
-    //                              font: game_assets.font.clone(),
-    //                              font_size: 40.0,
-    //                              color: Color::rgb(0.0, 0.0, 0.0),
-    //                          },
-    //                          Default::default(),
-    //                      ),
-    //                      ..Default::default()
-    //                  });
-    //              })
-    //              .insert(CleanupMarker);
-    //      });
-
-    //  audio.play_bgm(&game_assets.bgm_1);
 }
 
 fn update_character_selection(
@@ -714,13 +551,12 @@ fn update_character_selection(
             .collect();
 
         audio.play_sfx(&game_assets.fanfare_sfx);
-        *game_state = game_state::GameState::initialize(8, 7, players);
+        *game_state = game_state::GameState::initialize(players);
         assets_handler.load_next_level(&game_state, &mut game_assets);
     }
 }
 
 fn update_burro_skins(
-    mut materials: ResMut<Assets<StandardMaterial>>,
     game_assets: Res<GameAssets>,
     mut burros: Query<(
         &mut Handle<StandardMaterial>,

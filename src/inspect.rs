@@ -1,9 +1,8 @@
-use crate::{asset_loading, assets::GameAssets, game_camera, mesh, player};
+use crate::{mesh, player};
 use bevy::prelude::*;
 use bevy::window::WindowResized;
 use bevy_inspector_egui::bevy_egui::EguiSettings;
 use bevy_inspector_egui::bevy_egui::{egui, EguiContext};
-use bevy_inspector_egui::widgets::{InspectorQuery, InspectorQuerySingle};
 use bevy_inspector_egui::{plugin::InspectorWindows, Inspectable, InspectorPlugin};
 
 pub struct InspectPlugin;
@@ -90,13 +89,7 @@ fn store_current_window_size(
     }
 }
 
-fn paint_ui(
-    mut ctx: ResMut<EguiContext>,
-    win_size: Res<WindowSize>,
-    mut assets_handler: asset_loading::AssetsHandler,
-    mut game_assets: ResMut<GameAssets>,
-    mut show_inspector: ResMut<ShowInspector>,
-) {
+fn paint_ui(mut ctx: ResMut<EguiContext>, show_inspector: Res<ShowInspector>) {
     if !show_inspector.visible {
         return;
     }

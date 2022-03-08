@@ -1,7 +1,4 @@
-use crate::{
-    asset_loading, assets::GameAssets, audio::GameAudio, burro, cleanup, game_camera, game_state,
-    AppState,
-};
+use crate::{assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, AppState};
 use bevy::prelude::*;
 
 pub struct WinnerPlugin;

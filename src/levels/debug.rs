@@ -1,6 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, bot, burro::Burro, burro::BurroDeathEvent, cleanup,
-    collision, follow_text, game_camera, game_state, mesh, player, AppState,
+    collision, follow_text, game_camera, game_state, player, AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -53,9 +53,8 @@ struct RoundEndTimer {
 }
 
 fn handle_players_died_early(
-    game_state: Res<game_state::GameState>,
     mut players_died_early_event_reader: EventReader<PlayersDiedEarlyEvent>,
-    mut text: Query<(&mut Visibility), With<RoundEndText>>,
+    mut text: Query<&mut Visibility, With<RoundEndText>>,
     mut round_end_timer: ResMut<RoundEndTimer>,
     mut burro_death_event_writer: EventWriter<BurroDeathEvent>,
     remaining_burros: Query<(Entity, &Burro)>,
@@ -74,8 +73,8 @@ fn handle_players_died_early(
             }
         }
     } else {
-        for e in players_died_early_event_reader.iter() {
-            for (mut visibility) in text.iter_mut() {
+        for _ in players_died_early_event_reader.iter() {
+            for mut visibility in text.iter_mut() {
                 visibility.is_visible = true;
             }
             round_end_timer.cooldown = 5.0;
@@ -217,13 +216,10 @@ fn setup(
     mut scene_spawner: ResMut<SceneSpawner>,
     game_assets: Res<GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut collidables: ResMut<collision::Collidables>,
     mut game_state: ResMut<game_state::GameState>,
     mut app_state: ResMut<State<AppState>>,
     mut clear_color: ResMut<ClearColor>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut images: ResMut<Assets<Image>>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut round_end_timer: ResMut<RoundEndTimer>,
 ) {

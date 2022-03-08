@@ -1,6 +1,5 @@
 use crate::{
-    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_controller,
-    game_state, mesh, AppState,
+    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, mesh, AppState,
 };
 use bevy::app::{AppExit, Events};
 use bevy::prelude::*;
@@ -141,7 +140,6 @@ fn setup(
     commands
         .spawn_bundle(mesh::MeshBuilder::plane(
             &mut meshes,
-            &mut images,
             &game_assets.title_screen_logo,
             3.0,
             1.0,
@@ -293,9 +291,8 @@ fn update_menu_buttons(
     interaction_query: Query<(Entity, &Interaction), (Changed<Interaction>, With<Button>)>,
     action_state: Query<&ActionState<MenuAction>>,
     //mut assets_handler: asset_loading::AssetsHandler,
-    mut game_assets: ResMut<GameAssets>,
+    game_assets: Res<GameAssets>,
     mut audio: GameAudio,
-    mut game_state: ResMut<game_state::GameState>,
     mut app_state: ResMut<State<AppState>>,
 ) {
     let action_state = action_state.single();
@@ -362,7 +359,7 @@ fn handle_controllers(
     mut players: Query<(Entity, &mut ActionState<MenuAction>)>,
 ) {
     for (_, mut action_state) in players.iter_mut() {
-        for ((_, pressed)) in controllers.pressed.iter() {
+        for (_, pressed) in controllers.pressed.iter() {
             // release all buttons
             // this probably affects durations but for
             // this game it might not be a big deal

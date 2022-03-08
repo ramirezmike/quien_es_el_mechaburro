@@ -12,14 +12,12 @@ impl Plugin for GameAudioPlugin {
 
 pub struct ChannelAudioState {
     channel: AudioChannel,
-    volume: f32,
 }
 
 impl ChannelAudioState {
     fn new(audio_path: &str) -> Self {
         ChannelAudioState {
             channel: AudioChannel::new(audio_path.to_owned()),
-            volume: 0.6,
         }
     }
 }

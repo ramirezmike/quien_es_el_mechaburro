@@ -1,7 +1,6 @@
 use crate::{burro, collision, game_state, player, player::PlayerAction, AppState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
-use rand::thread_rng;
 
 pub struct BotPlugin;
 
@@ -94,18 +93,6 @@ fn update_bot_ai(
     other_burros: Query<(Entity, &Transform), With<burro::Burro>>,
     collidables: Res<collision::Collidables>,
 ) {
-    let mut rng = thread_rng();
-    let cardinals = [
-        Cardinal::N,
-        Cardinal::S,
-        Cardinal::E,
-        Cardinal::W,
-        Cardinal::NE,
-        Cardinal::NW,
-        Cardinal::SE,
-        Cardinal::SW,
-    ];
-
     for (entity, mut bot, burro, transform) in bots.iter_mut() {
         // handling mind cool down
         bot.mind_cooldown -= time.delta_seconds();
@@ -223,8 +210,6 @@ fn update_bot_ai(
 
             let other_x = other_burro_transform.translation.x as isize;
             let other_z = other_burro_transform.translation.z as isize;
-            let other_fx = other_burro_transform.translation.x;
-            let other_fz = other_burro_transform.translation.z;
 
             bot.shooting = None;
             if burro.can_fire() {

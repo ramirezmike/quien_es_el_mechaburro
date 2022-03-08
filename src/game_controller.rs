@@ -22,7 +22,7 @@ fn gamepad_test(
     mut controllers: ResMut<GameController>,
 ) {
     let mut pressed: HashMap<usize, Vec<GameButton>> = HashMap::new();
-    for mut gamepad in controllers.players.iter_mut() {
+    for gamepad in controllers.players.iter_mut() {
         let mut pressed_buttons = vec![];
         let gamepad = *gamepad;
 
@@ -155,7 +155,6 @@ fn gamepad_test(
 }
 
 pub fn gamepad_connections(
-    mut commands: Commands,
     mut gamepad_evr: EventReader<GamepadEvent>,
     mut controllers: ResMut<GameController>,
 ) {
@@ -182,6 +181,5 @@ pub enum GameButton {
     ActionLeft,
     ActionRight,
     ActionDown,
-    Nothing,
     Start,
 }

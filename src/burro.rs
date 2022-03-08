@@ -77,14 +77,6 @@ impl Burro {
         }
     }
 
-    pub fn full_health(&self) -> bool {
-        self.health == self.max_health
-    }
-
-    pub fn almost_dead(&self) -> bool {
-        self.health == 1
-    }
-
     pub fn is_invulnerable(&self) -> bool {
         self.invulnerability_cooldown > 0.0
     }
@@ -113,7 +105,6 @@ fn handle_burro_flash_events(
 
 fn handle_burros(
     time: Res<Time>,
-    mut assets_materials: ResMut<Assets<StandardMaterial>>,
     mut burros: Query<(Entity, &mut Burro)>,
     mut burro_death_event_writer: EventWriter<BurroDeathEvent>,
     mut flash_event_writer: EventWriter<BurroFlashEvent>,

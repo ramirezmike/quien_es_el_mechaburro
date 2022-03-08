@@ -28,7 +28,7 @@ fn handle_score_add_event(
             .into_iter()
             .collect();
 
-        for mut burro in game_state.burros.iter_mut() {
+        for burro in game_state.burros.iter_mut() {
             let new_score = burro_points.get(&burro.skin).unwrap_or(&7);
             burro.score += new_score;
         }
@@ -53,8 +53,7 @@ impl GameState {
         map
     }
 
-    pub fn initialize(burro_count: usize, bot_count: usize, players: Vec<BurroCharacter>) -> Self {
-        let burro_count = burro_count.max(bot_count + 1);
+    pub fn initialize(players: Vec<BurroCharacter>) -> Self {
         let mut burros = vec![];
         let skins = vec![
             BurroSkin::Pinata,
@@ -67,7 +66,7 @@ impl GameState {
             BurroSkin::Aguas,
         ];
         let picked_skins = players.iter().map(|b| b.selected_burro).collect::<Vec<_>>();
-        let mut skins = skins
+        let skins = skins
             .iter()
             .filter(|s| !picked_skins.contains(s))
             .collect::<Vec<_>>();

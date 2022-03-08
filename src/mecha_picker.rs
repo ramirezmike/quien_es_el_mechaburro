@@ -69,7 +69,6 @@ fn animate_mecha_selection(
     mut commands: Commands,
     mut app_state: ResMut<State<AppState>>,
     mut text_display_timers: ResMut<TextDisplayTimers>,
-    game_state: Res<game_state::GameState>,
     game_assets: Res<GameAssets>,
     time: Res<Time>,
     mut burros: Query<(
@@ -120,8 +119,6 @@ fn animate_mecha_selection(
                     }
                 }
                 MechaSelectionStage::LaserShot => {
-                    use std::f32::consts::PI;
-
                     bullet_event_writer.send(BulletEvent {
                         source: selected_burro_entity,
                         speed: burro.bullet_speed,
@@ -239,7 +236,6 @@ fn handle_mecha_pick_event(
 }
 
 fn pick_mecha(
-    mut app_state: ResMut<State<AppState>>,
     time: Res<Time>,
     mut texts: Query<&mut Text, With<TextMarker>>,
     mut text_display_timers: ResMut<TextDisplayTimers>,

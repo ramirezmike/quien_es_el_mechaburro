@@ -65,7 +65,6 @@ fn handle_bullet_events(
     game_assets: Res<GameAssets>,
     mut bullet_reader: EventReader<BulletEvent>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut audio: audio::GameAudio,
 ) {
     for bullet in bullet_reader.iter() {
@@ -149,7 +148,7 @@ fn handle_bullets(
         }
 
         let bullet_position = Vec2::new(transform.translation.x, transform.translation.z);
-        'burros: for (burro_entity, burro_transform, mut burro) in burros.iter_mut() {
+        for (burro_entity, burro_transform, mut burro) in burros.iter_mut() {
             if burro_entity == bullet.source {
                 // don't shoot yourself
                 continue;

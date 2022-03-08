@@ -1,6 +1,4 @@
-use crate::{
-    asset_loading, assets::GameAssets, burro, cleanup, game_camera, game_state, player, AppState,
-};
+use crate::{assets::GameAssets, cleanup, game_camera, game_state, player, AppState};
 use bevy::prelude::*;
 
 pub struct ScoreDisplayPlugin;
@@ -51,11 +49,7 @@ impl Default for ScoreState {
 #[derive(Component)]
 struct CleanupMarker;
 
-fn setup(
-    mut commands: Commands,
-    mut score_state: ResMut<ScoreState>,
-    mut game_state: ResMut<game_state::GameState>,
-) {
+fn setup(mut score_state: ResMut<ScoreState>, mut game_state: ResMut<game_state::GameState>) {
     *score_state = ScoreState::default();
 
     game_state.current_level_over = true;
@@ -83,7 +77,7 @@ fn follow_winner(
 fn display_scores(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
-    mut game_state: ResMut<game_state::GameState>,
+    game_state: Res<game_state::GameState>,
     mut app_state: ResMut<State<AppState>>,
     mut score_state: ResMut<ScoreState>,
     cleanups: Query<Entity, With<CleanupMarker>>,
@@ -123,11 +117,9 @@ fn display_scores(
     }
     score_state.first_render = false;
 
-    let (show_score, show_add, order_by_rank) = match score_state.state {
-        ScoreStates::Initial => (true, false, false),
-        ScoreStates::Adding => (true, true, false),
-        ScoreStates::Added => (true, false, false),
-        ScoreStates::Displaying => (false, false, true),
+    let (show_score, order_by_rank) = match score_state.state {
+        ScoreStates::Displaying => (false, true),
+        _ => (true, false),
     };
 
     commands

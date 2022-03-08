@@ -1,6 +1,5 @@
 use crate::game_camera::PanOrbitCamera;
 use bevy::prelude::*;
-use bevy::render::camera::*;
 
 pub struct FollowTextPlugin;
 impl Plugin for FollowTextPlugin {
