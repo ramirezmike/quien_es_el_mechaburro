@@ -64,9 +64,19 @@ fn setup(
 fn follow_winner(
     player: Query<&Transform, With<player::Player>>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
+    cameras: Query<&Transform, With<game_camera::PanOrbitCamera>>,
 ) {
     for p in player.iter() {
-        camera_settings.set_camera(2.0, p.translation, 0.4, true, 5.0, 5.0);
+        for camera in cameras.iter() {
+            camera_settings.set_camera(
+                2.0,
+                p.translation,
+                0.4,
+                true,
+                p.translation.distance(camera.translation),
+                5.0,
+            );
+        }
     }
 }
 
