@@ -80,7 +80,7 @@ impl Collidables {
             return;
         }
 
-        let mut temp_new = new.clone();
+        let mut temp_new = *new;
         if !current_aabbs.is_empty() {
             let aabb = current_aabbs[0];
             if temp_new.x < aabb.min.x {

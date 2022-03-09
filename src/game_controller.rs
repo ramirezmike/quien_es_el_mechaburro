@@ -159,14 +159,9 @@ pub fn gamepad_connections(
     mut controllers: ResMut<GameController>,
 ) {
     for GamepadEvent(id, kind) in gamepad_evr.iter() {
-        match kind {
-            GamepadEventType::Connected => {
-                println!("New gamepad connected with ID: {:?}", id);
-
-                controllers.players.push(*id);
-            }
-            // other events are irrelevant
-            _ => {}
+        if *kind == GamepadEventType::Connected {
+            println!("New gamepad connected with ID: {:?}", id);
+            controllers.players.push(*id);
         }
     }
 }

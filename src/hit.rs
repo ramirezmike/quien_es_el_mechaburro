@@ -68,8 +68,8 @@ pub fn handle_create_hit_event(
             Transform::from_xyz(position.x as f32, position.y as f32, position.z as f32);
 
         for _ in 0..6 {
-            let inner_mesh_x = thread_rng().gen_range(-25 as i32..25) as f32 / 100.0;
-            let inner_mesh_z = thread_rng().gen_range(-25 as i32..25) as f32 / 100.0;
+            let inner_mesh_x = thread_rng().gen_range(-25..25) as f32 / 100.0;
+            let inner_mesh_z = thread_rng().gen_range(-25..25) as f32 / 100.0;
 
             let color = if event.is_candy {
                 Color::rgba(0.3, 0.5, 0.3, 0.7 + inner_mesh_x.abs())

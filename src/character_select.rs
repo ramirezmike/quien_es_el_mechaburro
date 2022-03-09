@@ -547,7 +547,7 @@ fn update_character_selection(
         let players = burros
             .iter()
             .filter(|(_, b, _)| b.is_playing)
-            .map(|(_, b, _)| b.clone())
+            .map(|(_, b, _)| *b)
             .collect();
 
         audio.play_sfx(&game_assets.fanfare_sfx);

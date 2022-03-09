@@ -82,10 +82,10 @@ impl GameState {
         }
 
         // bots
-        for i in 0..8 - players.len() {
+        for skin in skins.iter().take(8 - players.len()) {
             burros.push(BurroState {
                 score: 0,
-                skin: *skins[i],
+                skin: **skin,
                 is_bot: true,
                 hearts: vec![],
             });
@@ -96,7 +96,7 @@ impl GameState {
             dead_burros: vec![],
             current_level: 0,
             current_level_over: false,
-            players: players,
+            players,
         }
     }
 

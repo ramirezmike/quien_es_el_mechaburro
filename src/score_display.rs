@@ -284,17 +284,17 @@ fn display_scores(
                                     },
                                     text: Text::with_section(
                                         if show_score {
-                                            format!("{}", burro.score).to_string()
+                                            format!("{}", burro.score)
                                         } else {
                                             match i {
-                                                0 => format!("1st").to_string(),
-                                                1 => format!("2nd").to_string(),
-                                                2 => format!("3rd").to_string(),
-                                                3 => format!("4th").to_string(),
-                                                4 => format!("5th").to_string(),
-                                                5 => format!("6th").to_string(),
-                                                6 => format!("7th").to_string(),
-                                                _ => format!("8th").to_string(),
+                                                0 => "1st".to_string(),
+                                                1 => "2nd".to_string(),
+                                                2 => "3rd".to_string(),
+                                                3 => "4th".to_string(),
+                                                4 => "5th".to_string(),
+                                                5 => "6th".to_string(),
+                                                6 => "7th".to_string(),
+                                                _ => "8th".to_string(),
                                             }
                                         },
                                         TextStyle {

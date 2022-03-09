@@ -459,7 +459,7 @@ fn setup(
                         TextStyle {
                             font: game_assets.font.clone(),
                             font_size: 40.0,
-                            color: color,
+                            color,
                         },
                         TextAlignment {
                             ..Default::default()

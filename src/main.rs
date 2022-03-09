@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
 #![windows_subsystem = "windows"]
 
 use bevy::ecs::component::Component;
