@@ -67,9 +67,9 @@ fn handle_smokers(
         smoker.cooldown -= time.delta_seconds();
         smoker.cooldown = smoker.cooldown.clamp(-1.0, 3.0);
         if smoker.cooldown <= 0.0 {
-            smoker.cooldown = 0.3;
+            smoker.cooldown = 0.2;
 
-            for _ in 0..6 {
+            for _ in 0..3 {
                 let inner_mesh_x = thread_rng().gen_range(-25..25) as f32 / 100.0;
                 let inner_mesh_z = thread_rng().gen_range(-25..25) as f32 / 100.0;
 
@@ -83,7 +83,7 @@ fn handle_smokers(
                     .with_children(|parent| {
                         parent
                             .spawn_bundle(PbrBundle {
-                                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+                                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.6 })),
                                 material: materials.add(color.into()),
                                 transform: {
                                     let mut t = Transform::from_xyz(inner_mesh_x, 0.1, inner_mesh_z);

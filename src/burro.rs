@@ -208,17 +208,22 @@ fn handle_burros(
 fn handle_burro_death_events(
     mut commands: Commands,
     mut burro_death_event_reader: EventReader<BurroDeathEvent>,
+    burros: Query<Entity, With<Burro>>,
     mut game_state: ResMut<game_state::GameState>,
     follow_texts: Query<(Entity, &follow_text::FollowText)>,
 ) {
     for death_event in burro_death_event_reader.iter() {
-        commands.entity(death_event.entity).despawn_recursive();
-        for (text_entity, text) in follow_texts.iter() {
-            if text.following == death_event.entity {
-                commands.entity(text_entity).despawn_recursive();
+        if let Ok(_) = burros.get(death_event.entity) {
+            commands.entity(death_event.entity).despawn_recursive();
+            for (text_entity, text) in follow_texts.iter() {
+                if text.following == death_event.entity {
+                    commands.entity(text_entity).despawn_recursive();
+                }
             }
+            if !game_state.dead_burros.contains(&death_event.skin) {
+                game_state.dead_burros.push(death_event.skin);
+            }
+            // probably do a bunch of UI/animation stuff here and play sounds or something
         }
-        game_state.dead_burros.push(death_event.skin);
-        // probably do a bunch of UI/animation stuff here and play sounds or something
     }
 }
