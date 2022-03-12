@@ -165,6 +165,7 @@ fn handle_bullets(
                 commands.entity(entity).despawn_recursive();
                 burro_hit_event_writer.send(burro::BurroHitEvent {
                     entity: burro_entity,
+                    is_laser: bullet.bullet_type == BulletType::Laser,
                     velocity: bullet.direction * bullet.speed,
                 });
                 create_hit_event_writer.send(CreateHitEvent {

@@ -321,8 +321,8 @@ fn handle_input(
     mut bullet_event_writer: EventWriter<BulletEvent>,
     //    game_assets: Res<GameAssets>,
     //    mut skin_index: Local<usize>,
-    burros: Query<Entity, With<burro::Burro>>,
-    mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
+    // burros: Query<Entity, With<burro::Burro>>,
+    // mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
     for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
         if burro.is_down {

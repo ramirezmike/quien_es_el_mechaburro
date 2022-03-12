@@ -27,6 +27,7 @@ mod mesh;
 mod pause;
 mod player;
 mod score_display;
+mod smoke;
 mod title_screen;
 mod winner;
 
@@ -42,6 +43,7 @@ fn main() {
         .add_plugin(bot::BotPlugin)
         .add_plugin(bullet::BulletPlugin)
         .add_plugin(character_select::CharacterSelectPlugin)
+        .add_plugin(collision::WorldCollisionPlugin)
         .add_plugin(follow_text::FollowTextPlugin)
         .add_plugin(hit::HitPlugin)
         .add_plugin(game_camera::GameCameraPlugin)
@@ -56,7 +58,7 @@ fn main() {
         .add_plugin(pause::PausePlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(score_display::ScoreDisplayPlugin)
-        .add_plugin(collision::WorldCollisionPlugin)
+        .add_plugin(smoke::SmokePlugin)
         .add_plugin(winner::WinnerPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))

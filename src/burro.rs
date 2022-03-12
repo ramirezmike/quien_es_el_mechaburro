@@ -1,4 +1,4 @@
-use crate::{follow_text, game_state, player, AppState};
+use crate::{follow_text, game_state, player, AppState, smoke};
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -22,6 +22,7 @@ impl Plugin for BurroPlugin {
 pub struct BurroHitEvent {
     pub entity: Entity,
     pub velocity: Vec3,
+    pub is_laser: bool,
 }
 
 pub struct BurroDeathEvent {
@@ -100,12 +101,13 @@ impl Burro {
 }
 
 fn handle_burro_hit(
+    mut commands: Commands,
     mut burro_hit_event_reader: EventReader<BurroHitEvent>,
-    mut burros: Query<(&mut Burro, &mut Transform, &mut player::Player)>,
+    mut burros: Query<(Entity, &mut Burro, &mut Transform, &mut player::Player)>,
 ) {
     for event in burro_hit_event_reader.iter() {
         let mut rng = rand::thread_rng();
-        if let Ok((mut burro, mut transform, mut player)) = burros.get_mut(event.entity) {
+        if let Ok((entity, mut burro, mut transform, mut player)) = burros.get_mut(event.entity) {
             burro.hit();
 
             let random_z = rng.gen_range(0.0..6.2831);
@@ -113,12 +115,17 @@ fn handle_burro_hit(
             transform.rotation *= Quat::from_rotation_z(random_z);
 
             player.velocity += event.velocity * 0.5;
+            player.is_firing = false;
+
+            if event.is_laser {
+                commands.entity(entity).insert(smoke::Smoker::default());
+            }
         }
     }
 }
 
-fn handle_fallen_burros(mut burros: Query<(&mut Burro, &mut Transform)>, time: Res<Time>) {
-    for (mut burro, mut transform) in burros.iter_mut() {
+fn handle_fallen_burros(mut commands: Commands, mut burros: Query<(Entity, &mut Burro, &mut Transform)>, time: Res<Time>) {
+    for (entity, mut burro, mut transform) in burros.iter_mut() {
         if !burro.is_down {
             continue;
         }
@@ -130,6 +137,7 @@ fn handle_fallen_burros(mut burros: Query<(&mut Burro, &mut Transform)>, time: R
             burro.down_cooldown = 0.0;
             burro.is_down = false;
             burro.invulnerability_cooldown = 3.0;
+            commands.entity(entity).remove::<smoke::Smoker>();
         }
     }
 }
