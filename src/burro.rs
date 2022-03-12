@@ -114,7 +114,7 @@ fn handle_burro_hit(
             transform.rotation = Quat::from_rotation_x((3.0 * std::f32::consts::PI) / 2.0);
             transform.rotation *= Quat::from_rotation_z(random_z);
 
-            player.velocity += event.velocity * 0.5;
+            player.velocity += event.velocity * 0.25;
             player.is_firing = false;
 
             if event.is_laser {

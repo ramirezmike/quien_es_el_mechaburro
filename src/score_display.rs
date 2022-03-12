@@ -149,7 +149,7 @@ fn display_scores(
                         align_items: AlignItems::FlexEnd,
                         ..Default::default()
                     },
-                    color: Color::GRAY.into(),
+                    color: Color::rgba(0.3, 0.3, 0.3, 0.4).into(),
                     ..Default::default()
                 })
                 .with_children(|parent| {
@@ -272,7 +272,7 @@ fn display_scores(
                                     style: Style {
                                         size: Size::new(Val::Px(20.0), Val::Auto),
                                         margin: Rect {
-                                            top: Val::Px(100.0),
+                                            top: if show_score { Val::Px(100.0) } else { Val::Px(120.0) },
                                             left: if i != 0 {
                                                 Val::Px(padding)
                                             } else {
@@ -298,8 +298,8 @@ fn display_scores(
                                             }
                                         },
                                         TextStyle {
-                                            font: game_assets.font.clone(),
-                                            font_size: 20.0,
+                                            font: game_assets.score_font.clone(),
+                                            font_size: 40.0,
                                             color: Color::WHITE,
                                         },
                                         TextAlignment::default(),

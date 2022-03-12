@@ -13,6 +13,7 @@ impl Plugin for AssetsPlugin {
 #[derive(Default)]
 pub struct GameAssets {
     pub font: Handle<Font>,
+    pub score_font: Handle<Font>,
     pub bgm_1: Handle<AudioSource>,
     pub sfx_1: Handle<AudioSource>,
     pub sfx_2: Handle<AudioSource>,
