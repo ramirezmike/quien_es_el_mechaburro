@@ -90,7 +90,7 @@ impl BotBundle {
 fn update_bot_ai(
     time: Res<Time>,
     mut bots: Query<(Entity, &mut Bot, &burro::Burro, &Transform)>,
-    other_burros: Query<(Entity, &Transform), With<burro::Burro>>,
+    other_burros: Query<(Entity, &Transform, &burro::Burro)>,
     collidables: Res<collision::Collidables>,
 ) {
     for (entity, mut bot, burro, transform) in bots.iter_mut() {
@@ -194,7 +194,9 @@ fn update_bot_ai(
 
         let mut other_burros: Vec<_> = other_burros
             .iter()
-            .filter(|(other_entity, _)| entity != *other_entity) // skip yourself
+            .filter(|(other_entity, _, other_burro)| {
+                entity != *other_entity && other_burro.can_be_hit()
+            }) // skip yourself and burros that can't be hit
             .map(|other| {
                 let position = Vec2::new(other.1.translation.x, other.1.translation.z);
                 (position.distance(burro_position), other)
@@ -203,7 +205,7 @@ fn update_bot_ai(
 
         other_burros.sort_by_key(|o| o.0 as usize); // sort by distance to self
 
-        for (_, (other_entity, other_burro_transform)) in other_burros.iter().rev() {
+        for (_, (other_entity, other_burro_transform, _)) in other_burros.iter().rev() {
             if entity == *other_entity {
                 continue;
             }

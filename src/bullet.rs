@@ -127,9 +127,10 @@ fn handle_bullets(
     mut commands: Commands,
     time: Res<Time>,
     mut bullets: Query<(Entity, &mut Bullet, &mut Transform), Without<burro::Burro>>,
-    mut burros: Query<(Entity, &Transform, &mut burro::Burro), Without<Bullet>>,
+    burros: Query<(Entity, &Transform, &burro::Burro), Without<Bullet>>,
     inspector: Res<inspect::InspectorData>,
     mut create_hit_event_writer: EventWriter<CreateHitEvent>,
+    mut burro_hit_event_writer: EventWriter<burro::BurroHitEvent>,
 ) {
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
@@ -148,9 +149,13 @@ fn handle_bullets(
         }
 
         let bullet_position = Vec2::new(transform.translation.x, transform.translation.z);
-        for (burro_entity, burro_transform, mut burro) in burros.iter_mut() {
+        for (burro_entity, burro_transform, burro) in burros.iter() {
             if burro_entity == bullet.source {
                 // don't shoot yourself
+                continue;
+            }
+
+            if !burro.can_be_hit() {
                 continue;
             }
 
@@ -158,7 +163,10 @@ fn handle_bullets(
                 Vec2::new(burro_transform.translation.x, burro_transform.translation.z);
             if bullet_position.distance(burro_position) <= inspector.bullet_distance {
                 commands.entity(entity).despawn_recursive();
-                burro.hit();
+                burro_hit_event_writer.send(burro::BurroHitEvent {
+                    entity: burro_entity,
+                    velocity: bullet.direction * bullet.speed,
+                });
                 create_hit_event_writer.send(CreateHitEvent {
                     position: burro_transform.translation,
                     is_candy: bullet.bullet_type == BulletType::Candy,

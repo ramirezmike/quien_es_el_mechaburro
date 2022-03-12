@@ -108,7 +108,6 @@ fn update_camera(
 }
 
 pub fn spawn_camera(mut commands: Commands) {
-    //let translation = Vec3::new(-25.0, 25.0, 0.0);
     let translation = Vec3::new(0.1, 0.1, 0.1);
 
     let radius = translation.length();

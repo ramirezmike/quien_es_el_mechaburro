@@ -1,5 +1,6 @@
-use crate::{follow_text, game_state, AppState};
+use crate::{follow_text, game_state, player, AppState};
 use bevy::prelude::*;
+use rand::Rng;
 
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
@@ -8,11 +9,19 @@ impl Plugin for BurroPlugin {
             SystemSet::on_update(AppState::InGame)
                 .with_system(handle_burros.label("handle_burros"))
                 .with_system(handle_burro_death_events.after("handle_burros"))
+                .with_system(handle_burro_hit.after("move_player"))
+                .with_system(handle_fallen_burros)
                 .with_system(handle_burro_flash_events),
         )
         .add_event::<BurroFlashEvent>()
+        .add_event::<BurroHitEvent>()
         .add_event::<BurroDeathEvent>();
     }
+}
+
+pub struct BurroHitEvent {
+    pub entity: Entity,
+    pub velocity: Vec3,
 }
 
 pub struct BurroDeathEvent {
@@ -36,12 +45,13 @@ pub struct Burro {
     pub invulnerability_cooldown: f32,
     pub is_visible: bool,
     pub is_mechaburro: bool,
+    pub is_down: bool,
+    pub down_cooldown: f32,
     pub random: f32,
 }
 
 impl Burro {
     pub fn new(burro_skin: game_state::BurroSkin) -> Self {
-        use rand::Rng;
         let mut rng = rand::thread_rng();
 
         Burro {
@@ -55,6 +65,8 @@ impl Burro {
             is_visible: true,
             is_mechaburro: false,
             random: rng.gen_range(0.5..1.0),
+            is_down: false,
+            down_cooldown: 0.0,
         }
     }
 
@@ -67,18 +79,58 @@ impl Burro {
     }
 
     pub fn hit(&mut self) {
-        if self.is_invulnerable() {
+        if !self.can_be_hit() {
             return;
         }
 
         if let Some(health) = self.health.checked_sub(1) {
             self.health = health;
-            self.invulnerability_cooldown = 3.0;
         }
+        self.is_down = true;
+        self.down_cooldown = 1.75;
+    }
+
+    pub fn can_be_hit(&self) -> bool {
+        !self.is_down && !self.is_invulnerable()
     }
 
     pub fn is_invulnerable(&self) -> bool {
         self.invulnerability_cooldown > 0.0
+    }
+}
+
+fn handle_burro_hit(
+    mut burro_hit_event_reader: EventReader<BurroHitEvent>,
+    mut burros: Query<(&mut Burro, &mut Transform, &mut player::Player)>,
+) {
+    for event in burro_hit_event_reader.iter() {
+        let mut rng = rand::thread_rng();
+        if let Ok((mut burro, mut transform, mut player)) = burros.get_mut(event.entity) {
+            burro.hit();
+
+            let random_z = rng.gen_range(0.0..6.2831);
+            transform.rotation = Quat::from_rotation_x((3.0 * std::f32::consts::PI) / 2.0);
+            transform.rotation *= Quat::from_rotation_z(random_z);
+
+            player.velocity += event.velocity * 0.5;
+        }
+    }
+}
+
+fn handle_fallen_burros(mut burros: Query<(&mut Burro, &mut Transform)>, time: Res<Time>) {
+    for (mut burro, mut transform) in burros.iter_mut() {
+        if !burro.is_down {
+            continue;
+        }
+
+        burro.down_cooldown -= time.delta_seconds();
+        burro.down_cooldown = burro.down_cooldown.clamp(-3.0, 10.0);
+        if burro.down_cooldown < 0.0 {
+            transform.rotation = Quat::from_rotation_y(std::f32::consts::PI * 2.0);
+            burro.down_cooldown = 0.0;
+            burro.is_down = false;
+            burro.invulnerability_cooldown = 3.0;
+        }
     }
 }
 
@@ -96,7 +148,7 @@ fn handle_burro_flash_events(
                     material.base_color.set_a(1.0);
                 } else {
                     material.alpha_mode = AlphaMode::Blend;
-                    material.base_color.set_a(0.6);
+                    material.base_color.set_a(0.4);
                 }
             }
         }

@@ -26,6 +26,9 @@ impl Plugin for DebugRoomPlugin {
                 .with_system(handle_players_died_early),
         )
         .add_system_set(
+            SystemSet::on_enter(AppState::ScoreDisplay).with_system(despawn_round_end_text),
+        )
+        .add_system_set(
             SystemSet::on_exit(AppState::InGame)
                 .with_system(cleanup::<CleanupMarker>)
                 .with_system(game_camera::despawn_camera),
@@ -50,6 +53,12 @@ struct RoundEndText;
 struct RoundEndTimer {
     round_ending: bool,
     cooldown: f32,
+}
+
+fn despawn_round_end_text(mut commands: Commands, texts: Query<Entity, With<RoundEndText>>) {
+    for entity in texts.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 fn handle_players_died_early(

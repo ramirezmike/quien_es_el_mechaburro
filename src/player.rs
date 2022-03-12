@@ -22,7 +22,7 @@ impl Plugin for PlayerPlugin {
                 SystemSet::on_update(AppState::InGame)
                     .with_system(handle_controllers.before("handle_input"))
                     .with_system(handle_input.label("handle_input"))
-                    .with_system(move_player.after("handle_input")),
+                    .with_system(move_player.label("move_player").after("handle_input")),
             );
     }
 }
@@ -103,7 +103,11 @@ fn move_player(
             .lerp(rotation, time.delta_seconds() * rotation_speed);
 
         // don't rotate if we're not moving or if uhh rotation isnt a number?? why isn't it a number? who did this
-        if !new_rotation.is_nan() && player.velocity.length() > 0.0001 && !player.is_firing {
+        if !new_rotation.is_nan()
+            && player.velocity.length() > 0.0001
+            && !player.is_firing
+            && !burro.is_down
+        {
             transform.rotation = rotation;
         }
 
@@ -321,6 +325,10 @@ fn handle_input(
     mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
     for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
+        if burro.is_down {
+            continue;
+        }
+
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
@@ -338,42 +346,42 @@ fn handle_input(
         }
 
         if action_state.just_pressed(&PlayerAction::Debug) {
-            println!("Translation: {:?}", transform.translation);
+            //println!("Translation: {:?}", transform.translation);
 
-            // kill burros
-            let entity = burros.iter().last().unwrap();
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Pinata,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Meow,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Salud,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Mexico,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Medianoche,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Morir,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Gators,
-            });
-            burro_death_event_writer.send(burro::BurroDeathEvent {
-                entity,
-                skin: game_state::BurroSkin::Aguas,
-            });
+            //         // kill burros
+            //         let entity = burros.iter().last().unwrap();
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Pinata,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Meow,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Salud,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Mexico,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Medianoche,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Morir,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Gators,
+            //         });
+            //         burro_death_event_writer.send(burro::BurroDeathEvent {
+            //             entity,
+            //             skin: game_state::BurroSkin::Aguas,
+            //         });
 
             ///// changing skin
             //          *skin_index += 1;
