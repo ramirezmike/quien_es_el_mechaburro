@@ -1,6 +1,6 @@
+use crate::{cleanup, AppState};
 use bevy::prelude::*;
 use rand::{thread_rng, Rng};
-use crate::{AppState};
 
 pub struct SmokePlugin;
 impl Plugin for SmokePlugin {
@@ -8,8 +8,9 @@ impl Plugin for SmokePlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
                 .with_system(handle_smokers)
-                .with_system(handle_smokes)
-        );
+                .with_system(handle_smokes),
+        )
+        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>));
     }
 }
 
@@ -20,6 +21,9 @@ pub struct Smoker {
 
 #[derive(Component)]
 pub struct Smoke;
+
+#[derive(Component)]
+struct CleanupMarker;
 
 fn handle_smokes(
     mut commands: Commands,
@@ -80,13 +84,15 @@ fn handle_smokers(
                         transform: *transform,
                         ..Default::default()
                     })
+                    .insert(CleanupMarker)
                     .with_children(|parent| {
                         parent
                             .spawn_bundle(PbrBundle {
                                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.6 })),
                                 material: materials.add(color.into()),
                                 transform: {
-                                    let mut t = Transform::from_xyz(inner_mesh_x, 0.1, inner_mesh_z);
+                                    let mut t =
+                                        Transform::from_xyz(inner_mesh_x, 0.1, inner_mesh_z);
                                     t.rotate(Quat::from_rotation_x(inner_mesh_z));
                                     t.rotate(Quat::from_rotation_y(inner_mesh_x));
                                     t

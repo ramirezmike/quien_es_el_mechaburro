@@ -74,9 +74,9 @@ pub struct BotBundle {
 }
 
 impl BotBundle {
-    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
+    pub fn new(burro_skin: game_state::BurroSkin, burro_speed: f32) -> Self {
         BotBundle {
-            player: player::Player::new(),
+            player: player::Player::new(burro_speed),
             burro: burro::Burro::new(burro_skin),
             bot: Bot::default(),
             input_manager: InputManagerBundle {

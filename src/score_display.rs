@@ -60,6 +60,7 @@ fn follow_winner(
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     cameras: Query<&Transform, With<game_camera::PanOrbitCamera>>,
 ) {
+    camera_settings.follow = None; // override debug following
     for p in player.iter() {
         for camera in cameras.iter() {
             camera_settings.set_camera(
@@ -272,7 +273,11 @@ fn display_scores(
                                     style: Style {
                                         size: Size::new(Val::Px(20.0), Val::Auto),
                                         margin: Rect {
-                                            top: if show_score { Val::Px(100.0) } else { Val::Px(120.0) },
+                                            top: if show_score {
+                                                Val::Px(100.0)
+                                            } else {
+                                                Val::Px(120.0)
+                                            },
                                             left: if i != 0 {
                                                 Val::Px(padding)
                                             } else {

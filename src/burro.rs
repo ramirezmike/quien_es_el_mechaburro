@@ -1,4 +1,4 @@
-use crate::{follow_text, game_state, player, AppState, smoke};
+use crate::{follow_text, game_state, inspect, player, smoke, AppState};
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -79,7 +79,7 @@ impl Burro {
         self.fire_cooldown = 0.4;
     }
 
-    pub fn hit(&mut self) {
+    pub fn hit(&mut self, down_cooldown: f32) {
         if !self.can_be_hit() {
             return;
         }
@@ -88,7 +88,7 @@ impl Burro {
             self.health = health;
         }
         self.is_down = true;
-        self.down_cooldown = 1.75;
+        self.down_cooldown = down_cooldown;
     }
 
     pub fn can_be_hit(&self) -> bool {
@@ -104,11 +104,12 @@ fn handle_burro_hit(
     mut commands: Commands,
     mut burro_hit_event_reader: EventReader<BurroHitEvent>,
     mut burros: Query<(Entity, &mut Burro, &mut Transform, &mut player::Player)>,
+    inspector_data: Res<inspect::InspectorData>,
 ) {
     for event in burro_hit_event_reader.iter() {
         let mut rng = rand::thread_rng();
         if let Ok((entity, mut burro, mut transform, mut player)) = burros.get_mut(event.entity) {
-            burro.hit();
+            burro.hit(inspector_data.down_cooldown);
 
             let random_z = rng.gen_range(0.0..6.2831);
             transform.rotation = Quat::from_rotation_x((3.0 * std::f32::consts::PI) / 2.0);
@@ -124,7 +125,12 @@ fn handle_burro_hit(
     }
 }
 
-fn handle_fallen_burros(mut commands: Commands, mut burros: Query<(Entity, &mut Burro, &mut Transform)>, time: Res<Time>) {
+fn handle_fallen_burros(
+    mut commands: Commands,
+    mut burros: Query<(Entity, &mut Burro, &mut Transform)>,
+    time: Res<Time>,
+    inspector_data: Res<inspect::InspectorData>,
+) {
     for (entity, mut burro, mut transform) in burros.iter_mut() {
         if !burro.is_down {
             continue;
@@ -136,7 +142,7 @@ fn handle_fallen_burros(mut commands: Commands, mut burros: Query<(Entity, &mut 
             transform.rotation = Quat::from_rotation_y(std::f32::consts::PI * 2.0);
             burro.down_cooldown = 0.0;
             burro.is_down = false;
-            burro.invulnerability_cooldown = 3.0;
+            burro.invulnerability_cooldown = inspector_data.invulnerability_cooldown;
             commands.entity(entity).remove::<smoke::Smoker>();
         }
     }

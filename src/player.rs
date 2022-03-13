@@ -171,10 +171,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(burro_speed: f32) -> Self {
         Player {
             velocity: Vec3::default(),
-            speed: 32.0,
+            speed: burro_speed,
             rotation_speed: 1.0,
             friction: 0.01,
             is_firing: false,
@@ -191,9 +191,9 @@ pub struct PlayerBundle {
 }
 
 impl PlayerBundle {
-    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
+    pub fn new(burro_skin: game_state::BurroSkin, burro_speed: f32) -> Self {
         PlayerBundle {
-            player: Player::new(),
+            player: Player::new(burro_speed),
             burro: burro::Burro::new(burro_skin),
             input_manager: InputManagerBundle {
                 input_map: PlayerBundle::default_input_map(),

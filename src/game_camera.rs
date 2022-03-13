@@ -1,9 +1,12 @@
+use crate::{inspect, player};
 use bevy::prelude::*;
 
 pub struct GameCameraPlugin;
 impl Plugin for GameCameraPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CameraSettings::default())
+            .add_system(check_for_follow_burros)
+            .add_system(follow_following)
             .add_system(update_camera);
     }
 }
@@ -33,6 +36,7 @@ pub struct CameraSettings {
     speed: f32,
     distance: f32,
     target_distance: f32,
+    pub follow: Option<Entity>,
 }
 
 impl CameraSettings {
@@ -51,6 +55,50 @@ impl CameraSettings {
         self.orbit = orbit;
         self.distance = distance;
         self.target_distance = target_distance;
+    }
+}
+
+fn follow_following(
+    transforms: Query<&Transform>,
+    mut camera_settings: ResMut<CameraSettings>,
+    cameras: Query<&Transform, With<PanOrbitCamera>>,
+) {
+    if let Some(follow_entity) = camera_settings.follow {
+        if let Ok(transform) = transforms.get(follow_entity) {
+            for camera in cameras.iter() {
+                camera_settings.set_camera(
+                    2.0,
+                    transform.translation,
+                    0.4,
+                    true,
+                    transform.translation.distance(camera.translation),
+                    5.0,
+                );
+            }
+        } else {
+            camera_settings.follow = None;
+        }
+    }
+}
+
+fn check_for_follow_burros(
+    mut inspect: ResMut<inspect::InspectorData>,
+    mut camera_settings: ResMut<CameraSettings>,
+    player: Query<Entity, With<player::Player>>,
+) {
+    if inspect.follow_burros {
+        if let Some(follow_entity) = camera_settings.follow {
+            if player.get(follow_entity).is_ok() {
+                return; // we're following a player that still exists so we're ok
+            }
+        }
+
+        if let Some(p) = player.iter().last() {
+            camera_settings.follow = Some(p);
+        } else {
+            // nothing to follow
+            inspect.follow_burros = false;
+        }
     }
 }
 

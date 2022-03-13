@@ -31,6 +31,10 @@ pub struct ShowInspector {
 #[derive(Inspectable)]
 pub struct InspectorData {
     pub bullet_distance: f32,
+    pub burro_speed: f32,
+    pub follow_burros: bool,
+    pub invulnerability_cooldown: f32,
+    pub down_cooldown: f32,
     pub max_camera_yaw: f32,
     pub max_camera_pitch: f32,
     pub max_camera_roll: f32,
@@ -41,6 +45,10 @@ impl Default for InspectorData {
     fn default() -> Self {
         InspectorData {
             bullet_distance: 1.0,
+            burro_speed: 32.0,
+            follow_burros: true,
+            invulnerability_cooldown: 1.5,
+            down_cooldown: 1.75,
             max_camera_yaw: 1.0,
             max_camera_pitch: 1.0,
             max_camera_roll: 1.0,

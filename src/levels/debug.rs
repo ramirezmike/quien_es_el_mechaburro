@@ -1,6 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, bot, burro::Burro, burro::BurroDeathEvent, cleanup,
-    collision, follow_text, game_camera, game_state, player, AppState,
+    collision, follow_text, game_camera, game_state, inspect, player, AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -26,7 +26,9 @@ impl Plugin for DebugRoomPlugin {
                 .with_system(handle_players_died_early),
         )
         .add_system_set(
-            SystemSet::on_enter(AppState::ScoreDisplay).with_system(despawn_round_end_text),
+            SystemSet::on_enter(AppState::ScoreDisplay)
+                .with_system(despawn_round_end_text)
+                .with_system(stop_firing),
         )
         .add_system_set(
             SystemSet::on_exit(AppState::InGame)
@@ -44,6 +46,12 @@ fn check_for_next_level(
     if game_state.current_level_over {
         game_state.current_level += 1;
         assets_handler.load_next_level(&game_state, &mut game_assets);
+    }
+}
+
+fn stop_firing(mut players: Query<&mut player::Player>) {
+    for mut player in players.iter_mut() {
+        player.is_firing = false;
     }
 }
 
@@ -231,6 +239,7 @@ fn setup(
     mut clear_color: ResMut<ClearColor>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut round_end_timer: ResMut<RoundEndTimer>,
+    inspector_data: Res<inspect::InspectorData>,
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
 
@@ -432,12 +441,15 @@ fn setup(
             commands
                 .spawn_bundle(burro_bundle)
                 .insert(CleanupMarker)
-                .insert_bundle(bot::BotBundle::new(b.skin));
+                .insert_bundle(bot::BotBundle::new(b.skin, inspector_data.burro_speed));
         } else {
             let entity = commands
                 .spawn_bundle(burro_bundle)
                 .insert(CleanupMarker)
-                .insert_bundle(player::PlayerBundle::new(b.skin))
+                .insert_bundle(player::PlayerBundle::new(
+                    b.skin,
+                    inspector_data.burro_speed,
+                ))
                 .id();
 
             let player_map = game_state.get_skin_player_map();
