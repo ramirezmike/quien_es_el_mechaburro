@@ -71,7 +71,7 @@ fn move_player(
 
         player.velocity = player.velocity.clamp_length_max(speed);
 
-        let mut new_translation = transform.translation + player.velocity;
+        let mut new_translation = transform.translation + (player.velocity * time.delta_seconds());
         collidables.fit_in(
             &transform.translation,
             &mut new_translation,
@@ -83,7 +83,7 @@ fn move_player(
         let rotation = Quat::from_axis_angle(Vec3::Y, angle);
         transform.translation = new_translation;
 
-        if player.velocity.length() > 0.01 {
+        if player.velocity.length() > 1.00 {
             let bobbing_velocity = (time.seconds_since_startup() as f32
                 * (2.0 * std::f32::consts::PI)
                 * 4.0
@@ -94,7 +94,7 @@ fn move_player(
         //              bobbing_velocity * (time.delta_seconds() * 8.0),
         //          ));
         } else {
-            transform.translation.y += -player.speed * time.delta_seconds(); // gravity
+            transform.translation.y += -4.0 * time.delta_seconds(); // gravity
         }
         transform.translation.y = transform.translation.y.clamp(1.0, 1.5);
 
@@ -104,7 +104,7 @@ fn move_player(
 
         // don't rotate if we're not moving or if uhh rotation isnt a number?? why isn't it a number? who did this
         if !new_rotation.is_nan()
-            && player.velocity.length() > 0.0001
+            && player.velocity.length() > 0.5
             && !player.is_firing
             && !burro.is_down
         {
@@ -174,7 +174,7 @@ impl Player {
     pub fn new() -> Self {
         Player {
             velocity: Vec3::default(),
-            speed: 0.8,
+            speed: 32.0,
             rotation_speed: 1.0,
             friction: 0.01,
             is_firing: false,

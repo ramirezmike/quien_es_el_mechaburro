@@ -59,8 +59,8 @@ impl Burro {
             burro_skin,
             max_health: 3,
             health: 3,
-            bullet_speed: 6.0,
-            bullet_time_alive: 3.0,
+            bullet_speed: 12.0,
+            bullet_time_alive: 1.0,
             fire_cooldown: 0.0,
             invulnerability_cooldown: 0.0,
             is_visible: true,
@@ -114,7 +114,7 @@ fn handle_burro_hit(
             transform.rotation = Quat::from_rotation_x((3.0 * std::f32::consts::PI) / 2.0);
             transform.rotation *= Quat::from_rotation_z(random_z);
 
-            player.velocity += event.velocity * 0.25;
+            player.velocity += event.velocity * 4.0;
             player.is_firing = false;
 
             if event.is_laser {

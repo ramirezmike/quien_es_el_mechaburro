@@ -9,18 +9,13 @@ impl Plugin for BulletPlugin {
                 SystemSet::on_exit(AppState::InGame).with_system(cleanup::<CleanupMarker>),
             )
             .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(handle_bullet_events)
-                    .with_system(handle_bullets),
-            )
-            .add_system_set(
                 SystemSet::on_update(AppState::MechaPicker)
-                    .with_system(handle_bullet_events)
+                    .with_system(handle_bullet_events.after("handle_input"))
                     .with_system(handle_bullets),
             )
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
-                    .with_system(handle_bullet_events)
+                    .with_system(handle_bullet_events.after("handle_input"))
                     .with_system(handle_bullets),
             );
     }
@@ -101,13 +96,13 @@ fn handle_bullet_events(
             .insert(Bullet {
                 source: bullet.source,
                 time_to_live: if bullet.bullet_type == BulletType::Laser {
-                    bullet.time_to_live + 10.0
+                    bullet.time_to_live + 3.0
                 } else {
                     bullet.time_to_live
                 },
                 time_alive: 0.0,
                 speed: if bullet.bullet_type == BulletType::Laser {
-                    bullet.speed + 2.0
+                    bullet.speed + 1.0
                 } else {
                     bullet.speed
                 },
@@ -135,9 +130,9 @@ fn handle_bullets(
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
         if bullet.bullet_type == BulletType::Candy {
-            transform.rotate(Quat::from_rotation_y(2.0 * time.delta_seconds()));
-            transform.rotate(Quat::from_rotation_x(1.75 * time.delta_seconds()));
-            transform.rotate(Quat::from_rotation_z(0.75 * time.delta_seconds()));
+            transform.rotate(Quat::from_rotation_y(4.0 * time.delta_seconds()));
+            transform.rotate(Quat::from_rotation_x(2.50 * time.delta_seconds()));
+            transform.rotate(Quat::from_rotation_z(1.50 * time.delta_seconds()));
         }
 
         bullet.time_alive += time.delta_seconds();
