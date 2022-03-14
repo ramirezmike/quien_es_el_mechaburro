@@ -45,10 +45,10 @@ impl Default for InspectorData {
     fn default() -> Self {
         InspectorData {
             bullet_distance: 1.0,
-            burro_speed: 32.0,
+            burro_speed: 40.0,
             follow_burros: true,
-            invulnerability_cooldown: 1.5,
-            down_cooldown: 1.75,
+            invulnerability_cooldown: 1.0,
+            down_cooldown: 1.5,
             max_camera_yaw: 1.0,
             max_camera_pitch: 1.0,
             max_camera_roll: 1.0,
