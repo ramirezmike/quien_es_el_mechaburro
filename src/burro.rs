@@ -1,4 +1,4 @@
-use crate::{follow_text, game_state, inspect, player, smoke, AppState, audio, assets::GameAssets};
+use crate::{assets::GameAssets, audio, follow_text, game_state, inspect, player, smoke, AppState};
 use bevy::prelude::*;
 use rand::Rng;
 

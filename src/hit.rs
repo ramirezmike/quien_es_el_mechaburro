@@ -1,6 +1,6 @@
+use crate::inspect;
 use bevy::prelude::*;
 use rand::{thread_rng, Rng};
-use crate::{inspect};
 
 pub struct HitPlugin;
 impl Plugin for HitPlugin {
@@ -33,9 +33,10 @@ pub fn animate_hit(
         transform.rotate(Quat::from_rotation_y(time.delta_seconds()));
         transform.scale *= 1.0 - (time.delta_seconds() * inspector_data.hit_shrink_speed);
 
-        let target = transform
-            .translation
-            .lerp(hit.move_toward, time.delta_seconds() * inspector_data.hit_speed);
+        let target = transform.translation.lerp(
+            hit.move_toward,
+            time.delta_seconds() * inspector_data.hit_speed,
+        );
         if !target.is_nan() {
             transform.translation = target;
         }
@@ -80,9 +81,15 @@ pub fn handle_create_hit_event(
                 Color::rgba(0.6, 0.0, 0.0, 0.7 + inner_mesh_x.abs())
             };
 
-            let move_toward_x = thread_rng().gen_range(inspector_data.hit_min_spread_x..inspector_data.hit_max_spread_x) as f32;
-            let move_toward_y = thread_rng().gen_range(inspector_data.hit_min_spread_y..inspector_data.hit_max_spread_y) as f32;
-            let move_toward_z = thread_rng().gen_range(inspector_data.hit_min_spread_z..inspector_data.hit_max_spread_z) as f32;
+            let move_toward_x = thread_rng()
+                .gen_range(inspector_data.hit_min_spread_x..inspector_data.hit_max_spread_x)
+                as f32;
+            let move_toward_y = thread_rng()
+                .gen_range(inspector_data.hit_min_spread_y..inspector_data.hit_max_spread_y)
+                as f32;
+            let move_toward_z = thread_rng()
+                .gen_range(inspector_data.hit_min_spread_z..inspector_data.hit_max_spread_z)
+                as f32;
             let move_toward = Vec3::new(move_toward_x, move_toward_y, move_toward_z);
 
             commands
@@ -93,7 +100,9 @@ pub fn handle_create_hit_event(
                 .with_children(|parent| {
                     parent
                         .spawn_bundle(PbrBundle {
-                            mesh: meshes.add(Mesh::from(shape::Cube { size: inspector_data.hit_starting_size })),
+                            mesh: meshes.add(Mesh::from(shape::Cube {
+                                size: inspector_data.hit_starting_size,
+                            })),
                             material: materials.add(color.into()),
                             transform: {
                                 let mut t = Transform::from_xyz(inner_mesh_x, 0.1, inner_mesh_z);

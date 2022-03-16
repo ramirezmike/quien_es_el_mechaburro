@@ -48,7 +48,6 @@ pub struct InspectorData {
     pub hit_max_spread_y: f32,
     pub hit_min_spread_z: f32,
     pub hit_max_spread_z: f32,
-
 }
 
 impl Default for InspectorData {
