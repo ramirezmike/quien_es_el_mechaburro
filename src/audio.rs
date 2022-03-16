@@ -36,7 +36,7 @@ impl<'w, 's> GameAudio<'w, 's> {
         self.audio
             .stop_channel(&self.audio_state.bgm_channel.channel);
         self.audio
-            .set_volume_in_channel(0.6, &self.audio_state.bgm_channel.channel);
+            .set_volume_in_channel(0.5, &self.audio_state.bgm_channel.channel);
         self.audio
             .play_looped_in_channel(handle.clone(), &self.audio_state.bgm_channel.channel);
     }

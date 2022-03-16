@@ -72,7 +72,6 @@ impl MenuAction {
                 input_map.insert(MenuAction::Right, KeyCode::D);
                 input_map.insert(MenuAction::Left, KeyCode::Left);
                 input_map.insert(MenuAction::Right, KeyCode::Right);
-                input_map.insert(MenuAction::Select, KeyCode::Space);
                 input_map.insert(MenuAction::Select, KeyCode::Return);
                 input_map
             }
@@ -456,6 +455,7 @@ fn update_character_selection(
         &mut Transform,
         &mut BurroCharacter,
         &ActionState<MenuAction>,
+        &Handle<StandardMaterial>,
     )>,
     time: Res<Time>,
     mut audio: GameAudio,
@@ -464,8 +464,26 @@ fn update_character_selection(
     mut assets_handler: asset_loading::AssetsHandler,
     mut local_cooldown: ResMut<LocalCooldown>,
 ) {
-    for (mut burro, _, _) in burros.iter_mut() {
-        burro.rotate(Quat::from_rotation_z(time.delta_seconds()));
+    let picked_skins = burros
+        .iter()
+        .filter(|(_, b, _, _)| b.is_playing && b.has_picked)
+        .map(|(_, b, _, _)| b.selected_burro)
+        .collect::<Vec<_>>();
+
+    for (mut transform, burro, _, material) in burros.iter_mut() {
+        if !burro.has_picked {
+            transform.rotate(Quat::from_rotation_z(time.delta_seconds()));
+        } else {
+            transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
+        }
+
+        if let Some(material) = assets_handler.materials.get_mut(material) {
+            if picked_skins.contains(&burro.selected_burro) {
+                material.base_color = Color::GRAY;
+            } else {
+                material.base_color = Color::WHITE;
+            }
+        }
     }
 
     local_cooldown.cooldown -= time.delta_seconds();
@@ -499,17 +517,12 @@ fn update_character_selection(
 
     let mut attempt_to_start_game = false;
     let mut player_hasnt_picked = false;
-    let picked_skins = burros
-        .iter()
-        .filter(|(_, b, _)| b.is_playing && b.has_picked)
-        .map(|(_, b, _)| b.selected_burro)
-        .collect::<Vec<_>>();
 
-    for (_, mut burro, action_state) in burros.iter_mut() {
+    for (_, mut burro, action_state, _) in burros.iter_mut() {
         burro.action_cooldown -= time.delta_seconds();
         burro.action_cooldown = burro.action_cooldown.clamp(-10.0, 3.0);
 
-        if burro.action_cooldown > 0.0 {
+        if burro.action_cooldown > 0.0 || burro.has_picked {
             continue;
         }
 
@@ -546,8 +559,8 @@ fn update_character_selection(
     if attempt_to_start_game && !player_hasnt_picked {
         let players = burros
             .iter()
-            .filter(|(_, b, _)| b.is_playing)
-            .map(|(_, b, _)| *b)
+            .filter(|(_, b, _, _)| b.is_playing)
+            .map(|(_, b, _, _)| *b)
             .collect();
 
         audio.play_sfx(&game_assets.fanfare_sfx);

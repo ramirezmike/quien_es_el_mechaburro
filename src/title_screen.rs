@@ -65,7 +65,6 @@ pub fn load(
     assets_handler.add_audio(&mut game_assets.bgm_1, "audio/baila.ogg");
     assets_handler.add_audio(&mut game_assets.sfx_1, "audio/blip.wav");
     assets_handler.add_audio(&mut game_assets.sfx_2, "audio/select.wav");
-    assets_handler.add_audio(&mut game_assets.fanfare_sfx, "audio/fanfare.wav");
     assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
     assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
     assets_handler.add_material(
