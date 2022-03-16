@@ -40,7 +40,7 @@ impl Default for Bot {
         Bot {
             heading: None,
             shooting: None,
-            mind_cooldown: 1.0,
+            mind_cooldown: 0.0,
             target: None,
         }
     }

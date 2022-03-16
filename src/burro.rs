@@ -1,4 +1,4 @@
-use crate::{follow_text, game_state, inspect, player, smoke, AppState};
+use crate::{follow_text, game_state, inspect, player, smoke, AppState, audio, assets::GameAssets};
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -104,7 +104,9 @@ fn handle_burro_hit(
     mut commands: Commands,
     mut burro_hit_event_reader: EventReader<BurroHitEvent>,
     mut burros: Query<(Entity, &mut Burro, &mut Transform, &mut player::Player)>,
+    mut audio: audio::GameAudio,
     inspector_data: Res<inspect::InspectorData>,
+    game_assets: Res<GameAssets>,
 ) {
     for event in burro_hit_event_reader.iter() {
         let mut rng = rand::thread_rng();
@@ -119,7 +121,11 @@ fn handle_burro_hit(
             player.is_firing = false;
 
             if event.is_laser {
+                audio.play_sfx(&game_assets.laser_hit_sfx);
+                audio.play_sfx(&game_assets.smoke_sfx);
                 commands.entity(entity).insert(smoke::Smoker::default());
+            } else {
+                audio.play_sfx(&game_assets.candy_hit_sfx);
             }
         }
     }
@@ -215,8 +221,10 @@ fn handle_burro_death_events(
     mut commands: Commands,
     mut burro_death_event_reader: EventReader<BurroDeathEvent>,
     burros: Query<Entity, With<Burro>>,
+    mut audio: audio::GameAudio,
     mut game_state: ResMut<game_state::GameState>,
     follow_texts: Query<(Entity, &follow_text::FollowText)>,
+    game_assets: Res<GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
         if let Ok(_) = burros.get(death_event.entity) {
@@ -230,6 +238,8 @@ fn handle_burro_death_events(
                 game_state.dead_burros.push(death_event.skin);
             }
             // probably do a bunch of UI/animation stuff here and play sounds or something
+
+            audio.play_sfx(&game_assets.eliminated_sfx);
         }
     }
 }

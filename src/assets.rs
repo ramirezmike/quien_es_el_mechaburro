@@ -14,12 +14,18 @@ impl Plugin for AssetsPlugin {
 pub struct GameAssets {
     pub font: Handle<Font>,
     pub score_font: Handle<Font>,
+
     pub bgm_1: Handle<AudioSource>,
     pub sfx_1: Handle<AudioSource>,
     pub sfx_2: Handle<AudioSource>,
     pub laser_sfx: Handle<AudioSource>,
     pub bloop_sfx: Handle<AudioSource>,
+    pub smoke_sfx: Handle<AudioSource>,
+    pub eliminated_sfx: Handle<AudioSource>,
+    pub candy_hit_sfx: Handle<AudioSource>,
+    pub laser_hit_sfx: Handle<AudioSource>,
     pub fanfare_sfx: Handle<AudioSource>,
+
     pub level: Handle<Gltf>,
     pub candy: GameMesh,
     pub laser: GameMesh,

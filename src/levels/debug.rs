@@ -136,6 +136,11 @@ pub fn load(
 
     assets_handler.add_audio(&mut game_assets.bloop_sfx, "audio/bloop.wav");
     assets_handler.add_audio(&mut game_assets.laser_sfx, "audio/laser.wav");
+//    assets_handler.add_audio(&mut game_assets.smoke_sfx, "audio/smoke.wav");
+//    assets_handler.add_audio(&mut game_assets.eliminated_sfx, "audio/eliminated.wav");
+    assets_handler.add_audio(&mut game_assets.candy_hit_sfx, "audio/candy_hit.wav");
+    assets_handler.add_audio(&mut game_assets.laser_hit_sfx, "audio/laser_hit.wav");
+
     assets_handler.add_mesh(
         &mut game_assets.candy.mesh,
         "models/candy.gltf#Mesh0/Primitive0",
