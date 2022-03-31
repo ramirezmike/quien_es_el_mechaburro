@@ -1,6 +1,15 @@
 # ¿Quien es el MechaBurro?
 
-An entry for the [first Bevy game jam][jam] following the theme of "Unfair Advantage." It was made in a week using the wonderful [Bevy game engine][bevy]. You can play the game [here][itch], rate it in the jam [here][rate] and check out the other submissions [here][submissions].
+An entry for the [first Bevy game jam][jam] following the theme of "Unfair Advantage." It was made in one week using the wonderful [Bevy game engine][bevy]. 
+
+https://user-images.githubusercontent.com/1421719/156888152-78e98f83-8fd9-477f-be48-6857a1cfe1ec.mp4
+
+
+You can play the game [here][itch].
+
+Full trailer for the game can be seen [here](https://www.youtube.com/watch?v=YQeb2ffm_TI).
+
+Other submissions for the jam can be seen [here][submissions]
 
 ¿Quien es el MechaBurro? is a singleplayer/local multiplayer game (up to 4 players) with bots (8 total burros) inspired by twin-stick shooters, aspects of mario kart and a card game I played with my family growing up called "Burro." 
 
@@ -12,8 +21,6 @@ The round ends when only one burro remains or 5 seconds after all human players 
 
 The "jam-release" branch represents what the code was when the game was submitted for the game jam. Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
 
-
-https://user-images.githubusercontent.com/1421719/156888152-78e98f83-8fd9-477f-be48-6857a1cfe1ec.mp4
 
 
 # Running the Game
