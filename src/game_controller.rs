@@ -6,7 +6,7 @@ impl Plugin for GameControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(gamepad_connections)
             .insert_resource(GameController::default())
-            .add_system(gamepad_test);
+            .add_system(gamepad_test.label("store_controller_inputs"));
     }
 }
 
@@ -14,6 +14,7 @@ impl Plugin for GameControllerPlugin {
 pub struct GameController {
     pub players: Vec<Gamepad>,
     pub pressed: HashMap<usize, Vec<GameButton>>,
+    pub just_pressed: HashMap<usize, Vec<GameButton>>,
 }
 
 fn gamepad_test(
@@ -22,7 +23,8 @@ fn gamepad_test(
     mut controllers: ResMut<GameController>,
 ) {
     let mut pressed: HashMap<usize, Vec<GameButton>> = HashMap::new();
-    for gamepad in controllers.players.iter_mut() {
+    let mut just_pressed: HashMap<usize, Vec<GameButton>> = HashMap::new();
+    for gamepad in controllers.players.iter() {
         let mut pressed_buttons = vec![];
         let gamepad = *gamepad;
 
@@ -148,10 +150,15 @@ fn gamepad_test(
         }
 
         let game_id = gamepad.0;
+        let mut just_pressed_buttons = pressed_buttons.clone();
+        just_pressed_buttons.retain(|button| !controllers.pressed[&game_id].contains(&button));
+
         pressed.insert(game_id, pressed_buttons);
+        just_pressed.insert(game_id, just_pressed_buttons);
     }
 
     controllers.pressed = pressed;
+    controllers.just_pressed = just_pressed;
 }
 
 pub fn gamepad_connections(
@@ -166,7 +173,7 @@ pub fn gamepad_connections(
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum GameButton {
     Up,
     Down,

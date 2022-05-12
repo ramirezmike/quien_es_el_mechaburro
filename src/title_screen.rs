@@ -14,8 +14,8 @@ impl Plugin for TitlePlugin {
             )
             .add_system_set(
                 SystemSet::on_update(AppState::TitleScreen)
-                    .with_system(update_menu_buttons)
-                    .with_system(handle_controllers),
+                    .with_system(update_menu_buttons.after("handle_input"))
+                    .with_system(handle_controllers.label("handle_input").after("store_controller_inputs")),
             )
             .add_system_set(
                 SystemSet::on_exit(AppState::TitleScreen).with_system(cleanup::<CleanupMarker>),
@@ -359,7 +359,7 @@ fn handle_controllers(
     mut players: Query<(Entity, &mut ActionState<MenuAction>)>,
 ) {
     for (_, mut action_state) in players.iter_mut() {
-        for (_, pressed) in controllers.pressed.iter() {
+        for (_, just_pressed) in controllers.just_pressed.iter() {
             // release all buttons
             // this probably affects durations but for
             // this game it might not be a big deal
@@ -368,14 +368,14 @@ fn handle_controllers(
 
             action_state.release(&MenuAction::Select);
 
-            if pressed.contains(&game_controller::GameButton::Up) {
+            if just_pressed.contains(&game_controller::GameButton::Up) {
                 action_state.press(&MenuAction::Up);
             }
-            if pressed.contains(&game_controller::GameButton::Down) {
+            if just_pressed.contains(&game_controller::GameButton::Down) {
                 action_state.press(&MenuAction::Down);
             }
-            if pressed.contains(&game_controller::GameButton::ActionDown)
-                || pressed.contains(&game_controller::GameButton::Start)
+            if just_pressed.contains(&game_controller::GameButton::ActionDown)
+                || just_pressed.contains(&game_controller::GameButton::Start)
             {
                 action_state.press(&MenuAction::Select);
             }
