@@ -10,24 +10,24 @@ pub struct PausePlugin;
 impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-               SystemSet::on_enter(AppState::Pause)
-                   .with_system(setup)
-                   .with_system(game_controller::clear_presses)
-           )
-           .add_system_set(
-               SystemSet::on_update(AppState::Pause)
-                   .with_system(update_menu_buttons.after("handle_input"))
-                   .with_system(
-                       handle_controllers
-                           .label("handle_input")
-                           .after("store_controller_inputs"),
-                   ),
-           )
-           .add_system_set(
-               SystemSet::on_exit(AppState::Pause)
-                    .with_system(cleanup::<CleanupMarker>)
-                    .with_system(game_controller::clear_presses)
-           );
+            SystemSet::on_enter(AppState::Pause)
+                .with_system(setup)
+                .with_system(game_controller::clear_presses),
+        )
+        .add_system_set(
+            SystemSet::on_update(AppState::Pause)
+                .with_system(update_menu_buttons.after("handle_input"))
+                .with_system(
+                    handle_controllers
+                        .label("handle_input")
+                        .after("store_controller_inputs"),
+                ),
+        )
+        .add_system_set(
+            SystemSet::on_exit(AppState::Pause)
+                .with_system(cleanup::<CleanupMarker>)
+                .with_system(game_controller::clear_presses),
+        );
     }
 }
 
@@ -37,10 +37,7 @@ struct CleanupMarker;
 const NORMAL_BUTTON: Color = Color::rgba(1.00, 1.00, 1.00, 0.0);
 const HOVERED_BUTTON: Color = Color::rgb(1.00, 1.00, 0.75);
 
-fn setup(
-    mut commands: Commands, 
-    game_assets: Res<GameAssets>, 
-) {
+fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
     commands
         .spawn_bundle(InputManagerBundle {
             input_map: MenuAction::default_input_map(),

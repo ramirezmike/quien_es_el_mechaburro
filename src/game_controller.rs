@@ -24,9 +24,7 @@ impl GameController {
     }
 }
 
-pub fn clear_presses(
-    mut controllers: ResMut<GameController>
-) {
+pub fn clear_presses(mut controllers: ResMut<GameController>) {
     controllers.clear_presses();
 }
 
