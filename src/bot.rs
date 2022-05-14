@@ -243,47 +243,47 @@ fn update_virtual_controllers(mut bots: Query<(Entity, &Bot, &mut ActionState<Pl
         // release all buttons
         // this probably affects durations but for
         // this game it might not be a big deal
-        action_state.release(&PlayerAction::Up);
-        action_state.release(&PlayerAction::Down);
-        action_state.release(&PlayerAction::Left);
-        action_state.release(&PlayerAction::Right);
+        action_state.release(PlayerAction::Up);
+        action_state.release(PlayerAction::Down);
+        action_state.release(PlayerAction::Left);
+        action_state.release(PlayerAction::Right);
 
-        action_state.release(&PlayerAction::ActionUp);
-        action_state.release(&PlayerAction::ActionDown);
-        action_state.release(&PlayerAction::ActionLeft);
-        action_state.release(&PlayerAction::ActionRight);
+        action_state.release(PlayerAction::ActionUp);
+        action_state.release(PlayerAction::ActionDown);
+        action_state.release(PlayerAction::ActionLeft);
+        action_state.release(PlayerAction::ActionRight);
 
         if let Some(cardinal) = &bot.heading {
             match cardinal {
-                Cardinal::N => action_state.press(&PlayerAction::Up),
-                Cardinal::S => action_state.press(&PlayerAction::Down),
-                Cardinal::W => action_state.press(&PlayerAction::Left),
-                Cardinal::E => action_state.press(&PlayerAction::Right),
+                Cardinal::N => action_state.press(PlayerAction::Up),
+                Cardinal::S => action_state.press(PlayerAction::Down),
+                Cardinal::W => action_state.press(PlayerAction::Left),
+                Cardinal::E => action_state.press(PlayerAction::Right),
                 Cardinal::NE => {
-                    action_state.press(&PlayerAction::Up);
-                    action_state.press(&PlayerAction::Right);
+                    action_state.press(PlayerAction::Up);
+                    action_state.press(PlayerAction::Right);
                 }
                 Cardinal::NW => {
-                    action_state.press(&PlayerAction::Up);
-                    action_state.press(&PlayerAction::Left);
+                    action_state.press(PlayerAction::Up);
+                    action_state.press(PlayerAction::Left);
                 }
                 Cardinal::SE => {
-                    action_state.press(&PlayerAction::Down);
-                    action_state.press(&PlayerAction::Right);
+                    action_state.press(PlayerAction::Down);
+                    action_state.press(PlayerAction::Right);
                 }
                 Cardinal::SW => {
-                    action_state.press(&PlayerAction::Down);
-                    action_state.press(&PlayerAction::Left);
+                    action_state.press(PlayerAction::Down);
+                    action_state.press(PlayerAction::Left);
                 }
             }
         }
 
         if let Some(cardinal) = &bot.shooting {
             match cardinal {
-                Cardinal::N => action_state.press(&PlayerAction::ActionUp),
-                Cardinal::S => action_state.press(&PlayerAction::ActionDown),
-                Cardinal::W => action_state.press(&PlayerAction::ActionLeft),
-                Cardinal::E => action_state.press(&PlayerAction::ActionRight),
+                Cardinal::N => action_state.press(PlayerAction::ActionUp),
+                Cardinal::S => action_state.press(PlayerAction::ActionDown),
+                Cardinal::W => action_state.press(PlayerAction::ActionLeft),
+                Cardinal::E => action_state.press(PlayerAction::ActionRight),
                 _ => (),
             }
         }

@@ -530,19 +530,19 @@ fn update_character_selection(
             continue;
         }
 
-        if action_state.just_pressed(&MenuAction::Left) {
+        if action_state.just_pressed(MenuAction::Left) {
             burro.selected_burro = left_burro[&burro.selected_burro];
             burro.action_cooldown = 0.2;
 
             audio.play_sfx(&game_assets.sfx_1);
         }
-        if action_state.just_pressed(&MenuAction::Right) {
+        if action_state.just_pressed(MenuAction::Right) {
             burro.selected_burro = right_burro[&burro.selected_burro];
             burro.action_cooldown = 0.2;
 
             audio.play_sfx(&game_assets.sfx_1);
         }
-        if action_state.just_pressed(&MenuAction::Select) {
+        if action_state.just_pressed(MenuAction::Select) {
             if !burro.is_playing {
                 burro.is_playing = true;
                 audio.play_sfx(&game_assets.sfx_2);
@@ -634,21 +634,21 @@ fn handle_controllers(
             // release all buttons
             // this probably affects durations but for
             // this game it might not be a big deal
-            action_state.release(&MenuAction::Left);
-            action_state.release(&MenuAction::Right);
+            action_state.release(MenuAction::Left);
+            action_state.release(MenuAction::Right);
 
-            action_state.release(&MenuAction::Select);
+            action_state.release(MenuAction::Select);
 
             if pressed.contains(&game_controller::GameButton::Left) {
-                action_state.press(&MenuAction::Left);
+                action_state.press(MenuAction::Left);
             }
             if pressed.contains(&game_controller::GameButton::Right) {
-                action_state.press(&MenuAction::Right);
+                action_state.press(MenuAction::Right);
             }
             if pressed.contains(&game_controller::GameButton::ActionDown)
                 || pressed.contains(&game_controller::GameButton::Start)
             {
-                action_state.press(&MenuAction::Select);
+                action_state.press(MenuAction::Select);
             }
         }
     }

@@ -266,49 +266,49 @@ fn handle_controllers(
                 // release all buttons
                 // this probably affects durations but for
                 // this game it might not be a big deal
-                action_state.release(&PlayerAction::Left);
-                action_state.release(&PlayerAction::Right);
-                action_state.release(&PlayerAction::Up);
-                action_state.release(&PlayerAction::Down);
+                action_state.release(PlayerAction::Left);
+                action_state.release(PlayerAction::Right);
+                action_state.release(PlayerAction::Up);
+                action_state.release(PlayerAction::Down);
 
                 if pressed.contains(&game_controller::GameButton::Left) {
-                    action_state.press(&PlayerAction::Left);
+                    action_state.press(PlayerAction::Left);
                 }
                 if pressed.contains(&game_controller::GameButton::Right) {
-                    action_state.press(&PlayerAction::Right);
+                    action_state.press(PlayerAction::Right);
                 }
                 if pressed.contains(&game_controller::GameButton::Up) {
-                    action_state.press(&PlayerAction::Up);
+                    action_state.press(PlayerAction::Up);
                 }
                 if pressed.contains(&game_controller::GameButton::Down) {
-                    action_state.press(&PlayerAction::Down);
+                    action_state.press(PlayerAction::Down);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionDown) {
-                    action_state.press(&PlayerAction::ActionDown);
+                    action_state.press(PlayerAction::ActionDown);
                 } else {
-                    action_state.release(&PlayerAction::ActionDown);
+                    action_state.release(PlayerAction::ActionDown);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionUp) {
-                    action_state.press(&PlayerAction::ActionUp);
+                    action_state.press(PlayerAction::ActionUp);
                 } else {
-                    action_state.release(&PlayerAction::ActionUp);
+                    action_state.release(PlayerAction::ActionUp);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionLeft) {
-                    action_state.press(&PlayerAction::ActionLeft);
+                    action_state.press(PlayerAction::ActionLeft);
                 } else {
-                    action_state.release(&PlayerAction::ActionLeft);
+                    action_state.release(PlayerAction::ActionLeft);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionRight) {
-                    action_state.press(&PlayerAction::ActionRight);
+                    action_state.press(PlayerAction::ActionRight);
                 } else {
-                    action_state.release(&PlayerAction::ActionRight);
+                    action_state.release(PlayerAction::ActionRight);
                 }
             }
 
             if let Some(just_pressed) = controllers.just_pressed.get(&current_player.player) {
-                action_state.release(&PlayerAction::Pause);
+                action_state.release(PlayerAction::Pause);
                 if just_pressed.contains(&game_controller::GameButton::Start) {
-                    action_state.press(&PlayerAction::Pause);
+                    action_state.press(PlayerAction::Pause);
                 }
             }
         }
@@ -332,7 +332,7 @@ fn handle_input(
     // mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
     for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
-        if action_state.just_pressed(&PlayerAction::Pause) {
+        if action_state.just_pressed(PlayerAction::Pause) {
             app_state.push(AppState::Pause).unwrap();
         }
 
@@ -343,7 +343,7 @@ fn handle_input(
         let mut direction = direction::Direction::NEUTRAL;
 
         for input_direction in PlayerAction::DIRECTIONS {
-            if action_state.pressed(&input_direction) {
+            if action_state.pressed(input_direction) {
                 direction += input_direction.direction();
             }
         }
@@ -352,7 +352,7 @@ fn handle_input(
             player_move_event_writer.send(PlayerMoveEvent { entity, direction });
         }
 
-        if action_state.just_pressed(&PlayerAction::Debug) {
+        if action_state.just_pressed(PlayerAction::Debug) {
             //println!("Translation: {:?}", transform.translation);
 
             //         // kill burros
@@ -414,7 +414,7 @@ fn handle_input(
             use std::f32::consts::PI;
 
             player.is_firing = false;
-            if action_state.pressed(&PlayerAction::ActionUp) {
+            if action_state.pressed(PlayerAction::ActionUp) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,
@@ -431,7 +431,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, 0.0);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            } else if action_state.pressed(&PlayerAction::ActionDown) {
+            } else if action_state.pressed(PlayerAction::ActionDown) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,
@@ -448,7 +448,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            } else if action_state.pressed(&PlayerAction::ActionLeft) {
+            } else if action_state.pressed(PlayerAction::ActionLeft) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,
@@ -465,7 +465,7 @@ fn handle_input(
                 player.is_firing = true;
                 transform.rotation = Quat::from_axis_angle(Vec3::Y, PI / 2.0);
                 transform.scale = Vec3::new(0.7, 1.4, 1.0);
-            } else if action_state.pressed(&PlayerAction::ActionRight) {
+            } else if action_state.pressed(PlayerAction::ActionRight) {
                 bullet_event_writer.send(BulletEvent {
                     source: entity,
                     speed: burro.bullet_speed,

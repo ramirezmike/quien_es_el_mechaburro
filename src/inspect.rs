@@ -20,7 +20,10 @@ impl Plugin for InspectPlugin {
             .insert_resource(ShowInspector { visible: false })
             .register_type::<player::Player>()
             .register_type::<mesh::ScrollingPane>()
-            .insert_resource(EguiSettings { scale_factor: 2.5 });
+            .insert_resource(EguiSettings {
+                scale_factor: 2.5,
+                default_open_url_target: None,
+            });
     }
 }
 

@@ -18,12 +18,17 @@ fn update_text_position(
     mut text_query: Query<(&mut Style, &CalculatedSize, &FollowText)>,
     mesh_query: Query<&Transform>,
     camera_query: Query<(&Camera, &GlobalTransform), With<PanOrbitCamera>>,
+    images: Res<Assets<Image>>,
 ) {
     for (mut style, calculated, follow) in text_query.iter_mut() {
         if let Ok(mesh_position) = mesh_query.get(follow.following) {
             for (camera, camera_transform) in camera_query.iter() {
-                match camera.world_to_screen(&windows, camera_transform, mesh_position.translation)
-                {
+                match camera.world_to_screen(
+                    &windows,
+                    &images,
+                    camera_transform,
+                    mesh_position.translation,
+                ) {
                     Some(coords) => {
                         style.position.left = Val::Px(coords.x - calculated.size.width / 2.0);
                         style.position.bottom = Val::Px((coords.y) - calculated.size.height / 2.0);

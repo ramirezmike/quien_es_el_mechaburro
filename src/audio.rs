@@ -1,31 +1,23 @@
 use bevy::{ecs::system::SystemParam, prelude::*};
-use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
+use bevy_kira_audio::{AudioApp, AudioChannel, AudioPlugin, AudioSource};
 use std::marker::PhantomData;
 
 pub struct GameAudioPlugin;
 impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(AudioState::new())
+        app.add_audio_channel::<MusicChannel>()
+            .add_audio_channel::<SoundChannel>()
             .add_plugin(AudioPlugin);
     }
 }
 
-pub struct ChannelAudioState {
-    channel: AudioChannel,
-}
-
-impl ChannelAudioState {
-    fn new(audio_path: &str) -> Self {
-        ChannelAudioState {
-            channel: AudioChannel::new(audio_path.to_owned()),
-        }
-    }
-}
+pub struct MusicChannel;
+pub struct SoundChannel;
 
 #[derive(SystemParam)]
 pub struct GameAudio<'w, 's> {
-    audio: Res<'w, Audio>,
-    audio_state: ResMut<'w, AudioState>,
+    music_channel: Res<'w, AudioChannel<MusicChannel>>,
+    sound_channel: Res<'w, AudioChannel<SoundChannel>>,
 
     #[system_param(ignore)]
     phantom: PhantomData<&'s ()>,
@@ -33,35 +25,13 @@ pub struct GameAudio<'w, 's> {
 
 impl<'w, 's> GameAudio<'w, 's> {
     pub fn play_bgm(&mut self, handle: &Handle<AudioSource>) {
-        self.audio
-            .stop_channel(&self.audio_state.bgm_channel.channel);
-        self.audio
-            .set_volume_in_channel(0.5, &self.audio_state.bgm_channel.channel);
-        self.audio
-            .play_looped_in_channel(handle.clone(), &self.audio_state.bgm_channel.channel);
+        self.music_channel.stop();
+        self.music_channel.set_volume(0.5);
+        self.music_channel.play_looped(handle.clone());
     }
 
     pub fn play_sfx(&mut self, handle: &Handle<AudioSource>) {
-        self.audio
-            .set_volume_in_channel(0.5, &self.audio_state.sfx_channel.channel);
-        self.audio
-            .play_in_channel(handle.clone(), &self.audio_state.sfx_channel.channel);
-    }
-}
-
-pub struct AudioState {
-    pub sfx_channel: ChannelAudioState,
-    pub bgm_channel: ChannelAudioState,
-}
-
-impl AudioState {
-    pub fn new() -> AudioState {
-        let sfx_channel = ChannelAudioState::new("sound");
-        let bgm_channel = ChannelAudioState::new("music");
-
-        AudioState {
-            sfx_channel,
-            bgm_channel,
-        }
+        self.sound_channel.set_volume(0.5);
+        self.sound_channel.play(handle.clone());
     }
 }

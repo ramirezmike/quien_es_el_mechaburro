@@ -1,7 +1,8 @@
 use crate::{
     asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, mesh, AppState,
 };
-use bevy::app::{AppExit, Events};
+use bevy::app::AppExit;
+use bevy::ecs::event::Events;
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -301,15 +302,15 @@ fn update_menu_buttons(
 ) {
     let action_state = action_state.single();
     let number_of_buttons = buttons.iter().count();
-    let mut pressed_button = action_state.pressed(&MenuAction::Select);
+    let mut pressed_button = action_state.pressed(MenuAction::Select);
 
-    if action_state.just_pressed(&MenuAction::Up) {
+    if action_state.just_pressed(MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
         *selected_button = selected_button
             .checked_sub(1)
             .unwrap_or(number_of_buttons - 1);
     }
-    if action_state.just_pressed(&MenuAction::Down) {
+    if action_state.just_pressed(MenuAction::Down) {
         audio.play_sfx(&game_assets.sfx_1);
         let new_selected_button = selected_button.checked_add(1).unwrap_or(0);
         *selected_button = if new_selected_button > number_of_buttons - 1 {
@@ -367,21 +368,21 @@ fn handle_controllers(
             // release all buttons
             // this probably affects durations but for
             // this game it might not be a big deal
-            action_state.release(&MenuAction::Up);
-            action_state.release(&MenuAction::Down);
+            action_state.release(MenuAction::Up);
+            action_state.release(MenuAction::Down);
 
-            action_state.release(&MenuAction::Select);
+            action_state.release(MenuAction::Select);
 
             if just_pressed.contains(&game_controller::GameButton::Up) {
-                action_state.press(&MenuAction::Up);
+                action_state.press(MenuAction::Up);
             }
             if just_pressed.contains(&game_controller::GameButton::Down) {
-                action_state.press(&MenuAction::Down);
+                action_state.press(MenuAction::Down);
             }
             if just_pressed.contains(&game_controller::GameButton::ActionDown)
                 || just_pressed.contains(&game_controller::GameButton::Start)
             {
-                action_state.press(&MenuAction::Select);
+                action_state.press(MenuAction::Select);
             }
         }
     }

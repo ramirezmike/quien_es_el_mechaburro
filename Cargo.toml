@@ -13,9 +13,9 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = "0.6.1"
-leafwing-input-manager = "0.2.0"
-bevy-inspector-egui = { git = "https://github.com/jakobhellermann/bevy-inspector-egui" }
-bevy_kira_audio = { git = "https://github.com/NiklasEi/bevy_kira_audio", features = ["wav", "ogg"]}
+bevy = "0.7.0"
+leafwing-input-manager = "0.3.0"
+bevy-inspector-egui = "0.11.0"
+bevy_kira_audio = { git = "https://github.com/NiklasEi/bevy_kira_audio", branch = "main", features = ["wav", "ogg"]}
 noise = "0.7.0"
 rand = "0.8.5"

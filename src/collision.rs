@@ -153,12 +153,12 @@ fn store_collidables(
                 // TODO: look into the bevy blender plugin
                 // this is a hack to mark walkable areas by
                 // checking if their mesh is below 0.0.
-                if matrix.transform_point3(aabb.center).y < 0.0 {
+                if matrix.transform_point3(aabb.center.into()).y < 0.0 {
                     collidables.aabbs.insert(
                         entity,
                         WorldAabb {
-                            min: matrix.transform_point3(aabb.min()),
-                            max: matrix.transform_point3(aabb.max()),
+                            min: matrix.transform_point3(aabb.min().into()),
+                            max: matrix.transform_point3(aabb.max().into()),
                         },
                     );
                 }
