@@ -15,7 +15,11 @@ impl Plugin for TitlePlugin {
             .add_system_set(
                 SystemSet::on_update(AppState::TitleScreen)
                     .with_system(update_menu_buttons.after("handle_input"))
-                    .with_system(handle_controllers.label("handle_input").after("store_controller_inputs")),
+                    .with_system(
+                        handle_controllers
+                            .label("handle_input")
+                            .after("store_controller_inputs"),
+                    ),
             )
             .add_system_set(
                 SystemSet::on_exit(AppState::TitleScreen).with_system(cleanup::<CleanupMarker>),

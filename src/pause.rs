@@ -1,4 +1,7 @@
-use crate::{assets::GameAssets, audio::GameAudio, cleanup, title_screen::MenuAction, AppState, game_controller};
+use crate::{
+    assets::GameAssets, audio::GameAudio, cleanup, game_controller, title_screen::MenuAction,
+    AppState,
+};
 use bevy::app::{AppExit, Events};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -7,9 +10,14 @@ pub struct PausePlugin;
 impl Plugin for PausePlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::Pause).with_system(setup))
-            .add_system_set(SystemSet::on_update(AppState::Pause)
+            .add_system_set(
+                SystemSet::on_update(AppState::Pause)
                     .with_system(update_menu_buttons.after("handle_input"))
-                    .with_system(handle_controllers.label("handle_input").after("store_controller_inputs")),
+                    .with_system(
+                        handle_controllers
+                            .label("handle_input")
+                            .after("store_controller_inputs"),
+                    ),
             )
             .add_system_set(
                 SystemSet::on_exit(AppState::Pause).with_system(cleanup::<CleanupMarker>),

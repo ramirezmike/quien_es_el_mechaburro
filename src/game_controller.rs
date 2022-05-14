@@ -151,7 +151,7 @@ fn gamepad_test(
 
         let game_id = gamepad.0;
         let mut just_pressed_buttons = pressed_buttons.clone();
-        just_pressed_buttons.retain(|button| !controllers.pressed[&game_id].contains(&button));
+        just_pressed_buttons.retain(|button| !controllers.pressed[&game_id].contains(button));
 
         pressed.insert(game_id, pressed_buttons);
         just_pressed.insert(game_id, just_pressed_buttons);

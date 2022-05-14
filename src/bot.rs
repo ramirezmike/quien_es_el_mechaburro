@@ -1,6 +1,7 @@
 use crate::{burro, collision, game_state, player, player::PlayerAction, AppState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
+use std::cmp::Ordering;
 
 pub struct BotPlugin;
 
@@ -217,20 +218,20 @@ fn update_bot_ai(
             if burro.can_fire() {
                 // shoot left or right to try to hit a burro
                 if burro_x == other_x {
-                    if burro_z > other_z {
-                        bot.shooting = Some(Cardinal::W);
-                    } else if burro_z < other_z {
-                        bot.shooting = Some(Cardinal::E);
-                    }
+                    bot.shooting = match burro_z.cmp(&other_z) {
+                        Ordering::Greater => Some(Cardinal::W),
+                        Ordering::Less => Some(Cardinal::E),
+                        Ordering::Equal => bot.shooting,
+                    };
                 }
 
                 // shoot up or down to try to hit a burro
                 if burro_z == other_z {
-                    if burro_x > other_x {
-                        bot.shooting = Some(Cardinal::S);
-                    } else if burro_x < other_x {
-                        bot.shooting = Some(Cardinal::N);
-                    }
+                    bot.shooting = match burro_x.cmp(&other_x) {
+                        Ordering::Greater => Some(Cardinal::S),
+                        Ordering::Less => Some(Cardinal::N),
+                        Ordering::Equal => bot.shooting,
+                    };
                 }
             }
         }

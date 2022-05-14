@@ -113,7 +113,7 @@ fn handle_burro_hit(
         if let Ok((entity, mut burro, mut transform, mut player)) = burros.get_mut(event.entity) {
             burro.hit(inspector_data.down_cooldown);
 
-            let random_z = rng.gen_range(0.0..6.2831);
+            let random_z = rng.gen_range(0.0..std::f32::consts::TAU);
             transform.rotation = Quat::from_rotation_x((3.0 * std::f32::consts::PI) / 2.0);
             transform.rotation *= Quat::from_rotation_z(random_z);
 
@@ -227,7 +227,7 @@ fn handle_burro_death_events(
     game_assets: Res<GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
-        if let Ok(_) = burros.get(death_event.entity) {
+        if burros.get(death_event.entity).is_ok() {
             commands.entity(death_event.entity).despawn_recursive();
             for (text_entity, text) in follow_texts.iter() {
                 if text.following == death_event.entity {
