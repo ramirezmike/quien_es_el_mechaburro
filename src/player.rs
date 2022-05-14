@@ -270,11 +270,6 @@ fn handle_controllers(
                 action_state.release(&PlayerAction::Right);
                 action_state.release(&PlayerAction::Up);
                 action_state.release(&PlayerAction::Down);
-                action_state.release(&PlayerAction::ActionLeft);
-                action_state.release(&PlayerAction::ActionRight);
-                action_state.release(&PlayerAction::ActionUp);
-                action_state.release(&PlayerAction::ActionDown);
-                action_state.release(&PlayerAction::Pause);
 
                 if pressed.contains(&game_controller::GameButton::Left) {
                     action_state.press(&PlayerAction::Left);
@@ -290,17 +285,29 @@ fn handle_controllers(
                 }
                 if pressed.contains(&game_controller::GameButton::ActionDown) {
                     action_state.press(&PlayerAction::ActionDown);
+                } else {
+                    action_state.release(&PlayerAction::ActionDown);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionUp) {
                     action_state.press(&PlayerAction::ActionUp);
+                } else {
+                    action_state.release(&PlayerAction::ActionUp);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionLeft) {
                     action_state.press(&PlayerAction::ActionLeft);
+                } else {
+                    action_state.release(&PlayerAction::ActionLeft);
                 }
                 if pressed.contains(&game_controller::GameButton::ActionRight) {
                     action_state.press(&PlayerAction::ActionRight);
+                } else {
+                    action_state.release(&PlayerAction::ActionRight);
                 }
-                if pressed.contains(&game_controller::GameButton::Start) {
+            }
+
+            if let Some(just_pressed) = controllers.just_pressed.get(&current_player.player) {
+                action_state.release(&PlayerAction::Pause);
+                if just_pressed.contains(&game_controller::GameButton::Start) {
                     action_state.press(&PlayerAction::Pause);
                 }
             }
@@ -325,6 +332,10 @@ fn handle_input(
     // mut burro_death_event_writer: EventWriter<burro::BurroDeathEvent>,
 ) {
     for (entity, action_state, mut transform, mut burro, mut player) in player.iter_mut() {
+        if action_state.just_pressed(&PlayerAction::Pause) {
+            app_state.push(AppState::Pause).unwrap();
+        }
+
         if burro.is_down {
             continue;
         }
@@ -339,10 +350,6 @@ fn handle_input(
 
         if direction != direction::Direction::NEUTRAL {
             player_move_event_writer.send(PlayerMoveEvent { entity, direction });
-        }
-
-        if action_state.just_pressed(&PlayerAction::Pause) {
-            app_state.push(AppState::Pause).unwrap();
         }
 
         if action_state.just_pressed(&PlayerAction::Debug) {

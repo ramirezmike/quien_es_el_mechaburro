@@ -14,8 +14,8 @@ impl Plugin for CharacterSelectPlugin {
             .insert_resource(LocalCooldown::default())
             .add_system_set(
                 SystemSet::on_update(AppState::CharacterSelect)
-                    .with_system(update_character_selection)
-                    .with_system(handle_controllers)
+                    .with_system(update_character_selection.after("handle_input"))
+                    .with_system(handle_controllers.label("handle_input").after("store_controller_inputs"))
                     .with_system(handle_labels)
                     .with_system(update_burro_skins),
             )

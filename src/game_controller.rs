@@ -6,7 +6,7 @@ impl Plugin for GameControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(gamepad_connections)
             .insert_resource(GameController::default())
-            .add_system(gamepad_test.label("store_controller_inputs"));
+            .add_system(store_controller_inputs.label("store_controller_inputs"));
     }
 }
 
@@ -17,7 +17,20 @@ pub struct GameController {
     pub just_pressed: HashMap<usize, Vec<GameButton>>,
 }
 
-fn gamepad_test(
+impl GameController {
+    fn clear_presses(&mut self) {
+        self.pressed = HashMap::<usize, Vec<GameButton>>::new();
+        self.just_pressed = HashMap::<usize, Vec<GameButton>>::new();
+    }
+}
+
+pub fn clear_presses(
+    mut controllers: ResMut<GameController>
+) {
+    controllers.clear_presses();
+}
+
+fn store_controller_inputs(
     axes: Res<Axis<GamepadAxis>>,
     buttons: Res<Input<GamepadButton>>,
     mut controllers: ResMut<GameController>,
@@ -37,7 +50,7 @@ fn gamepad_test(
             let left_stick_pos = Vec2::new(x, y);
 
             // implement a dead-zone to ignore small inputs
-            if left_stick_pos.length() > 0.1 {
+            if left_stick_pos.length() > 0.2 {
                 // do something with the position of the left stick
                 if x > 0.0 {
                     pressed_buttons.push(GameButton::Right);
@@ -88,7 +101,7 @@ fn gamepad_test(
             let left_stick_pos = Vec2::new(x, y);
 
             // implement a dead-zone to ignore small inputs
-            if left_stick_pos.length() > 0.1 {
+            if left_stick_pos.length() > 0.2 {
                 // do something with the position of the left stick
                 if x > 0.0 {
                     pressed_buttons.push(GameButton::Right);
@@ -131,21 +144,21 @@ fn gamepad_test(
         let west = GamepadButton(gamepad, GamepadButtonType::West);
         let north = GamepadButton(gamepad, GamepadButtonType::North);
 
-        if buttons.just_pressed(south) {
+        if buttons.pressed(south) {
             pressed_buttons.push(GameButton::ActionDown);
         }
-        if buttons.just_pressed(north) {
+        if buttons.pressed(north) {
             pressed_buttons.push(GameButton::ActionUp);
         }
-        if buttons.just_pressed(west) {
+        if buttons.pressed(west) {
             pressed_buttons.push(GameButton::ActionLeft);
         }
-        if buttons.just_pressed(east) {
+        if buttons.pressed(east) {
             pressed_buttons.push(GameButton::ActionRight);
         }
 
         let start_button = GamepadButton(gamepad, GamepadButtonType::Start);
-        if buttons.just_pressed(start_button) {
+        if buttons.pressed(start_button) {
             pressed_buttons.push(GameButton::Start);
         }
 
