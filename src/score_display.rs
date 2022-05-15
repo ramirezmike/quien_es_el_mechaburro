@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, cleanup, game_camera, game_state, player, AppState};
+use crate::{assets::GameAssets, cleanup, game_camera, game_state, player, ui::avatar, AppState};
 use bevy::prelude::*;
 
 pub struct ScoreDisplayPlugin;
@@ -126,64 +126,131 @@ fn display_scores(
     commands
         .spawn_bundle(UiCameraBundle::default())
         .insert(CleanupMarker);
-    let padding = Val::Px(20.0);
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
+
+    let mut node = commands.spawn_bundle(NodeBundle {
+        style: Style {
+            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+            position_type: PositionType::Absolute,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..Default::default()
-        })
-        .insert(CleanupMarker)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Px(140.0)),
-                        position_type: PositionType::Relative,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::FlexEnd,
-                        ..Default::default()
-                    },
-                    color: Color::rgba(0.3, 0.3, 0.3, 0.4).into(),
+        },
+        color: Color::NONE.into(),
+        ..Default::default()
+    });
+    let node = node.insert(CleanupMarker);
+    node.with_children(|parent| {
+        parent
+            .spawn_bundle(NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Px(140.0)),
+                    position_type: PositionType::Relative,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::FlexEnd,
                     ..Default::default()
-                })
-                .with_children(|parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
+                },
+                color: Color::rgba(0.3, 0.3, 0.3, 0.4).into(),
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Px(90.0)),
+                            position_type: PositionType::Absolute,
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::FlexEnd,
+                            ..Default::default()
+                        },
+                        color: Color::NONE.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        parent.spawn_bundle(TextBundle {
                             style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Px(90.0)),
-                                position_type: PositionType::Absolute,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexEnd,
+                                margin: Rect {
+                                    top: Val::Px(-60.0),
+                                    ..Default::default()
+                                },
                                 ..Default::default()
                             },
-                            color: Color::NONE.into(),
+                            text: Text::with_section(
+                                if show_score {
+                                    "Current Scores"
+                                } else {
+                                    "Ranking"
+                                },
+                                TextStyle {
+                                    font: game_assets.font.clone(),
+                                    font_size: 80.0,
+                                    color: Color::WHITE,
+                                },
+                                TextAlignment::default(),
+                            ),
                             ..Default::default()
-                        })
-                        .with_children(|parent| {
+                        });
+                    });
+
+                let player_map = game_state.get_skin_player_map();
+                let mut burros = game_state.burros.iter().collect::<Vec<_>>();
+                if order_by_rank {
+                    burros.sort_by_key(|b| b.score);
+                    burros = burros.into_iter().rev().collect::<Vec<_>>();
+                }
+
+                avatar::insert_avatars(parent, &burros, &game_assets);
+                avatar::insert_player_indicators(parent, &burros, &player_map, &game_assets);
+                parent
+                    .spawn_bundle(NodeBundle {
+                        style: Style {
+                            position_type: PositionType::Absolute,
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::FlexEnd,
+                            ..Default::default()
+                        },
+                        color: Color::NONE.into(),
+                        ..Default::default()
+                    })
+                    .with_children(|parent| {
+                        let padding = 120.0;
+
+                        burros.iter().enumerate().for_each(|(i, burro)| {
                             parent.spawn_bundle(TextBundle {
                                 style: Style {
+                                    size: Size::new(Val::Px(20.0), Val::Auto),
                                     margin: Rect {
-                                        top: Val::Px(-60.0),
+                                        top: if show_score {
+                                            Val::Px(100.0)
+                                        } else {
+                                            Val::Px(120.0)
+                                        },
+                                        left: if i != 0 {
+                                            Val::Px(padding)
+                                        } else {
+                                            Val::Px(0.0)
+                                        },
                                         ..Default::default()
                                     },
                                     ..Default::default()
                                 },
                                 text: Text::with_section(
                                     if show_score {
-                                        "Current Scores"
+                                        format!("{}", burro.score)
                                     } else {
-                                        "Ranking"
+                                        match i {
+                                            0 => "1st".to_string(),
+                                            1 => "2nd".to_string(),
+                                            2 => "3rd".to_string(),
+                                            3 => "4th".to_string(),
+                                            4 => "5th".to_string(),
+                                            5 => "6th".to_string(),
+                                            6 => "7th".to_string(),
+                                            _ => "8th".to_string(),
+                                        }
                                     },
                                     TextStyle {
-                                        font: game_assets.font.clone(),
-                                        font_size: 80.0,
+                                        font: game_assets.score_font.clone(),
+                                        font_size: 40.0,
                                         color: Color::WHITE,
                                     },
                                     TextAlignment::default(),
@@ -191,128 +258,7 @@ fn display_scores(
                                 ..Default::default()
                             });
                         });
-
-                    let mut burros = game_state.burros.iter().collect::<Vec<_>>();
-                    if order_by_rank {
-                        burros.sort_by_key(|b| b.score);
-                        burros = burros.into_iter().rev().collect::<Vec<_>>();
-                    }
-
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Px(90.0)),
-                                position_type: PositionType::Absolute,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexEnd,
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            use game_state::BurroSkin;
-                            burros.iter().for_each(|burro| {
-                                parent.spawn_bundle(ImageBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Px(100.0), Val::Auto),
-                                        margin: Rect {
-                                            left: padding,
-                                            right: padding,
-                                            ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    },
-                                    image: match burro.skin {
-                                        BurroSkin::Pinata => {
-                                            game_assets.pinata_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Meow => {
-                                            game_assets.meow_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Salud => {
-                                            game_assets.salud_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Mexico => {
-                                            game_assets.mexico_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Medianoche => {
-                                            game_assets.medianoche_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Morir => {
-                                            game_assets.morir_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Gators => {
-                                            game_assets.gators_logo_texture.image.clone().into()
-                                        }
-                                        BurroSkin::Aguas => {
-                                            game_assets.aguas_logo_texture.image.clone().into()
-                                        }
-                                    },
-                                    ..Default::default()
-                                });
-                            });
-                        });
-
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                position_type: PositionType::Absolute,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexEnd,
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            let padding = 120.0;
-
-                            burros.iter().enumerate().for_each(|(i, burro)| {
-                                parent.spawn_bundle(TextBundle {
-                                    style: Style {
-                                        size: Size::new(Val::Px(20.0), Val::Auto),
-                                        margin: Rect {
-                                            top: if show_score {
-                                                Val::Px(100.0)
-                                            } else {
-                                                Val::Px(120.0)
-                                            },
-                                            left: if i != 0 {
-                                                Val::Px(padding)
-                                            } else {
-                                                Val::Px(0.0)
-                                            },
-                                            ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    },
-                                    text: Text::with_section(
-                                        if show_score {
-                                            format!("{}", burro.score)
-                                        } else {
-                                            match i {
-                                                0 => "1st".to_string(),
-                                                1 => "2nd".to_string(),
-                                                2 => "3rd".to_string(),
-                                                3 => "4th".to_string(),
-                                                4 => "5th".to_string(),
-                                                5 => "6th".to_string(),
-                                                6 => "7th".to_string(),
-                                                _ => "8th".to_string(),
-                                            }
-                                        },
-                                        TextStyle {
-                                            font: game_assets.score_font.clone(),
-                                            font_size: 40.0,
-                                            color: Color::WHITE,
-                                        },
-                                        TextAlignment::default(),
-                                    ),
-                                    ..Default::default()
-                                });
-                            });
-                        });
-                });
-        });
+                    });
+            });
+    });
 }

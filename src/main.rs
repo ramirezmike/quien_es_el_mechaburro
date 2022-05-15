@@ -29,6 +29,7 @@ mod player;
 mod score_display;
 mod smoke;
 mod title_screen;
+mod ui;
 mod winner;
 
 fn main() {

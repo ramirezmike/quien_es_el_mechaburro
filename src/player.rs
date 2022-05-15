@@ -245,6 +245,15 @@ impl PlayerBundle {
     }
 }
 
+pub fn get_player_indicator(player: usize) -> (&'static str, Color) {
+    match player {
+        1 => ("P2", Color::rgba(0.0, 1.0, 0.0, 0.9)), // green
+        2 => ("P3", Color::rgba(1.0, 0.0, 0.0, 0.9)), // red
+        3 => ("P4", Color::rgba(0.0, 0.0, 1.0, 0.9)), // blue
+        _ => ("P1", Color::rgba(1.0, 1.0, 0.0, 0.9)), // yellow
+    }
+}
+
 pub struct PlayerMoveEvent {
     pub entity: Entity,
     pub direction: direction::Direction,
