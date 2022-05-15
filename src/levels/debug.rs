@@ -458,12 +458,8 @@ fn setup(
                 .id();
 
             let player_map = game_state.get_skin_player_map();
-            let (text, color) = match player_map[&b.skin] {
-                1 => ("P2", Color::GREEN),
-                2 => ("P3", Color::RED),
-                3 => ("P4", Color::BLUE),
-                _ => ("P1", Color::YELLOW),
-            };
+            let (text, color) = player::get_player_indicator(player_map[&b.skin]);
+
             commands
                 .spawn_bundle(TextBundle {
                     style: Style {

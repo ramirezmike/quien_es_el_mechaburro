@@ -23,12 +23,12 @@ fn update_text_position(
     for (mut style, calculated, follow) in text_query.iter_mut() {
         if let Ok(mesh_position) = mesh_query.get(follow.following) {
             for (camera, camera_transform) in camera_query.iter() {
-                match camera.world_to_screen(
-                    &windows,
-                    &images,
-                    camera_transform,
-                    mesh_position.translation,
-                ) {
+                let translation = Vec3::new(
+                    mesh_position.translation.x,
+                    mesh_position.translation.y + 1.0,
+                    mesh_position.translation.z,
+                );
+                match camera.world_to_screen(&windows, &images, camera_transform, translation) {
                     Some(coords) => {
                         style.position.left = Val::Px(coords.x - calculated.size.width / 2.0);
                         style.position.bottom = Val::Px((coords.y) - calculated.size.height / 2.0);

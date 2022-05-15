@@ -1,4 +1,6 @@
-use crate::{assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, AppState};
+use crate::{
+    assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, player, AppState,
+};
 use bevy::prelude::*;
 
 pub struct WinnerPlugin;
@@ -76,6 +78,7 @@ fn update_display(
     let winner = burros
         .last()
         .expect("There should be at least one burro here");
+    let player_map = game_state.get_skin_player_map();
 
     commands
         .spawn_bundle(NodeBundle {
@@ -129,25 +132,58 @@ fn update_display(
                 .insert(CleanupMarker);
 
             use game_state::BurroSkin;
-            parent.spawn_bundle(ImageBundle {
-                style: Style {
-                    size: Size::new(Val::Px(100.0), Val::Auto),
+            parent
+                .spawn_bundle(ImageBundle {
+                    style: Style {
+                        size: Size::new(Val::Px(100.0), Val::Auto),
+                        ..Default::default()
+                    },
+                    image: match winner.skin {
+                        BurroSkin::Pinata => game_assets.pinata_logo_texture.image.clone().into(),
+                        BurroSkin::Meow => game_assets.meow_logo_texture.image.clone().into(),
+                        BurroSkin::Salud => game_assets.salud_logo_texture.image.clone().into(),
+                        BurroSkin::Mexico => game_assets.mexico_logo_texture.image.clone().into(),
+                        BurroSkin::Medianoche => {
+                            game_assets.medianoche_logo_texture.image.clone().into()
+                        }
+                        BurroSkin::Morir => game_assets.morir_logo_texture.image.clone().into(),
+                        BurroSkin::Gators => game_assets.gators_logo_texture.image.clone().into(),
+                        BurroSkin::Aguas => game_assets.aguas_logo_texture.image.clone().into(),
+                    },
                     ..Default::default()
-                },
-                image: match winner.skin {
-                    BurroSkin::Pinata => game_assets.pinata_logo_texture.image.clone().into(),
-                    BurroSkin::Meow => game_assets.meow_logo_texture.image.clone().into(),
-                    BurroSkin::Salud => game_assets.salud_logo_texture.image.clone().into(),
-                    BurroSkin::Mexico => game_assets.mexico_logo_texture.image.clone().into(),
-                    BurroSkin::Medianoche => {
-                        game_assets.medianoche_logo_texture.image.clone().into()
+                })
+                .with_children(|parent| {
+                    if !winner.is_bot {
+                        let (text, color) = player::get_player_indicator(player_map[&winner.skin]);
+                        parent.spawn_bundle(TextBundle {
+                            style: Style {
+                                align_self: AlignSelf::FlexEnd,
+                                position_type: PositionType::Relative,
+                                position: Rect {
+                                    left: Val::Px(50.0),
+                                    ..Default::default()
+                                },
+                                size: Size {
+                                    width: Val::Px(200.0),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            },
+                            text: Text::with_section(
+                                text,
+                                TextStyle {
+                                    font: game_assets.font.clone(),
+                                    font_size: 40.0,
+                                    color,
+                                },
+                                TextAlignment {
+                                    ..Default::default()
+                                },
+                            ),
+                            ..Default::default()
+                        });
                     }
-                    BurroSkin::Morir => game_assets.morir_logo_texture.image.clone().into(),
-                    BurroSkin::Gators => game_assets.gators_logo_texture.image.clone().into(),
-                    BurroSkin::Aguas => game_assets.aguas_logo_texture.image.clone().into(),
-                },
-                ..Default::default()
-            });
+                });
         });
 
     commands
@@ -181,7 +217,7 @@ fn update_display(
                         if winner.is_bot {
                             "Ay que pena!".to_string()
                         } else {
-                            "Congratulations!".to_string()
+                            "Ay que padre!".to_string()
                         },
                         TextStyle {
                             font: game_assets.font.clone(),
