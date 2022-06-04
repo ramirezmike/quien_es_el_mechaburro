@@ -1,6 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, game_state,
-    game_state::BurroSkin, title_screen, AppState,
+    game_state::BurroSkin, menus::options, title_screen, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -464,7 +464,8 @@ fn update_character_selection(
     time: Res<Time>,
     mut audio: GameAudio,
     mut game_assets: ResMut<GameAssets>,
-    mut game_state: ResMut<game_state::GameState>,
+    game_state: ResMut<game_state::GameState>,
+    mut option_state: ResMut<options::OptionState>,
     mut assets_handler: asset_loading::AssetsHandler,
     mut local_cooldown: ResMut<LocalCooldown>,
 ) {
@@ -568,8 +569,8 @@ fn update_character_selection(
             .collect();
 
         audio.play_sfx(&game_assets.fanfare_sfx);
-        *game_state = game_state::GameState::initialize(players);
-        assets_handler.load_next_level(&game_state, &mut game_assets);
+        *option_state = options::OptionState::initialize(players);
+        assets_handler.load(AppState::Options, &mut game_assets, &game_state);
     }
 }
 

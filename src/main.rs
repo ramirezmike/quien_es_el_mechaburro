@@ -23,6 +23,7 @@ mod ingame_ui;
 mod inspect;
 mod levels;
 mod mecha_picker;
+mod menus;
 mod mesh;
 mod pause;
 mod player;
@@ -52,6 +53,7 @@ fn main() {
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(mesh::MeshPlugin)
         .add_plugin(mecha_picker::MechaPickerPlugin)
+        .add_plugin(menus::options::OptionsMenuPlugin)
         .add_plugin(title_screen::TitlePlugin)
         .add_plugin(ingame_ui::InGameUIPlugin)
         .add_plugin(inspect::InspectPlugin)
@@ -72,6 +74,7 @@ pub enum AppState {
     Initial,
     Pause,
     Debug,
+    Options,
     InGame,
     TitleScreen,
     CharacterSelect,

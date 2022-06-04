@@ -38,6 +38,8 @@ const HOVERED_BUTTON: Color = Color::rgb(1.00, 1.00, 0.75);
 pub enum MenuAction {
     Up,
     Down,
+    Left,
+    Right,
     Select,
 }
 impl MenuAction {
@@ -54,6 +56,14 @@ impl MenuAction {
         input_map.insert(Down, KeyCode::Down);
         input_map.insert(Down, KeyCode::S);
         input_map.insert(Down, GamepadButtonType::DPadDown);
+
+        input_map.insert(Left, KeyCode::Left);
+        input_map.insert(Left, KeyCode::A);
+        input_map.insert(Left, GamepadButtonType::DPadLeft);
+
+        input_map.insert(Right, KeyCode::Right);
+        input_map.insert(Right, KeyCode::D);
+        input_map.insert(Right, GamepadButtonType::DPadRight);
 
         input_map.insert(Select, KeyCode::Space);
         input_map.insert(Select, KeyCode::Return);
@@ -348,9 +358,6 @@ fn update_menu_buttons(
     if pressed_button {
         if *selected_button == 0 {
             audio.play_sfx(&game_assets.sfx_2);
-            //          *game_state = game_state::GameState::initialize(8, 7);
-
-            //          assets_handler.load_next_level(&game_state, &mut game_assets);
             app_state.set(AppState::CharacterSelect).unwrap();
         }
         if *selected_button == 1 {
