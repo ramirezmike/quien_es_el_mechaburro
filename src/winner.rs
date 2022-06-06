@@ -215,12 +215,12 @@ fn update_display(
                     },
                     text: Text::with_section(
                         if winner.is_bot {
-                            "Ay que pena!".to_string()
+                            "¡Ay, que pena!".to_string()
                         } else {
-                            "Ay que padre!".to_string()
+                            "¡Ay, que padre!".to_string()
                         },
                         TextStyle {
-                            font: game_assets.font.clone(),
+                            font: game_assets.score_font.clone(),
                             font_size: 60.0,
                             color: Color::WHITE,
                         },

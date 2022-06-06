@@ -1,5 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, mesh, AppState,
+    ui::text_size, menus,
 };
 use bevy::app::AppExit;
 use bevy::ecs::event::Events;
@@ -10,9 +11,7 @@ pub struct TitlePlugin;
 impl Plugin for TitlePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<MenuAction>::default())
-            .add_system_set(
-                SystemSet::on_enter(AppState::TitleScreen).with_system(setup), //.with_system(game_camera::spawn_camera)
-            )
+            .add_system_set(SystemSet::on_enter(AppState::TitleScreen).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(AppState::TitleScreen)
                     .with_system(update_menu_buttons.after("handle_input"))
@@ -129,6 +128,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
     mut audio: GameAudio,
+    text_scaler: text_size::TextScaler,
 ) {
     commands
         .spawn_bundle(UiCameraBundle::default())
@@ -213,7 +213,7 @@ fn setup(
                 "by michael ramirez".to_string(),
                 TextStyle {
                     font: game_assets.font.clone(),
-                    font_size: 20.0,
+                    font_size: text_scaler.scale(menus::BY_LINE_FONT_SIZE),
                     color: Color::rgba(0.0, 0.0, 0.0, 1.0),
                 },
                 TextAlignment::default(),
@@ -225,25 +225,32 @@ fn setup(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
-                position_type: PositionType::Absolute,
+                size: Size::new(Val::Percent(30.0), Val::Percent(25.0)),
+                position_type: PositionType::Relative,
                 justify_content: JustifyContent::Center,
                 flex_direction: FlexDirection::ColumnReverse,
+                margin: Rect {
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    top: Val::Percent(60.0),
+                    ..Default::default()
+                },
                 align_items: AlignItems::FlexStart,
                 ..Default::default()
             },
             color: Color::NONE.into(),
             ..Default::default()
         })
+        .insert(CleanupMarker)
         .with_children(|parent| {
             parent
                 .spawn_bundle(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        position_type: PositionType::Relative,
                         margin: Rect::all(Val::Auto),
+                        size: Size::new(Val::Percent(100.0), Val::Percent(40.0)),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
-                        position_type: PositionType::Relative,
                         ..Default::default()
                     },
                     color: NORMAL_BUTTON.into(),
@@ -255,7 +262,7 @@ fn setup(
                             "Start",
                             TextStyle {
                                 font: game_assets.font.clone(),
-                                font_size: 40.0,
+                                font_size: text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
                                 color: Color::rgb(0.0, 0.0, 0.0),
                             },
                             Default::default(),
@@ -268,7 +275,7 @@ fn setup(
             parent
                 .spawn_bundle(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        size: Size::new(Val::Percent(100.0), Val::Percent(40.0)),
                         margin: Rect::all(Val::Auto),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -284,7 +291,7 @@ fn setup(
                             "Quit",
                             TextStyle {
                                 font: game_assets.font.clone(),
-                                font_size: 40.0,
+                                font_size: text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
                                 color: Color::rgb(0.0, 0.0, 0.0),
                             },
                             Default::default(),

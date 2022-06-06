@@ -1,6 +1,6 @@
 use crate::{
     assets::GameAssets, audio::GameAudio, cleanup, game_controller, title_screen::MenuAction,
-    AppState,
+    AppState, ui::text_size, menus,
 };
 use bevy::app::AppExit;
 use bevy::ecs::event::Events;
@@ -38,7 +38,7 @@ struct CleanupMarker;
 const NORMAL_BUTTON: Color = Color::rgba(1.00, 1.00, 1.00, 0.0);
 const HOVERED_BUTTON: Color = Color::rgb(1.00, 1.00, 0.75);
 
-fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
+fn setup(mut commands: Commands, game_assets: Res<GameAssets>, text_scaler: text_size::TextScaler) {
     commands
         .spawn_bundle(InputManagerBundle {
             input_map: MenuAction::default_input_map(),
@@ -49,25 +49,32 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(25.0)),
-                position_type: PositionType::Absolute,
+                size: Size::new(Val::Percent(30.0), Val::Percent(25.0)),
+                position_type: PositionType::Relative,
                 justify_content: JustifyContent::Center,
                 flex_direction: FlexDirection::ColumnReverse,
+                margin: Rect {
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    top: Val::Percent(60.0),
+                    ..Default::default()
+                },
                 align_items: AlignItems::FlexStart,
                 ..Default::default()
             },
             color: Color::NONE.into(),
             ..Default::default()
         })
+        .insert(CleanupMarker)
         .with_children(|parent| {
             parent
                 .spawn_bundle(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(200.0), Val::Px(100.0)),
+                        position_type: PositionType::Relative,
                         margin: Rect::all(Val::Auto),
+                        size: Size::new(Val::Percent(100.0), Val::Percent(40.0)),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
-                        position_type: PositionType::Relative,
                         ..Default::default()
                     },
                     color: NORMAL_BUTTON.into(),
@@ -76,10 +83,10 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
                 .with_children(|parent| {
                     parent.spawn_bundle(TextBundle {
                         text: Text::with_section(
-                            "Continue",
+                            "Resume",
                             TextStyle {
                                 font: game_assets.font.clone(),
-                                font_size: 40.0,
+                                font_size: text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
                                 color: Color::rgb(0.0, 0.0, 0.0),
                             },
                             Default::default(),
@@ -92,7 +99,7 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
             parent
                 .spawn_bundle(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(250.0), Val::Px(100.0)),
+                        size: Size::new(Val::Percent(100.0), Val::Percent(40.0)),
                         margin: Rect::all(Val::Auto),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -108,7 +115,7 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>) {
                             "Quit",
                             TextStyle {
                                 font: game_assets.font.clone(),
-                                font_size: 40.0,
+                                font_size: text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
                                 color: Color::rgb(0.0, 0.0, 0.0),
                             },
                             Default::default(),

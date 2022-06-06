@@ -1,6 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, audio::GameAudio, character_select::BurroCharacter, cleanup,
-    game_controller, game_state, menus, title_screen::MenuAction, AppState,
+    game_controller, game_state, menus, title_screen::MenuAction, ui::text_size, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -39,7 +39,7 @@ impl Plugin for OptionsMenuPlugin {
 #[derive(Component)]
 struct CleanupMarker;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct OptionRow {
     row: usize,
 }
@@ -80,6 +80,7 @@ fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     mut current_option: ResMut<CurrentOption>,
+    text_scaler: text_size::TextScaler,
 ) {
     current_option.0 = 0;
 
@@ -126,35 +127,14 @@ fn setup(
                     ..Default::default()
                 })
                 .with_children(|parent| {
-                    parent.spawn_bundle(TextBundle {
-                        style: Style {
-                            position_type: PositionType::Relative,
-                            margin: Rect {
-                                left: Val::Auto,
-                                right: Val::Auto,
-                                ..Default::default()
-                            },
-                            align_items: AlignItems::FlexEnd,
-                            justify_content: JustifyContent::Center,
-                            ..Default::default()
-                        },
-                        text: Text::with_section(
-                            "Game Settings".to_string(),
-                            TextStyle {
-                                font: game_assets.font.clone(),
-                                font_size: 40.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                horizontal: HorizontalAlign::Center,
-                                ..Default::default()
-                            },
-                        ),
-                        ..Default::default()
-                    });
+                    add_title(
+                        parent,
+                        game_assets.font.clone(),
+                        text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
+                        "Game Settings",
+                    );
                 });
 
-            // # of bots option
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
@@ -168,114 +148,30 @@ fn setup(
                 })
                 .insert(OptionRow { row: 0 })
                 .with_children(|parent| {
-                    parent
-                        .spawn_bundle(TextBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                margin: Rect {
-                                    left: Val::Percent(2.0),
-                                    ..Default::default()
-                                },
-                                align_items: AlignItems::FlexEnd,
-                                justify_content: JustifyContent::FlexStart,
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                "Number of Bots:".to_string(),
-                                TextStyle {
-                                    font: game_assets.font.clone(),
-                                    font_size: 35.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment::default(),
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(OptionRow { row: 0 });
-
-                    parent
-                        .spawn_bundle(TextBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                margin: Rect {
-                                    left: Val::Percent(2.0),
-                                    ..Default::default()
-                                },
-                                align_items: AlignItems::FlexEnd,
-                                justify_content: JustifyContent::FlexStart,
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                "<".to_string(),
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: 35.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment::default(),
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(OptionRow { row: 0 });
-
-                    parent
-                        .spawn_bundle(TextBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                margin: Rect {
-                                    left: Val::Percent(2.0),
-                                    ..Default::default()
-                                },
-                                align_items: AlignItems::FlexEnd,
-                                justify_content: JustifyContent::FlexStart,
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                "".to_string(),
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: 35.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment::default(),
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(OptionValueMarker)
-                        .insert(OptionRow { row: 0 });
-
-                    parent
-                        .spawn_bundle(TextBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                margin: Rect {
-                                    left: Val::Percent(2.0),
-                                    ..Default::default()
-                                },
-                                align_items: AlignItems::FlexEnd,
-                                justify_content: JustifyContent::FlexStart,
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                ">".to_string(),
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: 35.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment::default(),
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(OptionRow { row: 0 });
+                    add_label(
+                        parent,
+                        game_assets.font.clone(),
+                        text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                        "Number of Bots:",
+                        vec![OptionRow { row: 0 }],
+                    );
+                    add_option(
+                        parent,
+                        game_assets.score_font.clone(),
+                        text_scaler.scale(menus::SCORE_FONT_SIZE),
+                        vec![OptionRow { row: 0 }],
+                    );
                 });
 
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        size: Size::new(Val::Percent(40.0), Val::Percent(20.0)),
                         position_type: PositionType::Relative,
                         margin: Rect {
+                            left: Val::Auto,
+                            right: Val::Auto,
+                            top: Val::Percent(20.0),
                             ..Default::default()
                         },
                         justify_content: JustifyContent::Center,
@@ -287,36 +183,211 @@ fn setup(
                 })
                 .insert(OptionRow { row: 1 })
                 .with_children(|parent| {
-                    parent
-                        .spawn_bundle(TextBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                margin: Rect {
-                                    left: Val::Auto,
-                                    right: Val::Auto,
-                                    ..Default::default()
-                                },
-                                align_items: AlignItems::FlexEnd,
-                                justify_content: JustifyContent::Center,
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                "¡Vamos!".to_string(),
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: 40.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment {
-                                    horizontal: HorizontalAlign::Center,
-                                    ..Default::default()
-                                },
-                            ),
-                            ..Default::default()
-                        })
-                        .insert(OptionRow { row: 1 });
+                    add_button(
+                        parent,
+                        game_assets.score_font.clone(),
+                        text_scaler.scale(menus::SCORE_FONT_SIZE),
+                        "¡Vamos!",
+                        vec![OptionRow { row: 1 }],
+                    );
                 });
         });
+}
+
+fn add_label(
+    builder: &mut ChildBuilder<'_, '_, '_>,
+    font: Handle<Font>,
+    font_size: f32,
+    label: &str,
+    mut components: Vec<impl Component>,
+) {
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect {
+                left: Val::Percent(2.0),
+                top: Val::Auto,
+                bottom: Val::Auto,
+                ..Default::default()
+            },
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::FlexStart,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            label,
+            TextStyle {
+                font,
+                font_size,
+                color: Color::WHITE,
+            },
+            TextAlignment::default(),
+        ),
+        ..Default::default()
+    });
+    components.drain(..).for_each(|c| {
+        text_bundle.insert(c);
+    });
+}
+
+fn add_option(
+    builder: &mut ChildBuilder<'_, '_, '_>,
+    font: Handle<Font>,
+    font_size: f32,
+    mut components: Vec<impl Component + Clone>,
+) {
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect {
+                left: Val::Percent(2.0),
+                ..Default::default()
+            },
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::FlexStart,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            "<".to_string(),
+            TextStyle {
+                font: font.clone(),
+                font_size: font_size.clone(),
+                color: Color::WHITE,
+            },
+            TextAlignment::default(),
+        ),
+        ..Default::default()
+    });
+
+    components.clone().drain(..).for_each(|c| {
+        text_bundle.insert(c);
+    });
+
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect {
+                left: Val::Percent(2.0),
+                ..Default::default()
+            },
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::FlexStart,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            "".to_string(),
+            TextStyle {
+                font: font.clone(),
+                font_size: font_size.clone(),
+                color: Color::WHITE,
+            },
+            TextAlignment::default(),
+        ),
+        ..Default::default()
+    });
+
+    components.clone().drain(..).for_each(|c| {
+        text_bundle.insert(c);
+    });
+    text_bundle.insert(OptionValueMarker);
+
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect {
+                left: Val::Percent(2.0),
+                ..Default::default()
+            },
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::FlexStart,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            ">".to_string(),
+            TextStyle {
+                font: font.clone(),
+                font_size: font_size.clone(),
+                color: Color::WHITE,
+            },
+            TextAlignment::default(),
+        ),
+        ..Default::default()
+    });
+
+    components.drain(..).for_each(|c| {
+        text_bundle.insert(c);
+    });
+}
+
+fn add_button(
+    builder: &mut ChildBuilder<'_, '_, '_>,
+    font: Handle<Font>,
+    font_size: f32,
+    label: &str,
+    mut components: Vec<impl Component>,
+) {
+    let mut text_bundle =
+builder
+    .spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect::all(Val::Auto),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            label.to_string(),
+            TextStyle {
+                font,
+                font_size,
+                color: Color::WHITE,
+            },
+            TextAlignment {
+                horizontal: HorizontalAlign::Center,
+                ..Default::default()
+            },
+        ),
+        ..Default::default()
+    });
+
+    components.drain(..).for_each(|c| {
+        text_bundle.insert(c);
+    });
+}
+
+fn add_title(
+    builder: &mut ChildBuilder<'_, '_, '_>,
+    font: Handle<Font>,
+    font_size: f32,
+    title: &str,
+) {
+    builder.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect {
+                left: Val::Auto,
+                right: Val::Auto,
+                ..Default::default()
+            },
+            align_items: AlignItems::FlexEnd,
+            justify_content: JustifyContent::Center,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            title.to_string(),
+            TextStyle {
+                font,
+                font_size,
+                color: Color::WHITE,
+            },
+            TextAlignment {
+                horizontal: HorizontalAlign::Center,
+                ..Default::default()
+            },
+        ),
+        ..Default::default()
+    });
 }
 
 fn highlight_options(

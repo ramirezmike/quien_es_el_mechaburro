@@ -1,4 +1,6 @@
-use crate::{assets::GameAssets, cleanup, game_state, levels, title_screen, AppState};
+use crate::{
+    assets::GameAssets, cleanup, game_state, levels, menus, title_screen, ui::text_size, AppState,
+};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -170,11 +172,7 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
     }
 }
 
-fn setup(
-    mut commands: Commands,
-    game_assets: Res<GameAssets>,
-    // mut audio: GameAudio, #TODO loading specific music?
-) {
+fn setup(mut commands: Commands, game_assets: Res<GameAssets>, text_scaler: text_size::TextScaler) {
     commands
         .spawn_bundle(UiCameraBundle::default())
         .insert(CleanupMarker);
@@ -192,10 +190,10 @@ fn setup(
                 ..Default::default()
             },
             text: Text::with_section(
-                "Loading..".to_string(),
+                "Loading...".to_string(),
                 TextStyle {
                     font: game_assets.font.clone(),
-                    font_size: 20.0,
+                    font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
                     color: Color::WHITE,
                 },
                 TextAlignment::default(),
