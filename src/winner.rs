@@ -1,5 +1,6 @@
 use crate::{
-    assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, player, AppState,
+    assets::GameAssets, audio::GameAudio, cleanup, game_camera, game_state, menus, ui::avatar,
+    ui::text_size, AppState,
 };
 use bevy::prelude::*;
 
@@ -44,6 +45,7 @@ fn update_display(
     game_assets: Res<GameAssets>,
     mut app_state: ResMut<State<AppState>>,
     mut audio: GameAudio,
+    text_scaler: text_size::TextScaler,
 ) {
     timers.cooldown -= time.delta_seconds();
     timers.cooldown = timers.cooldown.clamp(-10.0, 6.0);
@@ -83,14 +85,12 @@ fn update_display(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                position_type: PositionType::Absolute,
-                margin: Rect {
-                    top: Val::Px(-40.0),
-                    ..Default::default()
-                },
+                size: Size::new(Val::Percent(100.0), Val::Percent(35.0)),
+                margin: Rect::all(Val::Auto),
+                position_type: PositionType::Relative,
                 justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+                align_items: AlignItems::FlexEnd,
+                flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
             color: Color::NONE.into(),
@@ -99,90 +99,60 @@ fn update_display(
         .insert(CleanupMarker)
         .with_children(|parent| {
             parent
-                .spawn_bundle(TextBundle {
+                .spawn_bundle(NodeBundle {
                     style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
                         position_type: PositionType::Relative,
                         justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
+                        align_items: AlignItems::FlexEnd,
                         ..Default::default()
                     },
-                    text: Text::with_section(
-                        match winner.skin {
-                            game_state::BurroSkin::Pinata => "Pinata!".to_string(),
-                            game_state::BurroSkin::Meow => "Meow!".to_string(),
-                            game_state::BurroSkin::Salud => "Salud!".to_string(),
-                            game_state::BurroSkin::Mexico => "Mexico!".to_string(),
-                            game_state::BurroSkin::Medianoche => "Medianoche!".to_string(),
-                            game_state::BurroSkin::Morir => "Morir!".to_string(),
-                            game_state::BurroSkin::Gators => "Gators!".to_string(),
-                            game_state::BurroSkin::Aguas => "Aguas!".to_string(),
-                        },
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 60.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..Default::default()
-                        },
-                    ),
-                    ..Default::default()
-                })
-                .insert(CleanupMarker);
-
-            use game_state::BurroSkin;
-            parent
-                .spawn_bundle(ImageBundle {
-                    style: Style {
-                        size: Size::new(Val::Px(100.0), Val::Auto),
-                        ..Default::default()
-                    },
-                    image: match winner.skin {
-                        BurroSkin::Pinata => game_assets.pinata_logo_texture.image.clone().into(),
-                        BurroSkin::Meow => game_assets.meow_logo_texture.image.clone().into(),
-                        BurroSkin::Salud => game_assets.salud_logo_texture.image.clone().into(),
-                        BurroSkin::Mexico => game_assets.mexico_logo_texture.image.clone().into(),
-                        BurroSkin::Medianoche => {
-                            game_assets.medianoche_logo_texture.image.clone().into()
-                        }
-                        BurroSkin::Morir => game_assets.morir_logo_texture.image.clone().into(),
-                        BurroSkin::Gators => game_assets.gators_logo_texture.image.clone().into(),
-                        BurroSkin::Aguas => game_assets.aguas_logo_texture.image.clone().into(),
-                    },
+                    color: Color::NONE.into(),
                     ..Default::default()
                 })
                 .with_children(|parent| {
-                    if !winner.is_bot {
-                        let (text, color) = player::get_player_indicator(player_map[&winner.skin]);
-                        parent.spawn_bundle(TextBundle {
-                            style: Style {
-                                align_self: AlignSelf::FlexEnd,
-                                position_type: PositionType::Relative,
-                                position: Rect {
-                                    left: Val::Px(50.0),
-                                    ..Default::default()
-                                },
-                                size: Size {
-                                    width: Val::Px(200.0),
-                                    ..Default::default()
-                                },
-                                ..Default::default()
-                            },
-                            text: Text::with_section(
-                                text,
-                                TextStyle {
-                                    font: game_assets.font.clone(),
-                                    font_size: 40.0,
-                                    color,
-                                },
-                                TextAlignment {
-                                    ..Default::default()
-                                },
-                            ),
+                    menus::options::add_title(
+                        parent,
+                        game_assets.font.clone(),
+                        text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
+                        match winner.skin {
+                            game_state::BurroSkin::Pinata => "Pinata!",
+                            game_state::BurroSkin::Meow => "Meow!",
+                            game_state::BurroSkin::Salud => "Salud!",
+                            game_state::BurroSkin::Mexico => "Mexico!",
+                            game_state::BurroSkin::Medianoche => "Medianoche!",
+                            game_state::BurroSkin::Morir => "Morir!",
+                            game_state::BurroSkin::Gators => "Gators!",
+                            game_state::BurroSkin::Aguas => "Aguas!",
+                        },
+                        Vec::<CleanupMarker>::new(), // just an empty vec since can't do <impl Trait>
+                    );
+                });
+
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        position_type: PositionType::Relative,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
+                        margin: Rect {
+                            top: Val::Percent(2.0),
                             ..Default::default()
-                        });
-                    }
+                        },
+                        ..Default::default()
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    avatar::insert_avatars(
+                        parent,
+                        &vec![winner],
+                        &game_assets,
+                        &player_map,
+                        text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                    );
                 });
         });
 
@@ -191,10 +161,6 @@ fn update_display(
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 position_type: PositionType::Absolute,
-                margin: Rect {
-                    top: Val::Px(40.0),
-                    ..Default::default()
-                },
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::FlexStart,
                 ..Default::default()
@@ -207,7 +173,7 @@ fn update_display(
             parent
                 .spawn_bundle(TextBundle {
                     style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Px(140.0)),
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
                         position_type: PositionType::Relative,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::FlexStart,
@@ -221,7 +187,7 @@ fn update_display(
                         },
                         TextStyle {
                             font: game_assets.score_font.clone(),
-                            font_size: 60.0,
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
                             color: Color::WHITE,
                         },
                         TextAlignment {
@@ -236,7 +202,12 @@ fn update_display(
     audio.play_sfx(&game_assets.fanfare_sfx);
 }
 
-fn setup(mut commands: Commands, game_assets: Res<GameAssets>, mut timers: ResMut<Timers>) {
+fn setup(
+    mut commands: Commands,
+    game_assets: Res<GameAssets>,
+    mut timers: ResMut<Timers>,
+    text_scaler: text_size::TextScaler,
+) {
     timers.cooldown = 2.0;
     timers.display_set = false;
     commands
@@ -246,11 +217,12 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>, mut timers: ResMu
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                align_self: AlignSelf::Center,
+                size: Size::new(Val::Percent(100.0), Val::Percent(35.0)),
                 margin: Rect::all(Val::Auto),
+                position_type: PositionType::Relative,
                 justify_content: JustifyContent::Center,
-                flex_direction: FlexDirection::ColumnReverse,
-                align_items: AlignItems::FlexStart,
+                align_items: AlignItems::FlexEnd,
+                //flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
             color: Color::NONE.into(),
@@ -271,7 +243,7 @@ fn setup(mut commands: Commands, game_assets: Res<GameAssets>, mut timers: ResMu
                         "And the winner is..",
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: 60.0,
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
                             color: Color::WHITE,
                         },
                         TextAlignment {

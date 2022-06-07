@@ -1,4 +1,6 @@
-use crate::{assets::GameAssets, burro, cleanup, game_state, ui::avatar, AppState};
+use crate::{
+    assets::GameAssets, burro, cleanup, game_state, menus, ui::avatar, ui::text_size, AppState,
+};
 use bevy::prelude::*;
 
 pub struct InGameUIPlugin;
@@ -65,44 +67,91 @@ fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     mut game_state: ResMut<game_state::GameState>,
+    text_scaler: text_size::TextScaler,
 ) {
     commands
         .spawn_bundle(UiCameraBundle::default())
         .insert(CleanupMarker);
 
-    let mut node = commands.spawn_bundle(NodeBundle {
-        style: Style {
-            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-            position_type: PositionType::Absolute,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::FlexEnd,
-            ..Default::default()
-        },
-        color: Color::NONE.into(),
-        ..Default::default()
-    });
-
-    let node = node.insert(CleanupMarker);
-    node.with_children(|parent| {
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Px(90.0)),
-                    position_type: PositionType::Relative,
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::FlexEnd,
-                    ..Default::default()
-                },
-                color: Color::NONE.into(),
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(98.0)),
+                position_type: PositionType::Absolute,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
                 ..Default::default()
-            })
-            .with_children(|parent| {
-                let player_map = game_state.get_skin_player_map();
-                let burros = &game_state.burros.iter().collect();
+            },
+            color: Color::NONE.into(),
+            ..Default::default()
+        })
+        .insert(CleanupMarker)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                        position_type: PositionType::Relative,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
+                        flex_direction: FlexDirection::ColumnReverse,
+                        ..Default::default()
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    let player_map = game_state.get_skin_player_map();
+                    let burros = &game_state.burros.iter().collect();
 
-                avatar::insert_avatars(parent, burros, &game_assets);
-                avatar::insert_player_indicators(parent, burros, &player_map, &game_assets);
-                avatar::insert_health_indicators(parent, &mut game_state.burros, &game_assets);
-            });
-    });
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                margin: Rect {
+                                    top: Val::Percent(2.0),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            avatar::insert_avatars(
+                                parent,
+                                burros,
+                                &game_assets,
+                                &player_map,
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                            );
+                        });
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                margin: Rect {
+                                    top: Val::Percent(7.0),
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            avatar::insert_health_indicators(
+                                parent,
+                                &mut game_state.burros,
+                                &game_assets,
+                            );
+                        });
+                });
+        });
 }

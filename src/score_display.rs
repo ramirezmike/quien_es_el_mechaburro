@@ -1,4 +1,7 @@
-use crate::{assets::GameAssets, cleanup, game_camera, game_state, player, ui::avatar, AppState};
+use crate::{
+    assets::GameAssets, cleanup, game_camera, game_state, menus, player, ui::avatar, ui::text_size,
+    AppState,
+};
 use bevy::prelude::*;
 
 pub struct ScoreDisplayPlugin;
@@ -84,6 +87,7 @@ fn display_scores(
     cleanups: Query<Entity, With<CleanupMarker>>,
     mut score_add_event_writer: EventWriter<game_state::ScoreAddEvent>,
     time: Res<Time>,
+    text_scaler: text_size::TextScaler,
 ) {
     // this whole thing is a mess, please don't look
 
@@ -127,138 +131,147 @@ fn display_scores(
         .spawn_bundle(UiCameraBundle::default())
         .insert(CleanupMarker);
 
-    let mut node = commands.spawn_bundle(NodeBundle {
-        style: Style {
-            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-            position_type: PositionType::Absolute,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        },
-        color: Color::NONE.into(),
-        ..Default::default()
-    });
-    let node = node.insert(CleanupMarker);
-    node.with_children(|parent| {
-        parent
-            .spawn_bundle(NodeBundle {
-                style: Style {
-                    size: Size::new(Val::Percent(100.0), Val::Px(140.0)),
-                    position_type: PositionType::Relative,
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::FlexEnd,
-                    ..Default::default()
-                },
-                color: Color::rgba(0.3, 0.3, 0.3, 0.4).into(),
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(35.0)),
+                margin: Rect::all(Val::Auto),
+                position_type: PositionType::Relative,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
-            })
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Px(90.0)),
-                            position_type: PositionType::Absolute,
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::FlexEnd,
+            },
+            color: Color::rgba(0.3, 0.3, 0.3, 0.4).into(),
+            ..Default::default()
+        })
+        .insert(CleanupMarker)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        position_type: PositionType::Relative,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
+                        ..Default::default()
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    menus::options::add_title(
+                        parent,
+                        game_assets.font.clone(),
+                        text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
+                        if show_score {
+                            "Current Scores"
+                        } else {
+                            "Ranking"
+                        },
+                        Vec::<CleanupMarker>::new(), // just an empty vec since can't do <impl Trait>
+                    );
+                });
+
+            let player_map = game_state.get_skin_player_map();
+            let mut burros = game_state.burros.iter().collect::<Vec<_>>();
+            if order_by_rank {
+                burros.sort_by_key(|b| b.score);
+                burros = burros.into_iter().rev().collect::<Vec<_>>();
+            }
+
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        position_type: PositionType::Relative,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
+                        margin: Rect {
+                            top: Val::Percent(2.0),
                             ..Default::default()
                         },
-                        color: Color::NONE.into(),
                         ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        parent.spawn_bundle(TextBundle {
-                            style: Style {
-                                margin: Rect {
-                                    top: Val::Px(-60.0),
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    avatar::insert_avatars(
+                        parent,
+                        &burros,
+                        &game_assets,
+                        &player_map,
+                        text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                    );
+                });
+
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        margin: Rect {
+                            top: Val::Percent(4.0),
+                            ..Default::default()
+                        },
+                        position_type: PositionType::Relative,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
+                        flex_direction: FlexDirection::Row,
+                        ..Default::default()
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    let width = (1.0 / burros.len() as f32) * 100.0;
+
+                    burros.iter().enumerate().for_each(|(i, burro)| {
+                        parent
+                            .spawn_bundle(NodeBundle {
+                                style: Style {
+                                    size: Size::new(Val::Percent(width), Val::Percent(100.0)),
+                                    position_type: PositionType::Relative,
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::FlexEnd,
+                                    flex_direction: FlexDirection::Row,
                                     ..Default::default()
                                 },
+                                color: Color::NONE.into(),
                                 ..Default::default()
-                            },
-                            text: Text::with_section(
-                                if show_score {
-                                    "Current Scores"
-                                } else {
-                                    "Ranking"
-                                },
-                                TextStyle {
-                                    font: game_assets.font.clone(),
-                                    font_size: 80.0,
-                                    color: Color::WHITE,
-                                },
-                                TextAlignment::default(),
-                            ),
-                            ..Default::default()
-                        });
-                    });
-
-                let player_map = game_state.get_skin_player_map();
-                let mut burros = game_state.burros.iter().collect::<Vec<_>>();
-                if order_by_rank {
-                    burros.sort_by_key(|b| b.score);
-                    burros = burros.into_iter().rev().collect::<Vec<_>>();
-                }
-
-                avatar::insert_avatars(parent, &burros, &game_assets);
-                avatar::insert_player_indicators(parent, &burros, &player_map, &game_assets);
-                parent
-                    .spawn_bundle(NodeBundle {
-                        style: Style {
-                            position_type: PositionType::Absolute,
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::FlexEnd,
-                            ..Default::default()
-                        },
-                        color: Color::NONE.into(),
-                        ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        let padding = 120.0;
-
-                        burros.iter().enumerate().for_each(|(i, burro)| {
-                            parent.spawn_bundle(TextBundle {
-                                style: Style {
-                                    size: Size::new(Val::Px(20.0), Val::Auto),
-                                    margin: Rect {
-                                        top: if show_score {
-                                            Val::Px(100.0)
-                                        } else {
-                                            Val::Px(120.0)
-                                        },
-                                        left: if i != 0 {
-                                            Val::Px(padding)
-                                        } else {
-                                            Val::Px(0.0)
-                                        },
+                            })
+                            .with_children(|parent| {
+                                parent.spawn_bundle(TextBundle {
+                                    style: Style {
                                         ..Default::default()
                                     },
+                                    text: Text::with_section(
+                                        if show_score {
+                                            format!("{}", burro.score)
+                                        } else {
+                                            match i {
+                                                0 => "1st".to_string(),
+                                                1 => "2nd".to_string(),
+                                                2 => "3rd".to_string(),
+                                                3 => "4th".to_string(),
+                                                4 => "5th".to_string(),
+                                                5 => "6th".to_string(),
+                                                6 => "7th".to_string(),
+                                                _ => "8th".to_string(),
+                                            }
+                                        },
+                                        TextStyle {
+                                            font: game_assets.score_font.clone(),
+                                            font_size: text_scaler
+                                                .scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                            color: Color::WHITE,
+                                        },
+                                        TextAlignment::default(),
+                                    ),
                                     ..Default::default()
-                                },
-                                text: Text::with_section(
-                                    if show_score {
-                                        format!("{}", burro.score)
-                                    } else {
-                                        match i {
-                                            0 => "1st".to_string(),
-                                            1 => "2nd".to_string(),
-                                            2 => "3rd".to_string(),
-                                            3 => "4th".to_string(),
-                                            4 => "5th".to_string(),
-                                            5 => "6th".to_string(),
-                                            6 => "7th".to_string(),
-                                            _ => "8th".to_string(),
-                                        }
-                                    },
-                                    TextStyle {
-                                        font: game_assets.score_font.clone(),
-                                        font_size: 40.0,
-                                        color: Color::WHITE,
-                                    },
-                                    TextAlignment::default(),
-                                ),
-                                ..Default::default()
+                                });
                             });
-                        });
                     });
-            });
-    });
+                });
+        });
 }

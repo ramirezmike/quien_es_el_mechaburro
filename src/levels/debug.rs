@@ -1,6 +1,7 @@
 use crate::{
     asset_loading, assets::GameAssets, bot, burro::Burro, burro::BurroDeathEvent, cleanup,
-    collision, follow_text, game_camera, game_state, inspect, player, AppState,
+    collision, follow_text, game_camera, game_state, inspect, menus, player, ui::text_size,
+    AppState,
 };
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -245,6 +246,7 @@ fn setup(
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut round_end_timer: ResMut<RoundEndTimer>,
     inspector_data: Res<inspect::InspectorData>,
+    text_scaler: text_size::TextScaler,
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
 
@@ -480,7 +482,7 @@ fn setup(
                         text.to_string(),
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: 40.0,
+                            font_size: text_scaler.scale(menus::FOLLOW_FONT_SIZE),
                             color,
                         },
                         TextAlignment {
@@ -533,7 +535,7 @@ fn setup(
                         "Round ending in 5 seconds".to_string(),
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: 40.0,
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
                             color: Color::WHITE,
                         },
                         TextAlignment {

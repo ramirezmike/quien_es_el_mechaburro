@@ -1,6 +1,6 @@
 use crate::{
     assets::GameAssets, bullet::BulletEvent, bullet::BulletType, burro, cleanup, game_camera,
-    game_state, AppState,
+    game_state, menus, ui::text_size, AppState,
 };
 use bevy::prelude::*;
 use rand::seq::SliceRandom;
@@ -145,6 +145,7 @@ fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     mut text_display_timers: ResMut<TextDisplayTimers>,
+    text_scaler: text_size::TextScaler,
 ) {
     *text_display_timers = TextDisplayTimers::default();
     text_display_timers.overall_name_selection_cooldown = 3.0;
@@ -179,7 +180,7 @@ fn setup(
                         "Y el \nMechaburro es..",
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: 60.0,
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
                             color: Color::BLACK,
                         },
                         TextAlignment {
@@ -205,7 +206,7 @@ fn setup(
                         "MECHABURRO!",
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: 100.0,
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.5),
                             color: Color::BLACK,
                         },
                         TextAlignment {
