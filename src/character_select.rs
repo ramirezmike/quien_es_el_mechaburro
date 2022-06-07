@@ -1,6 +1,6 @@
 use crate::{
     asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, game_state,
-    game_state::BurroSkin, menus::options, title_screen, AppState,
+    game_state::BurroSkin, menus, menus::options, title_screen, ui::text_size, AppState,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -39,7 +39,7 @@ struct LocalCooldown {
 #[derive(Component)]
 pub struct CharacterSelectCleanupMarker;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct BurroName {
     player: usize,
 }
@@ -93,6 +93,7 @@ fn setup(
     game_assets: Res<GameAssets>,
     mut local_cooldown: ResMut<LocalCooldown>,
     mut clear_color: ResMut<ClearColor>,
+    text_scaler: text_size::TextScaler,
 ) {
     *clear_color = ClearColor(Color::rgb(0.0, 0.0, 0.0));
     local_cooldown.cooldown = 0.2;
@@ -168,8 +169,7 @@ fn setup(
             material: game_assets.meow_texture.material.clone(),
             visibility: Visibility { is_visible: false },
             transform: {
-                let mut transform = Transform::from_xyz(-5.0, -10.0, 2.5);
-                //            transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
+                let mut transform = Transform::from_xyz(-5.5, -10.0, 2.5);
                 transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform
             },
@@ -195,7 +195,6 @@ fn setup(
             visibility: Visibility { is_visible: false },
             transform: {
                 let mut transform = Transform::from_xyz(5.0, -10.0, -2.5);
-                //            transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform
             },
@@ -220,8 +219,7 @@ fn setup(
             material: game_assets.aguas_texture.material.clone(),
             visibility: Visibility { is_visible: false },
             transform: {
-                let mut transform = Transform::from_xyz(-5.0, -10.0, -2.5);
-                //            transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
+                let mut transform = Transform::from_xyz(-5.5, -10.0, -2.5);
                 transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform
             },
@@ -247,63 +245,11 @@ fn setup(
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
-                position_type: PositionType::Relative,
-                margin: Rect {
-                    top: Val::Px(20.0),
-                    ..Default::default()
-                },
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::FlexEnd,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
-            ..Default::default()
-        })
-        .insert(CharacterSelectCleanupMarker)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
-                    style: Style {
-                        position_type: PositionType::Relative,
-                        margin: Rect {
-                            left: Val::Auto,
-                            right: Val::Auto,
-                            bottom: Val::Auto,
-                            top: Val::Auto,
-                        },
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        ..Default::default()
-                    },
-                    text: Text::with_section(
-                        "Choose your Burro!".to_string(),
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..Default::default()
-                        },
-                    ),
-                    ..Default::default()
-                })
-                .insert(CharacterSelectCleanupMarker);
-        });
-
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                size: Size::new(Val::Percent(100.0), Val::Percent(98.0)),
                 position_type: PositionType::Absolute,
-                margin: Rect {
-                    top: Val::Px(40.0),
-                    ..Default::default()
-                },
-                justify_content: JustifyContent::Center,
+                justify_content: JustifyContent::FlexStart,
                 align_items: AlignItems::FlexEnd,
+                flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
             color: Color::NONE.into(),
@@ -312,145 +258,142 @@ fn setup(
         .insert(CharacterSelectCleanupMarker)
         .with_children(|parent| {
             parent
-                .spawn_bundle(TextBundle {
+                .spawn_bundle(NodeBundle {
                     style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
                         position_type: PositionType::Relative,
-                        margin: Rect {
-                            left: Val::Percent(20.0),
-                            right: Val::Auto,
-                            bottom: Val::Auto,
-                            top: Val::Auto,
-                        },
-                        align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexEnd,
                         ..Default::default()
                     },
-                    text: Text::with_section(
-                        "Press Start".to_string(),
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..Default::default()
-                        },
-                    ),
+                    color: Color::NONE.into(),
                     ..Default::default()
                 })
-                .insert(CharacterSelectCleanupMarker)
-                .insert(BurroName { player: 0 });
+                .with_children(|parent| {
+                    options::add_title(
+                        parent,
+                        game_assets.font.clone(),
+                        text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
+                        "Choose your Burro!",
+                        Vec::<BurroName>::new(), // just an empty vec since can't do <impl Trait>
+                    );
+                });
 
             parent
-                .spawn_bundle(TextBundle {
+                .spawn_bundle(NodeBundle {
                     style: Style {
+                        size: Size::new(Val::Percent(98.0), Val::Percent(28.0)),
                         position_type: PositionType::Relative,
-                        margin: Rect {
-                            left: Val::Percent(30.0),
-                            right: Val::Auto,
-                            bottom: Val::Auto,
-                            top: Val::Auto,
-                        },
-                        align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexStart,
                         ..Default::default()
                     },
-                    text: Text::with_section(
-                        "P2 Press Start".to_string(),
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..Default::default()
-                        },
-                    ),
+                    color: Color::NONE.into(),
                     ..Default::default()
                 })
-                .insert(CharacterSelectCleanupMarker)
-                .insert(BurroName { player: 1 });
-        });
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexStart,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            options::add_title(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                "",
+                                vec![BurroName { player: 0 }],
+                            );
+                        });
 
-    commands
-        .spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                position_type: PositionType::Absolute,
-                margin: Rect {
-                    top: Val::Percent(60.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
-            ..Default::default()
-        })
-        .insert(CharacterSelectCleanupMarker)
-        .with_children(|parent| {
-            parent
-                .spawn_bundle(TextBundle {
-                    style: Style {
-                        position_type: PositionType::Relative,
-                        margin: Rect {
-                            left: Val::Percent(10.0),
-                            right: Val::Auto,
-                            bottom: Val::Auto,
-                            top: Val::Percent(45.0),
-                        },
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        ..Default::default()
-                    },
-                    text: Text::with_section(
-                        "P3 Press Start".to_string(),
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexStart,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
                             ..Default::default()
-                        },
-                    ),
-                    ..Default::default()
-                })
-                .insert(CharacterSelectCleanupMarker)
-                .insert(BurroName { player: 2 });
+                        })
+                        .with_children(|parent| {
+                            options::add_title(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                "",
+                                vec![BurroName { player: 1 }],
+                            );
+                        });
+                });
 
             parent
-                .spawn_bundle(TextBundle {
+                .spawn_bundle(NodeBundle {
                     style: Style {
+                        size: Size::new(Val::Percent(98.0), Val::Percent(40.0)),
                         position_type: PositionType::Relative,
-                        margin: Rect {
-                            left: Val::Percent(30.0),
-                            right: Val::Auto,
-                            bottom: Val::Auto,
-                            top: Val::Percent(45.0),
-                        },
-                        align_items: AlignItems::Center,
                         justify_content: JustifyContent::Center,
+                        align_items: AlignItems::FlexStart,
                         ..Default::default()
                     },
-                    text: Text::with_section(
-                        "P4 Press Start".to_string(),
-                        TextStyle {
-                            font: game_assets.font.clone(),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..Default::default()
-                        },
-                    ),
+                    color: Color::NONE.into(),
                     ..Default::default()
                 })
-                .insert(CharacterSelectCleanupMarker)
-                .insert(BurroName { player: 3 });
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexStart,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            options::add_title(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                "",
+                                vec![BurroName { player: 2 }],
+                            );
+                        });
+
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexStart,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            options::add_title(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                "",
+                                vec![BurroName { player: 3 }],
+                            );
+                        });
+                });
         });
 }
 

@@ -132,6 +132,7 @@ fn setup(
                         game_assets.font.clone(),
                         text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
                         "Game Settings",
+                        Vec::<CleanupMarker>::new(), // just an empty vec since can't do <impl Trait>
                     );
                 });
 
@@ -251,7 +252,7 @@ fn add_option(
             "<".to_string(),
             TextStyle {
                 font: font.clone(),
-                font_size: font_size.clone(),
+                font_size,
                 color: Color::WHITE,
             },
             TextAlignment::default(),
@@ -278,7 +279,7 @@ fn add_option(
             "".to_string(),
             TextStyle {
                 font: font.clone(),
-                font_size: font_size.clone(),
+                font_size,
                 color: Color::WHITE,
             },
             TextAlignment::default(),
@@ -305,8 +306,8 @@ fn add_option(
         text: Text::with_section(
             ">".to_string(),
             TextStyle {
-                font: font.clone(),
-                font_size: font_size.clone(),
+                font,
+                font_size,
                 color: Color::WHITE,
             },
             TextAlignment::default(),
@@ -326,9 +327,7 @@ fn add_button(
     label: &str,
     mut components: Vec<impl Component>,
 ) {
-    let mut text_bundle =
-builder
-    .spawn_bundle(TextBundle {
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
         style: Style {
             position_type: PositionType::Relative,
             margin: Rect::all(Val::Auto),
@@ -356,13 +355,14 @@ builder
     });
 }
 
-fn add_title(
+pub fn add_title(
     builder: &mut ChildBuilder<'_, '_, '_>,
     font: Handle<Font>,
     font_size: f32,
     title: &str,
+    mut components: Vec<impl Component>,
 ) {
-    builder.spawn_bundle(TextBundle {
+    let mut text_bundle = builder.spawn_bundle(TextBundle {
         style: Style {
             position_type: PositionType::Relative,
             margin: Rect {
@@ -387,6 +387,10 @@ fn add_title(
             },
         ),
         ..Default::default()
+    });
+
+    components.drain(..).for_each(|c| {
+        text_bundle.insert(c);
     });
 }
 

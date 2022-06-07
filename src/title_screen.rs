@@ -1,6 +1,6 @@
 use crate::{
-    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, mesh, AppState,
-    ui::text_size, menus,
+    asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_controller, menus, mesh,
+    ui::text_size, AppState,
 };
 use bevy::app::AppExit;
 use bevy::ecs::event::Events;
