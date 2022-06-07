@@ -488,18 +488,27 @@ fn handle_option_changes(
     mut game_assets: ResMut<GameAssets>,
     mut game_state: ResMut<game_state::GameState>,
     mut assets_handler: asset_loading::AssetsHandler,
+    mut audio: GameAudio,
 ) {
     for option_change in option_change_event_reader.iter() {
         match current_option.0 {
             0 => match option_change.action {
                 OptionChange::Increase => {
-                    options.number_of_bots =
+                    let new_value =
                         usize::min(options.number_of_bots + 1, 8 - options.number_of_players);
+                    if new_value != options.number_of_bots {
+                        audio.play_sfx(&game_assets.sfx_1);
+                        options.number_of_bots = new_value;
+                    }
                 }
                 OptionChange::Decrease => {
                     let minimum_number_of_bots = if options.number_of_players == 1 { 1 } else { 0 };
-                    options.number_of_bots =
-                        usize::max(options.number_of_bots - 1, minimum_number_of_bots);
+                    let new_value = usize::max(options.number_of_bots - 1, minimum_number_of_bots);
+
+                    if new_value != options.number_of_bots {
+                        audio.play_sfx(&game_assets.sfx_1);
+                        options.number_of_bots = new_value;
+                    }
                 }
                 _ => (),
             },
@@ -509,6 +518,8 @@ fn handle_option_changes(
                         options.players.clone(),
                         options.number_of_bots,
                     );
+
+                    audio.play_sfx(&game_assets.sfx_2);
                     assets_handler.load(AppState::Debug, &mut game_assets, &game_state);
                 }
             }
