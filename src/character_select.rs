@@ -4,7 +4,6 @@ use crate::{
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
-use std::collections::HashMap;
 
 pub struct CharacterSelectPlugin;
 impl Plugin for CharacterSelectPlugin {
@@ -441,27 +440,20 @@ fn update_character_selection(
         return;
     }
 
-    let left_burro = HashMap::from([
-        (BurroSkin::Pinata, BurroSkin::Meow),
-        (BurroSkin::Meow, BurroSkin::Salud),
-        (BurroSkin::Salud, BurroSkin::Mexico),
-        (BurroSkin::Mexico, BurroSkin::Medianoche),
-        (BurroSkin::Medianoche, BurroSkin::Morir),
-        (BurroSkin::Morir, BurroSkin::Gators),
-        (BurroSkin::Gators, BurroSkin::Aguas),
-        (BurroSkin::Aguas, BurroSkin::Pinata),
-    ]);
+    let burro_skins = vec!(
+        BurroSkin::Pinata,
+        BurroSkin::Meow,
+        BurroSkin::Salud,
+        BurroSkin::Mexico,
+        BurroSkin::Medianoche,
+        BurroSkin::Morir,
+        BurroSkin::Gators,
+        BurroSkin::Aguas);
+    let remaining_burros = burro_skins
+        .iter()
+        .filter(|b| !picked_skins.contains(&b))
+        .collect::<Vec::<_>>();
 
-    let right_burro = HashMap::from([
-        (BurroSkin::Meow, BurroSkin::Pinata),
-        (BurroSkin::Salud, BurroSkin::Meow),
-        (BurroSkin::Mexico, BurroSkin::Salud),
-        (BurroSkin::Medianoche, BurroSkin::Mexico),
-        (BurroSkin::Morir, BurroSkin::Medianoche),
-        (BurroSkin::Gators, BurroSkin::Morir),
-        (BurroSkin::Aguas, BurroSkin::Gators),
-        (BurroSkin::Pinata, BurroSkin::Aguas),
-    ]);
 
     let mut attempt_to_start_game = false;
     let mut player_hasnt_picked = false;
@@ -469,19 +461,28 @@ fn update_character_selection(
     for (_, mut burro, action_state, _) in burros.iter_mut() {
         burro.action_cooldown -= time.delta_seconds();
         burro.action_cooldown = burro.action_cooldown.clamp(-10.0, 3.0);
+        let burro_index = remaining_burros.iter()
+                                          .position(|b| **b == burro.selected_burro)
+                                          .unwrap_or(0);
+        // switches to another burro if the current one is no longer available
+        burro.selected_burro = *remaining_burros[burro_index];
 
         if burro.action_cooldown > 0.0 || burro.has_picked {
             continue;
         }
 
+        let last_burro_index = remaining_burros.iter().len() - 1;
+
         if action_state.just_pressed(MenuAction::Left) {
-            burro.selected_burro = left_burro[&burro.selected_burro];
+            let selected_index = burro_index.checked_sub(1).unwrap_or(last_burro_index);
+            burro.selected_burro = *remaining_burros[selected_index];
             burro.action_cooldown = 0.2;
 
             audio.play_sfx(&game_assets.sfx_1);
         }
         if action_state.just_pressed(MenuAction::Right) {
-            burro.selected_burro = right_burro[&burro.selected_burro];
+            let selected_index = if burro_index == last_burro_index { 0 } else { burro_index + 1 };
+            burro.selected_burro = *remaining_burros[selected_index];
             burro.action_cooldown = 0.2;
 
             audio.play_sfx(&game_assets.sfx_1);

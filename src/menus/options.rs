@@ -499,7 +499,7 @@ fn handle_option_changes(
                     if new_value != options.number_of_bots {
                         audio.play_sfx(&game_assets.sfx_1);
                         options.number_of_bots = new_value;
-                    }
+                    } 
                 }
                 OptionChange::Decrease => {
                     let minimum_number_of_bots = if options.number_of_players == 1 { 1 } else { 0 };
