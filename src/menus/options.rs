@@ -429,14 +429,19 @@ fn update_menu_buttons(
     mut option_change_event_writer: EventWriter<OptionChangeEvent>,
 ) {
     let action_state = action_state.single();
+    let max_options = 1;
 
     if action_state.just_pressed(MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
-        current_option.0 = current_option.0.saturating_sub(1);
+        current_option.0 = current_option.0.checked_sub(1).unwrap_or(max_options);
     }
     if action_state.just_pressed(MenuAction::Down) {
         audio.play_sfx(&game_assets.sfx_1);
-        current_option.0 = usize::min(current_option.0 + 1, 1);
+        current_option.0 = if current_option.0 == max_options {
+            0
+        } else {
+            current_option.0 + 1
+        };
     }
     if action_state.just_pressed(MenuAction::Right) {
         option_change_event_writer.send(OptionChangeEvent {
@@ -499,7 +504,7 @@ fn handle_option_changes(
                     if new_value != options.number_of_bots {
                         audio.play_sfx(&game_assets.sfx_1);
                         options.number_of_bots = new_value;
-                    } 
+                    }
                 }
                 OptionChange::Decrease => {
                     let minimum_number_of_bots = if options.number_of_players == 1 { 1 } else { 0 };
