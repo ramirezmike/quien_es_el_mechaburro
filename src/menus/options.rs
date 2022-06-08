@@ -57,12 +57,14 @@ pub struct OptionState {
     players: Vec<BurroCharacter>,
     number_of_players: usize,
     number_of_bots: usize,
+    unfair_advantage: usize,
 }
 
 impl OptionState {
     pub fn initialize(players: Vec<BurroCharacter>) -> Self {
         OptionState {
             number_of_players: players.len(),
+            unfair_advantage: 1,
             number_of_bots: 8 - players.len(),
             players,
         }
@@ -116,9 +118,6 @@ fn setup(
                     style: Style {
                         size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
                         position_type: PositionType::Relative,
-                        margin: Rect {
-                            ..Default::default()
-                        },
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::FlexEnd,
                         ..Default::default()
@@ -149,19 +148,104 @@ fn setup(
                 })
                 .insert(OptionRow { row: 0 })
                 .with_children(|parent| {
-                    add_label(
-                        parent,
-                        game_assets.font.clone(),
-                        text_scaler.scale(menus::DEFAULT_FONT_SIZE),
-                        "Number of Bots:",
-                        vec![OptionRow { row: 0 }],
-                    );
-                    add_option(
-                        parent,
-                        game_assets.score_font.clone(),
-                        text_scaler.scale(menus::SCORE_FONT_SIZE),
-                        vec![OptionRow { row: 0 }],
-                    );
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            add_label(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                "Number of Bots:",
+                                vec![OptionRow { row: 0 }],
+                            );
+                        });
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            add_option(
+                                parent,
+                                game_assets.score_font.clone(),
+                                text_scaler.scale(menus::SCORE_FONT_SIZE),
+                                vec![OptionRow { row: 0 }],
+                            );
+                        });
+                });
+
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(15.0)),
+                        position_type: PositionType::Relative,
+                        align_items: AlignItems::FlexEnd,
+                        ..Default::default()
+                    },
+                    color: Color::NONE.into(),
+                    ..Default::default()
+                })
+                .insert(OptionRow { row: 1 })
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            add_label(
+                                parent,
+                                game_assets.font.clone(),
+                                text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                "Unfair Advantage:",
+                                vec![OptionRow { row: 1 }],
+                            );
+                        });
+
+                    parent
+                        .spawn_bundle(NodeBundle {
+                            style: Style {
+                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
+                                position_type: PositionType::Relative,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::FlexEnd,
+                                ..Default::default()
+                            },
+                            color: Color::NONE.into(),
+                            ..Default::default()
+                        })
+                        .with_children(|parent| {
+                            add_option(
+                                parent,
+                                game_assets.score_font.clone(),
+                                text_scaler.scale(menus::SCORE_FONT_SIZE),
+                                vec![OptionRow { row: 1 }],
+                            );
+                        });
                 });
 
             parent
@@ -182,14 +266,14 @@ fn setup(
                     color: Color::NONE.into(),
                     ..Default::default()
                 })
-                .insert(OptionRow { row: 1 })
+                .insert(OptionRow { row: 2 })
                 .with_children(|parent| {
                     add_button(
                         parent,
                         game_assets.score_font.clone(),
                         text_scaler.scale(menus::SCORE_FONT_SIZE),
                         "¡Vamos!",
-                        vec![OptionRow { row: 1 }],
+                        vec![OptionRow { row: 2 }],
                     );
                 });
         });
@@ -241,7 +325,8 @@ fn add_option(
         style: Style {
             position_type: PositionType::Relative,
             margin: Rect {
-                left: Val::Percent(2.0),
+                left: Val::Auto,
+                right: Val::Auto,
                 ..Default::default()
             },
             align_items: AlignItems::FlexEnd,
@@ -268,7 +353,8 @@ fn add_option(
         style: Style {
             position_type: PositionType::Relative,
             margin: Rect {
-                left: Val::Percent(2.0),
+                left: Val::Auto,
+                right: Val::Auto,
                 ..Default::default()
             },
             align_items: AlignItems::FlexEnd,
@@ -296,7 +382,8 @@ fn add_option(
         style: Style {
             position_type: PositionType::Relative,
             margin: Rect {
-                left: Val::Percent(2.0),
+                left: Val::Auto,
+                right: Val::Auto,
                 ..Default::default()
             },
             align_items: AlignItems::FlexEnd,
@@ -429,7 +516,7 @@ fn update_menu_buttons(
     mut option_change_event_writer: EventWriter<OptionChangeEvent>,
 ) {
     let action_state = action_state.single();
-    let max_options = 1;
+    let max_options = 2;
 
     if action_state.just_pressed(MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
@@ -497,27 +584,42 @@ fn handle_option_changes(
 ) {
     for option_change in option_change_event_reader.iter() {
         match current_option.0 {
-            0 => match option_change.action {
-                OptionChange::Increase => {
-                    let new_value =
-                        usize::min(options.number_of_bots + 1, 8 - options.number_of_players);
-                    if new_value != options.number_of_bots {
+            0 => {
+                let min = 1;
+                let max = 8 - options.number_of_players;
+                match option_change.action {
+                    OptionChange::Increase => {
+                        options.number_of_bots = if options.number_of_bots == max { min } 
+                                                 else { options.number_of_bots + 1 };
                         audio.play_sfx(&game_assets.sfx_1);
-                        options.number_of_bots = new_value;
                     }
-                }
-                OptionChange::Decrease => {
-                    let minimum_number_of_bots = if options.number_of_players == 1 { 1 } else { 0 };
-                    let new_value = usize::max(options.number_of_bots - 1, minimum_number_of_bots);
+                    OptionChange::Decrease => {
+                        options.number_of_bots = if options.number_of_bots == min { max } 
+                                                 else { options.number_of_bots - 1 };
 
-                    if new_value != options.number_of_bots {
                         audio.play_sfx(&game_assets.sfx_1);
-                        options.number_of_bots = new_value;
                     }
-                }
-                _ => (),
+                    _ => (),
+                };
             },
             1 => {
+                let min = 0;
+                let max = 2;
+                match option_change.action {
+                    OptionChange::Increase => {
+                        options.unfair_advantage = if options.unfair_advantage == max { min } 
+                                                   else { options.unfair_advantage + 1 };
+                        audio.play_sfx(&game_assets.sfx_1);
+                    }
+                    OptionChange::Decrease => {
+                        options.unfair_advantage = if options.unfair_advantage == min { max } 
+                                                   else { options.unfair_advantage - 1 };
+                        audio.play_sfx(&game_assets.sfx_1);
+                    }
+                    _ => (),
+                };
+            },
+            2 => {
                 if let OptionChange::Select = option_change.action {
                     *game_state = game_state::GameState::initialize(
                         options.players.clone(),
@@ -540,6 +642,13 @@ fn display_current_options(
     for (mut option_text, option_row) in options.iter_mut() {
         if option_row.row == 0 {
             option_text.sections[0].value = option_state.number_of_bots.to_string();
+        }
+        if option_row.row == 1 {
+            option_text.sections[0].value = match option_state.unfair_advantage {
+                0 => "Mechaburrito".to_string(),
+                1 => " Mechaburro ".to_string(),
+                _ => "Mechagigante".to_string(),
+            };
         }
     }
 }
