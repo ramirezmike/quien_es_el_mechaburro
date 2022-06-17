@@ -34,8 +34,14 @@ fn store_from_arcade_event_system(
     for gamepad in players.iter() {
         let gamepad_id = gamepad.0;
 
-        controllers.pressed.entry(gamepad_id).or_insert_with(Vec::new);
-        controllers.just_pressed.entry(gamepad_id).or_insert_with(Vec::new);
+        controllers
+            .pressed
+            .entry(gamepad_id)
+            .or_insert_with(Vec::new);
+        controllers
+            .just_pressed
+            .entry(gamepad_id)
+            .or_insert_with(Vec::new);
 
         let pressed = controllers.pressed.get_mut(&gamepad_id).unwrap();
         let already_pressed = pressed.clone();
