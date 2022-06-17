@@ -589,36 +589,48 @@ fn handle_option_changes(
                 let max = 8 - options.number_of_players;
                 match option_change.action {
                     OptionChange::Increase => {
-                        options.number_of_bots = if options.number_of_bots == max { min } 
-                                                 else { options.number_of_bots + 1 };
+                        options.number_of_bots = if options.number_of_bots == max {
+                            min
+                        } else {
+                            options.number_of_bots + 1
+                        };
                         audio.play_sfx(&game_assets.sfx_1);
                     }
                     OptionChange::Decrease => {
-                        options.number_of_bots = if options.number_of_bots == min { max } 
-                                                 else { options.number_of_bots - 1 };
+                        options.number_of_bots = if options.number_of_bots == min {
+                            max
+                        } else {
+                            options.number_of_bots - 1
+                        };
 
                         audio.play_sfx(&game_assets.sfx_1);
                     }
                     _ => (),
                 };
-            },
+            }
             1 => {
                 let min = 0;
                 let max = 2;
                 match option_change.action {
                     OptionChange::Increase => {
-                        options.unfair_advantage = if options.unfair_advantage == max { min } 
-                                                   else { options.unfair_advantage + 1 };
+                        options.unfair_advantage = if options.unfair_advantage == max {
+                            min
+                        } else {
+                            options.unfair_advantage + 1
+                        };
                         audio.play_sfx(&game_assets.sfx_1);
                     }
                     OptionChange::Decrease => {
-                        options.unfair_advantage = if options.unfair_advantage == min { max } 
-                                                   else { options.unfair_advantage - 1 };
+                        options.unfair_advantage = if options.unfair_advantage == min {
+                            max
+                        } else {
+                            options.unfair_advantage - 1
+                        };
                         audio.play_sfx(&game_assets.sfx_1);
                     }
                     _ => (),
                 };
-            },
+            }
             2 => {
                 if let OptionChange::Select = option_change.action {
                     *game_state = game_state::GameState::initialize(

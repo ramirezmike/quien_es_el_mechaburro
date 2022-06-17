@@ -1,11 +1,14 @@
 use bevy::prelude::*;
+use bevy_rust_arcade::{ArcadeInputEvent, RustArcadePlugin};
 use std::collections::HashMap;
 
 pub struct GameControllerPlugin;
 impl Plugin for GameControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(gamepad_connections)
+            .add_plugin(RustArcadePlugin)
             .insert_resource(GameController::default())
+            .add_system(arcade_event_system)
             .add_system(store_controller_inputs.label("store_controller_inputs"));
     }
 }
@@ -21,6 +24,15 @@ impl GameController {
     fn clear_presses(&mut self) {
         self.pressed = HashMap::<usize, Vec<GameButton>>::new();
         self.just_pressed = HashMap::<usize, Vec<GameButton>>::new();
+    }
+}
+
+fn arcade_event_system(mut arcade_input_events: EventReader<ArcadeInputEvent>) {
+    for event in arcade_input_events.iter() {
+        info!(
+            "{:?} of {:?} is changed to {}",
+            event.arcade_input, event.gamepad, event.value
+        );
     }
 }
 
@@ -162,7 +174,10 @@ fn store_controller_inputs(
 
         let game_id = gamepad.0;
         let mut just_pressed_buttons = pressed_buttons.clone();
-        just_pressed_buttons.retain(|button| !controllers.pressed[&game_id].contains(button));
+        just_pressed_buttons.retain(|button| {
+            !controllers.pressed.contains_key(&game_id)
+                || !controllers.pressed[&game_id].contains(button)
+        });
 
         pressed.insert(game_id, pressed_buttons);
         just_pressed.insert(game_id, just_pressed_buttons);
