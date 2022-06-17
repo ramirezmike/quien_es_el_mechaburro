@@ -142,7 +142,7 @@ fn setup(
             material: game_assets.pinata_texture.material.clone(),
             visibility: Visibility { is_visible: true },
             transform: {
-                let mut transform = Transform::from_xyz(5.0, -10.0, 2.5);
+                let mut transform = Transform::from_xyz(0.0, -2.0, 0.5);
                 //            transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
                 transform
@@ -281,7 +281,7 @@ fn setup(
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Percent(98.0), Val::Percent(28.0)),
+                        size: Size::new(Val::Percent(98.0), Val::Percent(60.0)),
                         position_type: PositionType::Relative,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::FlexStart,
@@ -307,89 +307,9 @@ fn setup(
                             options::add_title(
                                 parent,
                                 game_assets.font.clone(),
-                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
+                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE * 1.5),
                                 "",
                                 vec![BurroName { player: 0 }],
-                            );
-                        });
-
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
-                                position_type: PositionType::Relative,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexStart,
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            options::add_title(
-                                parent,
-                                game_assets.font.clone(),
-                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
-                                "",
-                                vec![BurroName { player: 1 }],
-                            );
-                        });
-                });
-
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(98.0), Val::Percent(40.0)),
-                        position_type: PositionType::Relative,
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::FlexStart,
-                        ..Default::default()
-                    },
-                    color: Color::NONE.into(),
-                    ..Default::default()
-                })
-                .with_children(|parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
-                                position_type: PositionType::Relative,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexStart,
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            options::add_title(
-                                parent,
-                                game_assets.font.clone(),
-                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
-                                "",
-                                vec![BurroName { player: 2 }],
-                            );
-                        });
-
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
-                                position_type: PositionType::Relative,
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::FlexStart,
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        })
-                        .with_children(|parent| {
-                            options::add_title(
-                                parent,
-                                game_assets.font.clone(),
-                                text_scaler.scale(menus::BUTTON_LABEL_FONT_SIZE),
-                                "",
-                                vec![BurroName { player: 3 }],
                             );
                         });
                 });
