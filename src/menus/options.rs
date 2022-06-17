@@ -555,6 +555,8 @@ fn handle_controllers(
         for (_, just_pressed) in controllers.just_pressed.iter() {
             action_state.release(MenuAction::Up);
             action_state.release(MenuAction::Down);
+            action_state.release(MenuAction::Left);
+            action_state.release(MenuAction::Right);
 
             action_state.release(MenuAction::Select);
 
@@ -563,6 +565,12 @@ fn handle_controllers(
             }
             if just_pressed.contains(&game_controller::GameButton::Down) {
                 action_state.press(MenuAction::Down);
+            }
+            if just_pressed.contains(&game_controller::GameButton::Left) {
+                action_state.press(MenuAction::Left);
+            }
+            if just_pressed.contains(&game_controller::GameButton::Right) {
+                action_state.press(MenuAction::Right);
             }
             if just_pressed.contains(&game_controller::GameButton::ActionDown)
                 || just_pressed.contains(&game_controller::GameButton::Start)
