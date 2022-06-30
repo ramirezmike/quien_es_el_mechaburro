@@ -55,9 +55,6 @@ pub struct BurroCharacter {
 #[derive(Component)]
 pub enum GamePlayer {
     One,
-    Two,
-    Three,
-    Four,
 }
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
@@ -78,9 +75,6 @@ impl MenuAction {
                 input_map.insert(MenuAction::Select, KeyCode::Return);
                 input_map
             }
-            GamePlayer::Two => InputMap::default(),
-            GamePlayer::Three => InputMap::default(),
-            GamePlayer::Four => InputMap::default(),
         };
 
         input_map.build()
@@ -158,81 +152,6 @@ fn setup(
         })
         .insert_bundle(InputManagerBundle {
             input_map: MenuAction::default_input_map(GamePlayer::One),
-            action_state: ActionState::default(),
-        })
-        .insert(CharacterSelectCleanupMarker);
-
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: game_assets.burro.mesh.clone(),
-            material: game_assets.meow_texture.material.clone(),
-            visibility: Visibility { is_visible: false },
-            transform: {
-                let mut transform = Transform::from_xyz(-5.5, -10.0, 2.5);
-                transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
-                transform
-            },
-            ..Default::default()
-        })
-        .insert(BurroCharacter {
-            player: 1,
-            is_playing: false,
-            has_picked: false,
-            action_cooldown: 0.2,
-            selected_burro: BurroSkin::Meow,
-        })
-        .insert_bundle(InputManagerBundle {
-            input_map: MenuAction::default_input_map(GamePlayer::Two),
-            action_state: ActionState::default(),
-        })
-        .insert(CharacterSelectCleanupMarker);
-
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: game_assets.burro.mesh.clone(),
-            material: game_assets.gators_texture.material.clone(),
-            visibility: Visibility { is_visible: false },
-            transform: {
-                let mut transform = Transform::from_xyz(5.0, -10.0, -2.5);
-                transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
-                transform
-            },
-            ..Default::default()
-        })
-        .insert(BurroCharacter {
-            player: 2,
-            is_playing: false,
-            has_picked: false,
-            action_cooldown: 0.2,
-            selected_burro: BurroSkin::Gators,
-        })
-        .insert_bundle(InputManagerBundle {
-            input_map: MenuAction::default_input_map(GamePlayer::Three),
-            action_state: ActionState::default(),
-        })
-        .insert(CharacterSelectCleanupMarker);
-
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: game_assets.burro.mesh.clone(),
-            material: game_assets.aguas_texture.material.clone(),
-            visibility: Visibility { is_visible: false },
-            transform: {
-                let mut transform = Transform::from_xyz(-5.5, -10.0, -2.5);
-                transform.rotation = Quat::from_axis_angle(Vec3::X, std::f32::consts::PI / 2.0);
-                transform
-            },
-            ..Default::default()
-        })
-        .insert(BurroCharacter {
-            player: 3,
-            is_playing: false,
-            has_picked: false,
-            action_cooldown: 0.2,
-            selected_burro: BurroSkin::Aguas,
-        })
-        .insert_bundle(InputManagerBundle {
-            input_map: MenuAction::default_input_map(GamePlayer::Four),
             action_state: ActionState::default(),
         })
         .insert(CharacterSelectCleanupMarker);
@@ -499,27 +418,21 @@ fn handle_controllers(
     controllers: Res<game_controller::GameController>,
     mut players: Query<(Entity, &BurroCharacter, &mut ActionState<MenuAction>)>,
 ) {
-    for (_, player, mut action_state) in players.iter_mut() {
-        if let Some(pressed) = controllers.pressed.get(&player.player) {
-            // release all buttons
-            // this probably affects durations but for
-            // this game it might not be a big deal
+    for (_, _, mut action_state) in players.iter_mut() {
+        let pressed = &controllers.pressed;
+        if pressed.contains(&game_controller::GameButton::Left) {
             action_state.release(MenuAction::Left);
+            action_state.press(MenuAction::Left);
+        }
+        if pressed.contains(&game_controller::GameButton::Right) {
             action_state.release(MenuAction::Right);
-
+            action_state.press(MenuAction::Right);
+        }
+        if pressed.contains(&game_controller::GameButton::ActionDown)
+            || pressed.contains(&game_controller::GameButton::Start)
+        {
             action_state.release(MenuAction::Select);
-
-            if pressed.contains(&game_controller::GameButton::Left) {
-                action_state.press(MenuAction::Left);
-            }
-            if pressed.contains(&game_controller::GameButton::Right) {
-                action_state.press(MenuAction::Right);
-            }
-            if pressed.contains(&game_controller::GameButton::ActionDown)
-                || pressed.contains(&game_controller::GameButton::Start)
-            {
-                action_state.press(MenuAction::Select);
-            }
+            action_state.press(MenuAction::Select);
         }
     }
 }

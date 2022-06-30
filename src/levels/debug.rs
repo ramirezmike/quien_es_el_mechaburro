@@ -247,7 +247,7 @@ fn setup(
     inspector_data: Res<inspect::InspectorData>,
     text_scaler: text_size::TextScaler,
 ) {
-    camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
+    camera_settings.set_camera(26.0, Vec3::ZERO, 0.8, false, 0.5, 36.0);
 
     game_state.current_level_over = false;
     game_state.on_new_level();

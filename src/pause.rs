@@ -201,26 +201,21 @@ fn handle_controllers(
     mut players: Query<(Entity, &mut ActionState<MenuAction>)>,
 ) {
     for (_, mut action_state) in players.iter_mut() {
-        for (_, just_pressed) in controllers.just_pressed.iter() {
-            // release all buttons
-            // this probably affects durations but for
-            // this game it might not be a big deal
+        let just_pressed = &controllers.just_pressed;
+
+        if just_pressed.contains(&game_controller::GameButton::Up) {
             action_state.release(MenuAction::Up);
+            action_state.press(MenuAction::Up);
+        }
+        if just_pressed.contains(&game_controller::GameButton::Down) {
             action_state.release(MenuAction::Down);
-
+            action_state.press(MenuAction::Down);
+        }
+        if just_pressed.contains(&game_controller::GameButton::ActionDown)
+            || just_pressed.contains(&game_controller::GameButton::Start)
+        {
             action_state.release(MenuAction::Select);
-
-            if just_pressed.contains(&game_controller::GameButton::Up) {
-                action_state.press(MenuAction::Up);
-            }
-            if just_pressed.contains(&game_controller::GameButton::Down) {
-                action_state.press(MenuAction::Down);
-            }
-            if just_pressed.contains(&game_controller::GameButton::ActionDown)
-                || just_pressed.contains(&game_controller::GameButton::Start)
-            {
-                action_state.press(MenuAction::Select);
-            }
+            action_state.press(MenuAction::Select);
         }
     }
 }

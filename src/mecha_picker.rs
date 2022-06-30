@@ -106,7 +106,7 @@ fn animate_mecha_selection(
             match text_display_timers.mecha_selection_stage {
                 MechaSelectionStage::Initial => (),
                 MechaSelectionStage::MovingToBurro => {
-                    camera_settings.set_camera(2.0, transform.translation, 0.4, true, 30.0, 5.0);
+                    camera_settings.set_camera(2.0, transform.translation, 0.6, true, 30.0, 5.0);
                     for entity in top_texts.iter() {
                         commands.entity(entity).despawn_recursive();
                     }
@@ -131,7 +131,7 @@ fn animate_mecha_selection(
                     transform.scale = Vec3::new(0.7, 1.4, 1.0);
                 }
                 MechaSelectionStage::ZoomOut => {
-                    camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 30.0, 30.0);
+                    camera_settings.set_camera(26.0, Vec3::ZERO, 0.8, false, 30.0, 36.0);
                 }
                 MechaSelectionStage::StartRound => {
                     app_state.set(AppState::InGame).unwrap();

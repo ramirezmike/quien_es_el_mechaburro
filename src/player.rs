@@ -210,32 +210,24 @@ impl PlayerBundle {
         // Movement
         input_map.insert(Up, KeyCode::Up);
         input_map.insert(Up, KeyCode::W);
-        input_map.insert(Up, GamepadButtonType::DPadUp);
 
         input_map.insert(Down, KeyCode::Down);
         input_map.insert(Down, KeyCode::S);
-        input_map.insert(Down, GamepadButtonType::DPadDown);
 
         input_map.insert(Left, KeyCode::Left);
         input_map.insert(Left, KeyCode::A);
-        input_map.insert(Left, GamepadButtonType::DPadLeft);
 
         input_map.insert(Right, KeyCode::Right);
         input_map.insert(Right, KeyCode::D);
-        input_map.insert(Right, GamepadButtonType::DPadRight);
 
         // Actions
         input_map.insert(ActionUp, KeyCode::I);
-        input_map.insert(ActionUp, GamepadButtonType::North);
 
         input_map.insert(ActionDown, KeyCode::K);
-        input_map.insert(ActionDown, GamepadButtonType::South);
 
         input_map.insert(ActionLeft, KeyCode::J);
-        input_map.insert(ActionLeft, GamepadButtonType::West);
 
         input_map.insert(ActionRight, KeyCode::L);
-        input_map.insert(ActionRight, GamepadButtonType::East);
 
         // Other
         input_map.insert(Pause, KeyCode::Escape);
@@ -265,60 +257,51 @@ fn handle_controllers(
     mut players: Query<(Entity, &burro::Burro, &mut ActionState<PlayerAction>)>,
 ) {
     for (_, burro, mut action_state) in players.iter_mut() {
-        if let Some(current_player) = game_state
+        if let Some(_) = game_state
             .players
             .iter()
             .filter(|b| b.selected_burro == burro.burro_skin)
             .last()
         {
-            if let Some(pressed) = controllers.pressed.get(&current_player.player) {
-                // release all buttons
-                // this probably affects durations but for
-                // this game it might not be a big deal
-                action_state.release(PlayerAction::Left);
-                action_state.release(PlayerAction::Right);
-                action_state.release(PlayerAction::Up);
-                action_state.release(PlayerAction::Down);
+            let pressed = &controllers.pressed;
 
-                if pressed.contains(&game_controller::GameButton::Left) {
-                    action_state.press(PlayerAction::Left);
-                }
-                if pressed.contains(&game_controller::GameButton::Right) {
-                    action_state.press(PlayerAction::Right);
-                }
-                if pressed.contains(&game_controller::GameButton::Up) {
-                    action_state.press(PlayerAction::Up);
-                }
-                if pressed.contains(&game_controller::GameButton::Down) {
-                    action_state.press(PlayerAction::Down);
-                }
-                if pressed.contains(&game_controller::GameButton::ActionDown) {
-                    action_state.press(PlayerAction::ActionDown);
-                } else {
-                    action_state.release(PlayerAction::ActionDown);
-                }
-                if pressed.contains(&game_controller::GameButton::ActionUp) {
-                    action_state.press(PlayerAction::ActionUp);
-                } else {
-                    action_state.release(PlayerAction::ActionUp);
-                }
-                if pressed.contains(&game_controller::GameButton::ActionLeft) {
-                    action_state.press(PlayerAction::ActionLeft);
-                } else {
-                    action_state.release(PlayerAction::ActionLeft);
-                }
-                if pressed.contains(&game_controller::GameButton::ActionRight) {
-                    action_state.press(PlayerAction::ActionRight);
-                } else {
-                    action_state.release(PlayerAction::ActionRight);
-                }
+            if pressed.contains(&game_controller::GameButton::Left) {
+                action_state.release(PlayerAction::Left);
+                action_state.press(PlayerAction::Left);
+            }
+            if pressed.contains(&game_controller::GameButton::Right) {
+                action_state.release(PlayerAction::Right);
+                action_state.press(PlayerAction::Right);
+            }
+            if pressed.contains(&game_controller::GameButton::Up) {
+                action_state.release(PlayerAction::Up);
+                action_state.press(PlayerAction::Up);
+            }
+            if pressed.contains(&game_controller::GameButton::Down) {
+                action_state.release(PlayerAction::Down);
+                action_state.press(PlayerAction::Down);
+            }
+            if pressed.contains(&game_controller::GameButton::ActionDown) {
+                action_state.release(PlayerAction::ActionDown);
+                action_state.press(PlayerAction::ActionDown);
+            }
+            if pressed.contains(&game_controller::GameButton::ActionUp) {
+                action_state.release(PlayerAction::ActionUp);
+                action_state.press(PlayerAction::ActionUp);
+            }
+            if pressed.contains(&game_controller::GameButton::ActionLeft) {
+                action_state.release(PlayerAction::ActionLeft);
+                action_state.press(PlayerAction::ActionLeft);
+            }
+            if pressed.contains(&game_controller::GameButton::ActionRight) {
+                action_state.release(PlayerAction::ActionRight);
+                action_state.press(PlayerAction::ActionRight);
             }
 
-            if let Some(just_pressed) = controllers.just_pressed.get(&current_player.player) {
+            let just_pressed = &controllers.just_pressed;
+            if just_pressed.contains(&game_controller::GameButton::Start) {
                 action_state.release(PlayerAction::Pause);
-                if just_pressed.contains(&game_controller::GameButton::Start) {
-                    action_state.press(PlayerAction::Pause);
-                }
+                action_state.press(PlayerAction::Pause);
             }
         }
     }

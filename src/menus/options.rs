@@ -551,32 +551,29 @@ fn handle_controllers(
     controllers: Res<game_controller::GameController>,
     mut players: Query<(Entity, &mut ActionState<MenuAction>)>,
 ) {
+    let just_pressed = &controllers.just_pressed;
     for (_, mut action_state) in players.iter_mut() {
-        for (_, just_pressed) in controllers.just_pressed.iter() {
+        if just_pressed.contains(&game_controller::GameButton::Up) {
             action_state.release(MenuAction::Up);
+            action_state.press(MenuAction::Up);
+        }
+        if just_pressed.contains(&game_controller::GameButton::Down) {
             action_state.release(MenuAction::Down);
+            action_state.press(MenuAction::Down);
+        }
+        if just_pressed.contains(&game_controller::GameButton::Left) {
             action_state.release(MenuAction::Left);
+            action_state.press(MenuAction::Left);
+        }
+        if just_pressed.contains(&game_controller::GameButton::Right) {
             action_state.release(MenuAction::Right);
-
+            action_state.press(MenuAction::Right);
+        }
+        if just_pressed.contains(&game_controller::GameButton::ActionDown)
+            || just_pressed.contains(&game_controller::GameButton::Start)
+        {
             action_state.release(MenuAction::Select);
-
-            if just_pressed.contains(&game_controller::GameButton::Up) {
-                action_state.press(MenuAction::Up);
-            }
-            if just_pressed.contains(&game_controller::GameButton::Down) {
-                action_state.press(MenuAction::Down);
-            }
-            if just_pressed.contains(&game_controller::GameButton::Left) {
-                action_state.press(MenuAction::Left);
-            }
-            if just_pressed.contains(&game_controller::GameButton::Right) {
-                action_state.press(MenuAction::Right);
-            }
-            if just_pressed.contains(&game_controller::GameButton::ActionDown)
-                || just_pressed.contains(&game_controller::GameButton::Start)
-            {
-                action_state.press(MenuAction::Select);
-            }
+            action_state.press(MenuAction::Select);
         }
     }
 }

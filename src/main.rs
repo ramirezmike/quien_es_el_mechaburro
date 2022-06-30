@@ -3,6 +3,7 @@
 
 use bevy::ecs::component::Component;
 use bevy::prelude::*;
+use bevy::window::{PresentMode, WindowMode};
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 mod asset_loading;
@@ -66,7 +67,17 @@ fn main() {
         .add_plugin(winner::WinnerPlugin)
         .add_state(AppState::Initial)
         .add_system_set(SystemSet::on_enter(AppState::Initial).with_system(bootstrap))
+        .add_startup_system(fullscreen_app)
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(WindowDescriptor {
+            title: "Quien Es El Mechaburro".to_string(),
+            width: 1280.0,
+            height: 1024.0,
+            resizable: false,
+            mode: WindowMode::Windowed,
+            present_mode: PresentMode::Fifo,
+            ..default()
+        })
         .run();
 }
 
@@ -98,4 +109,11 @@ pub fn cleanup<T: Component>(mut commands: Commands, entities: Query<Entity, Wit
     for entity in entities.iter() {
         commands.entity(entity).despawn_recursive();
     }
+}
+
+pub fn fullscreen_app(mut windows: ResMut<Windows>) {
+    let window = windows.get_primary_mut().unwrap();
+    println!("Setting fullscreen...");
+    window.set_maximized(true);
+    window.set_mode(WindowMode::BorderlessFullscreen);
 }
