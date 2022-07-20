@@ -43,6 +43,7 @@ pub struct GameState {
     pub current_level: usize,
     pub current_level_over: bool,
     pub players: Vec<BurroCharacter>,
+    pub difficulty: f32,
 }
 
 impl GameState {
@@ -54,7 +55,7 @@ impl GameState {
         map
     }
 
-    pub fn initialize(players: Vec<BurroCharacter>, number_of_bots: usize) -> Self {
+    pub fn initialize(players: Vec<BurroCharacter>, number_of_bots: usize, difficulty: f32) -> Self {
         let mut burros = vec![];
         let skins = vec![
             BurroSkin::Pinata,
@@ -98,6 +99,7 @@ impl GameState {
             current_level: 0,
             current_level_over: false,
             players,
+            difficulty,
         }
     }
 

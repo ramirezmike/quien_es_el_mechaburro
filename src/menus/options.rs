@@ -632,6 +632,11 @@ fn handle_option_changes(
                     *game_state = game_state::GameState::initialize(
                         options.players.clone(),
                         options.number_of_bots,
+                        match options.unfair_advantage {
+                            0 => 0.5,
+                            1 => 1.0,
+                            _ => 2.0,
+                        }
                     );
 
                     audio.play_sfx(&game_assets.sfx_2);
