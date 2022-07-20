@@ -180,6 +180,7 @@ fn handle_burros(
     mut burros: Query<(Entity, &mut Burro)>,
     mut burro_death_event_writer: EventWriter<BurroDeathEvent>,
     mut flash_event_writer: EventWriter<BurroFlashEvent>,
+    mut game_state: ResMut<game_state::GameState>,
 ) {
     for (entity, mut burro) in burros.iter_mut() {
         let current_sin = (time.seconds_since_startup() as f32 * (1.0 + burro.random) * 8.0).sin();
@@ -194,7 +195,14 @@ fn handle_burros(
         }
 
         // handling firing cool down
-        burro.fire_cooldown -= if burro.is_mechaburro { 2.0 } else { 1.0 } * time.delta_seconds();
+        burro.fire_cooldown -= 
+            if burro.is_mechaburro { 
+                2.0 * game_state.difficulty
+            } else { 
+                1.0 
+            } 
+            * time.delta_seconds();
+
         burro.fire_cooldown = burro.fire_cooldown.clamp(-10.0, 3.0);
 
         // handling invulnerability
