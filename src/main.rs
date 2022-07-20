@@ -30,6 +30,7 @@ mod pause;
 mod player;
 mod score_display;
 mod smoke;
+mod splash;
 mod title_screen;
 mod ui;
 mod winner;
@@ -62,6 +63,7 @@ fn main() {
         .add_plugin(player::PlayerPlugin)
         .add_plugin(score_display::ScoreDisplayPlugin)
         .add_plugin(smoke::SmokePlugin)
+        .add_plugin(splash::SplashPlugin)
         .add_plugin(title_screen::TitlePlugin)
         .add_plugin(ui::text_size::TextSizePlugin)
         .add_plugin(winner::WinnerPlugin)
@@ -95,6 +97,7 @@ pub enum AppState {
     ScoreDisplay,
     Loading,
     WinnerDisplay,
+    Splash,
 }
 
 fn bootstrap(
@@ -102,7 +105,7 @@ fn bootstrap(
     mut game_assets: ResMut<assets::GameAssets>,
     game_state: ResMut<game_state::GameState>,
 ) {
-    assets_handler.load(AppState::TitleScreen, &mut game_assets, &game_state);
+    assets_handler.load(AppState::Splash, &mut game_assets, &game_state);
 }
 
 pub fn cleanup<T: Component>(mut commands: Commands, entities: Query<Entity, With<T>>) {
