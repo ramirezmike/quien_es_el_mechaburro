@@ -76,6 +76,7 @@ pub fn load(
     assets_handler: &mut asset_loading::AssetsHandler,
     game_assets: &mut ResMut<GameAssets>,
 ) {
+    assets_handler.add_material(&mut game_assets.bevy_icon, "textures/bevy.png", true);
     assets_handler.add_audio(&mut game_assets.bgm_1, "audio/baila.ogg");
     assets_handler.add_audio(&mut game_assets.sfx_1, "audio/blip.wav");
     assets_handler.add_audio(&mut game_assets.sfx_2, "audio/select.wav");

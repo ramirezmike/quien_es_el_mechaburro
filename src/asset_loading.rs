@@ -141,6 +141,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         game_state: &ResMut<game_state::GameState>,
     ) {
         match state {
+            AppState::Splash => title_screen::load(self, game_assets),
             AppState::TitleScreen => title_screen::load(self, game_assets),
             AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
