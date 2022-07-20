@@ -58,7 +58,8 @@ fn map_arcade_button(input: &ArcadeInput) -> Option<GameButton> {
         ArcadeInput::JoyRight => Some(GameButton::Right),
         ArcadeInput::ButtonTop2 => Some(GameButton::ActionUp),
         ArcadeInput::ButtonTop4 => Some(GameButton::ActionLeft),
-        ArcadeInput::ButtonTop5 => Some(GameButton::ActionDown),
+        ArcadeInput::ButtonTop5 | 
+        ArcadeInput::JoyButton => Some(GameButton::ActionDown),
         ArcadeInput::ButtonTop6 => Some(GameButton::ActionRight),
         ArcadeInput::ButtonFront2 => Some(GameButton::Start),
         _ => None,
