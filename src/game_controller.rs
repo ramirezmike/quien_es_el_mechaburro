@@ -4,9 +4,9 @@ use std::collections::HashMap;
 pub struct GameControllerPlugin;
 impl Plugin for GameControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(gamepad_connections)
-            .insert_resource(GameController::default())
-            .add_system(store_controller_inputs.label("store_controller_inputs"));
+        app//.add_system(gamepad_connections)
+            .insert_resource(GameController::default());
+            //.add_system(store_controller_inputs.label("store_controller_inputs"));
     }
 }
 
