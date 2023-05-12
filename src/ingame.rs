@@ -6,6 +6,7 @@ use crate::{
     AppState,
     game_camera,
 };
+use bevy_toon_shader::{ ToonShaderMaterial, ToonShaderPlugin, ToonShaderSun};
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
@@ -44,6 +45,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     game_assets: Res<assets::GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
+    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
 ) {
 //    clear_color.0 = Color::hex(BACKGROUND_COLOR).unwrap();
 
@@ -86,7 +88,7 @@ fn setup(
 
     game_camera::spawn_camera(&mut commands, CleanupMarker);
 
-    commands.spawn(DirectionalLightBundle {
+    commands.spawn((DirectionalLightBundle {
         transform: Transform::from_rotation(Quat::from_axis_angle(Vec3::new(-0.8263363, -0.53950554, -0.16156079), 2.465743)),
         directional_light: DirectionalLight {
             // Configure the projection to better fit the scene
@@ -96,7 +98,7 @@ fn setup(
             ..Default::default()
         },
         ..Default::default()
-    });
+    }, ToonShaderSun));
 
     // plane
     commands.spawn(PbrBundle {
@@ -104,10 +106,19 @@ fn setup(
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
-    // cube
-    commands.spawn(PbrBundle {
+
+    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+        base_color_texture: Some(game_assets.pinata_texture.image.clone()),
+        color: Color::default(),
+        sun_dir: Vec3::new(10.0, 0.5, 23.0),
+        sun_color: Color::default(),
+        camera_pos: Vec3::default(),
+        ambient_color: Color::default(),
+    });
+
+    commands.spawn(MaterialMeshBundle {
         mesh: game_assets.burro.mesh.clone(),
-        material: game_assets.pinata_texture.material.clone(),
+        material: toon_material_textured.clone(),
         transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..default()
     });

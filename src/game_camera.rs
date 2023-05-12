@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::window::Window;
 use crate::AppState;
+use bevy_toon_shader::ToonShaderMainCamera;
 
 pub struct GameCameraPlugin;
 impl Plugin for GameCameraPlugin {
@@ -180,6 +181,7 @@ pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
             ..default()
         },
         cleanup_marker,
+        ToonShaderMainCamera,
         ComputedVisibility::default(),
         Visibility::Visible,
         PanOrbitCamera {

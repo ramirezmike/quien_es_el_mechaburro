@@ -3,6 +3,7 @@
 
 use bevy::{prelude::*, app::AppExit};
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
 mod assets;
@@ -18,6 +19,7 @@ fn main() {
         .add_plugin(assets::AssetsPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(game_camera::GameCameraPlugin)
+        .add_plugin(ToonShaderPlugin)
         .add_plugin(ingame::InGamePlugin)
         .add_system(debug)
         .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))

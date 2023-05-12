@@ -15,3 +15,4 @@ opt-level = 3
 [dependencies]
 bevy = "0.10.1"
 bevy_kira_audio = { version = "0.15.0", features = ["wav"]}
+bevy_toon_shader = "0.1.0"
