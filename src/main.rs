@@ -1,245 +1,102 @@
-use bevy::{
-    core_pipeline::{
-        bloom::{BloomCompositeMode, BloomSettings},
-        tonemapping::Tonemapping,
-    },
-    prelude::*,
-};
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-};
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
+#![windows_subsystem = "windows"]
+
+use bevy::{prelude::*, app::AppExit};
+//use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+
+mod asset_loading;
+mod assets;
+mod game_state;
+mod game_camera;
+mod ingame;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::DARK_GRAY))
         .add_plugins(DefaultPlugins)
-        .add_startup_system(setup_scene)
-        .add_system(update_bloom_settings)
-        .add_system(bounce_spheres)
+        .add_state::<AppState>()
+        .add_plugin(asset_loading::AssetLoadingPlugin)
+        .add_plugin(assets::AssetsPlugin)
+        .add_plugin(game_state::GameStatePlugin)
+        .add_plugin(game_camera::GameCameraPlugin)
+        .add_plugin(ingame::InGamePlugin)
+        .add_system(debug)
+        .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
+
+
+
         .run();
 }
 
-fn setup_scene(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
+#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, States)]
+pub enum AppState {
+    #[default]
+    Initial,
+    Pause,
+    Debug,
+    Options,
+    InGame,
+    TitleScreen,
+    CharacterSelect,
+    ModelLoading,
+    MechaPicker,
+    ScoreDisplay,
+    Loading,
+    WinnerDisplay,
+    Splash,
+}
+
+fn bootstrap(
+    mut assets_handler: asset_loading::AssetsHandler,
+    mut game_assets: ResMut<assets::GameAssets>,
+    game_state: ResMut<game_state::GameState>,
+    mut clear_color: ResMut<ClearColor>,
 ) {
-    commands.spawn((
-        Camera3dBundle {
-            camera: Camera {
-                hdr: true, // 1. HDR is required for bloom
-                ..default()
-            },
-            tonemapping: Tonemapping::TonyMcMapface, // 2. Using a tonemapper that desaturates to white is recommended
-            transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
-        BloomSettings::default(), // 3. Enable bloom for the camera
-    ));
-
-    let material_emissive1 = materials.add(StandardMaterial {
-        emissive: Color::rgb_linear(13.99, 5.32, 2.0), // 4. Put something bright in a dark environment to see the effect
-        ..default()
-    });
-    let material_emissive2 = materials.add(StandardMaterial {
-        emissive: Color::rgb_linear(2.0, 13.99, 5.32),
-        ..default()
-    });
-    let material_emissive3 = materials.add(StandardMaterial {
-        emissive: Color::rgb_linear(5.32, 2.0, 13.99),
-        ..default()
-    });
-    let material_non_emissive = materials.add(StandardMaterial {
-        base_color: Color::GRAY,
-        ..default()
-    });
-
-    let mesh = meshes.add(
-        shape::Icosphere {
-            radius: 0.5,
-            subdivisions: 5,
-        }
-        .try_into()
-        .unwrap(),
-    );
-
-    for x in -10..10 {
-        for z in -10..10 {
-            let mut hasher = DefaultHasher::new();
-            (x, z).hash(&mut hasher);
-            let rand = (hasher.finish() - 2) % 6;
-
-            let material = match rand {
-                0 => material_emissive1.clone(),
-                1 => material_emissive2.clone(),
-                2 => material_emissive3.clone(),
-                3 | 4 | 5 => material_non_emissive.clone(),
-                _ => unreachable!(),
-            };
-
-            commands.spawn((
-                PbrBundle {
-                    mesh: mesh.clone(),
-                    material,
-                    transform: Transform::from_xyz(x as f32 * 2.0, 0.0, z as f32 * 2.0),
-                    ..default()
-                },
-                Bouncing,
-            ));
-        }
-    }
-
-    commands.spawn(
-        TextBundle::from_section(
-            "",
-            TextStyle {
-                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
-                font_size: 18.0,
-                color: Color::BLACK,
-            },
-        )
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(10.0),
-                left: Val::Px(10.0),
-                ..default()
-            },
-            ..default()
-        }),
-    );
+    clear_color.0 = Color::hex("000000").unwrap();
+    assets_handler.load(AppState::InGame, &mut game_assets, &game_state);
 }
 
-// ------------------------------------------------------------------------------------------------
-
-fn update_bloom_settings(
-    mut camera: Query<(Entity, Option<&mut BloomSettings>), With<Camera>>,
-    mut text: Query<&mut Text>,
-    mut commands: Commands,
-    keycode: Res<Input<KeyCode>>,
-    time: Res<Time>,
-) {
-    let bloom_settings = camera.single_mut();
-    let mut text = text.single_mut();
-    let text = &mut text.sections[0].value;
-
-    match bloom_settings {
-        (entity, Some(mut bloom_settings)) => {
-            *text = "BloomSettings (Toggle: Space)\n".to_string();
-            text.push_str(&format!("(Q/A) Intensity: {}\n", bloom_settings.intensity));
-            text.push_str(&format!(
-                "(W/S) Low-frequency boost: {}\n",
-                bloom_settings.low_frequency_boost
-            ));
-            text.push_str(&format!(
-                "(E/D) Low-frequency boost curvature: {}\n",
-                bloom_settings.low_frequency_boost_curvature
-            ));
-            text.push_str(&format!(
-                "(R/F) High-pass frequency: {}\n",
-                bloom_settings.high_pass_frequency
-            ));
-            text.push_str(&format!(
-                "(T/G) Mode: {}\n",
-                match bloom_settings.composite_mode {
-                    BloomCompositeMode::EnergyConserving => "Energy-conserving",
-                    BloomCompositeMode::Additive => "Additive",
-                }
-            ));
-            text.push_str(&format!(
-                "(Y/H) Threshold: {}\n",
-                bloom_settings.prefilter_settings.threshold
-            ));
-            text.push_str(&format!(
-                "(U/J) Threshold softness: {}\n",
-                bloom_settings.prefilter_settings.threshold_softness
-            ));
-
-            if keycode.just_pressed(KeyCode::Space) {
-                commands.entity(entity).remove::<BloomSettings>();
-            }
-
-            let dt = time.delta_seconds();
-
-            if keycode.pressed(KeyCode::A) {
-                bloom_settings.intensity -= dt / 10.0;
-            }
-            if keycode.pressed(KeyCode::Q) {
-                bloom_settings.intensity += dt / 10.0;
-            }
-            bloom_settings.intensity = bloom_settings.intensity.clamp(0.0, 1.0);
-
-            if keycode.pressed(KeyCode::S) {
-                bloom_settings.low_frequency_boost -= dt / 10.0;
-            }
-            if keycode.pressed(KeyCode::W) {
-                bloom_settings.low_frequency_boost += dt / 10.0;
-            }
-            bloom_settings.low_frequency_boost = bloom_settings.low_frequency_boost.clamp(0.0, 1.0);
-
-            if keycode.pressed(KeyCode::D) {
-                bloom_settings.low_frequency_boost_curvature -= dt / 10.0;
-            }
-            if keycode.pressed(KeyCode::E) {
-                bloom_settings.low_frequency_boost_curvature += dt / 10.0;
-            }
-            bloom_settings.low_frequency_boost_curvature =
-                bloom_settings.low_frequency_boost_curvature.clamp(0.0, 1.0);
-
-            if keycode.pressed(KeyCode::F) {
-                bloom_settings.high_pass_frequency -= dt / 10.0;
-            }
-            if keycode.pressed(KeyCode::R) {
-                bloom_settings.high_pass_frequency += dt / 10.0;
-            }
-            bloom_settings.high_pass_frequency = bloom_settings.high_pass_frequency.clamp(0.0, 1.0);
-
-            if keycode.pressed(KeyCode::G) {
-                bloom_settings.composite_mode = BloomCompositeMode::Additive;
-            }
-            if keycode.pressed(KeyCode::T) {
-                bloom_settings.composite_mode = BloomCompositeMode::EnergyConserving;
-            }
-
-            if keycode.pressed(KeyCode::H) {
-                bloom_settings.prefilter_settings.threshold -= dt;
-            }
-            if keycode.pressed(KeyCode::Y) {
-                bloom_settings.prefilter_settings.threshold += dt;
-            }
-            bloom_settings.prefilter_settings.threshold =
-                bloom_settings.prefilter_settings.threshold.max(0.0);
-
-            if keycode.pressed(KeyCode::J) {
-                bloom_settings.prefilter_settings.threshold_softness -= dt / 10.0;
-            }
-            if keycode.pressed(KeyCode::U) {
-                bloom_settings.prefilter_settings.threshold_softness += dt / 10.0;
-            }
-            bloom_settings.prefilter_settings.threshold_softness = bloom_settings
-                .prefilter_settings
-                .threshold_softness
-                .clamp(0.0, 1.0);
-        }
-
-        (entity, None) => {
-            *text = "Bloom: Off (Toggle: Space)".to_string();
-
-            if keycode.just_pressed(KeyCode::Space) {
-                commands.entity(entity).insert(BloomSettings::default());
-            }
-        }
+fn debug(
+//    mut commands: Commands,
+    keys: Res<Input<KeyCode>>, 
+    mut exit: ResMut<Events<AppExit>>,
+ ) {
+    if keys.just_pressed(KeyCode::Q) {
+        exit.send(AppExit);
     }
 }
 
-#[derive(Component)]
-struct Bouncing;
-
-fn bounce_spheres(time: Res<Time>, mut query: Query<&mut Transform, With<Bouncing>>) {
-    for mut transform in query.iter_mut() {
-        transform.translation.y =
-            (transform.translation.x + transform.translation.z + time.elapsed_seconds()).sin();
+pub fn cleanup<T: Component>(mut commands: Commands, entities: Query<Entity, With<T>>) {
+    for entity in entities.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
+
+pub trait ZeroSignum {
+    fn zero_signum(&self) -> Vec3;
+}
+
+impl ZeroSignum for Vec3 {
+    fn zero_signum(&self) -> Vec3 {
+        let convert = |n| {
+            if n < 0.1 && n > -0.1 {
+                0.0
+            } else if n > 0.0 {
+                1.0
+            } else {
+                -1.0
+            }
+        };
+
+        Vec3::new(convert(self.x), convert(self.y), convert(self.z))
+    }
+}
+
+
+
+
+
+
+
+
+
+
