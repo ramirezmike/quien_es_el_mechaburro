@@ -2,12 +2,16 @@
 #![windows_subsystem = "windows"]
 
 use bevy::{prelude::*, app::AppExit};
+use bevy_rapier3d::prelude::*;
+use bevy_inspector_egui::{quick::WorldInspectorPlugin, bevy_egui};
 //use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
 mod assets;
+mod direction;
 mod game_state;
+mod player;
 mod game_camera;
 mod ingame;
 
@@ -15,11 +19,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_state::<AppState>()
+//      .add_plugin(WorldInspectorPlugin::new())
+//      .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(ToonShaderPlugin)
+        .add_plugin(player::PlayerPlugin)
         .add_plugin(ingame::InGamePlugin)
         .add_system(debug)
         .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))

@@ -1,23 +1,32 @@
 use bevy::prelude::*;
 use bevy::gltf::Gltf;
+use bevy_rapier3d::prelude::*;
 use crate::{
     asset_loading,
     assets,
     AppState,
+    player,
     game_camera,
 };
 use bevy_toon_shader::{ ToonShaderMaterial, ToonShaderPlugin, ToonShaderSun};
+use bevy_mod_outline::{
+    AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
+};
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app
+       .add_plugin(OutlinePlugin)
+        .add_plugin(AutoGenerateOutlineNormalsPlugin)
             .add_system(setup.in_schedule(OnEnter(AppState::InGame)))
-//          .add_systems((
-//              ).chain()
-//              .in_set(OnUpdate(AppState::InGame))
-//          );
-            ;
+            .add_systems((
+                    player::handle_input, 
+                    player::move_player,
+                    apply_system_buffers,
+                ).chain()
+                .in_set(OnUpdate(AppState::InGame))
+            );
     }
 }
 
@@ -94,18 +103,19 @@ fn setup(
             // Configure the projection to better fit the scene
 //            illuminance: 10000.0,
             illuminance: 100000.0,
-            shadows_enabled: false,
+            shadows_enabled: true,
             ..Default::default()
         },
         ..Default::default()
     }, ToonShaderSun));
 
     // plane
-    commands.spawn(PbrBundle {
+    commands.spawn((PbrBundle {
         mesh: meshes.add(shape::Plane::from_size(5.0).into()),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
-    });
+    },
+    Collider::cuboid(5.0, 0.1, 5.0)));
 
     let toon_material_textured = toon_materials.add(ToonShaderMaterial {
         base_color_texture: Some(game_assets.pinata_texture.image.clone()),
@@ -116,12 +126,36 @@ fn setup(
         ambient_color: Color::default(),
     });
 
-    commands.spawn(MaterialMeshBundle {
-        mesh: game_assets.burro.mesh.clone(),
-        material: toon_material_textured.clone(),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..default()
-    });
+    commands.spawn((MaterialMeshBundle {
+            mesh: game_assets.burro.mesh.clone(),
+            material: toon_material_textured.clone(),
+            transform: Transform::from_xyz(0.0, 0.5, 0.0),
+            ..default()
+        },
+        RigidBody::KinematicPositionBased,
+        Collider::cuboid(1.00, 1.00, 1.00),
+        ColliderMassProperties::Density(2.0),
+        KinematicCharacterController {
+            translation: Some(Vec3::new(0.0, 0.5, 0.0)),
+            offset: CharacterLength::Absolute(0.01),
+            autostep: Some(CharacterAutostep {
+                max_height: CharacterLength::Absolute(1.0),
+                min_width: CharacterLength::Absolute(0.05),
+                include_dynamic_bodies: true,
+            }),
+            ..default()
+        },
+       Velocity::default(),
+        player::PlayerBundle::new(),
+        OutlineBundle {
+                        outline: OutlineVolume {
+                            visible: true,
+                            width: 5.0,
+                            colour: Color::WHITE,
+                        },
+                        ..default()
+                    }
+    ));
 }
 
 #[derive(Component)]

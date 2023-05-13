@@ -16,3 +16,8 @@ opt-level = 3
 bevy = "0.10.1"
 bevy_kira_audio = { version = "0.15.0", features = ["wav"]}
 bevy_toon_shader = "0.1.0"
+bevy_mod_outline = "0.4"
+bevy_rapier3d = { version = "0.21", features = ["debug-render"] }
+leafwing-input-manager = { version = "0.9" }
+rand = "0.8"
+bevy-inspector-egui = { git = "https://github.com/jakobhellermann/bevy-inspector-egui" }
