@@ -9,6 +9,9 @@ use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
 mod assets;
+mod bullet;
+mod config;
+mod burro;
 mod direction;
 mod game_state;
 mod player;
@@ -21,10 +24,13 @@ fn main() {
         .add_state::<AppState>()
 //      .add_plugin(WorldInspectorPlugin::new())
 //      .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
+        .insert_resource(config::GameConfiguration::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
+        .add_plugin(bullet::BulletPlugin)
+        .add_plugin(burro::BurroPlugin)
         .add_plugin(game_state::GameStatePlugin)
         .add_plugin(game_camera::GameCameraPlugin)
         .add_plugin(ToonShaderPlugin)

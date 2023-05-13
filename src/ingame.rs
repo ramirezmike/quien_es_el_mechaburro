@@ -44,6 +44,10 @@ pub fn load(
         "textures/pinata.png",
         false,
     );
+    assets_handler.add_mesh(
+        &mut game_assets.candy.mesh,
+        "models/candy.gltf#Mesh0/Primitive0",
+    );
 }
 
 fn setup(
@@ -110,12 +114,13 @@ fn setup(
     }, ToonShaderSun));
 
     // plane
+    let size = 50.0;
     commands.spawn((PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(5.0).into()),
+        mesh: meshes.add(shape::Plane::from_size(size).into()),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     },
-    Collider::cuboid(5.0, 0.1, 5.0)));
+    Collider::cuboid(size / 2.0, 0.1, size / 2.0)));
 
     let toon_material_textured = toon_materials.add(ToonShaderMaterial {
         base_color_texture: Some(game_assets.pinata_texture.image.clone()),
