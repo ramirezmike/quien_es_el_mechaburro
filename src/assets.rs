@@ -10,6 +10,11 @@ impl Plugin for AssetsPlugin {
     }
 }
 
+#[derive(Component)]
+pub struct AnimationLink {
+    pub entity: Entity,
+}
+
 #[derive(Default, Resource)]
 pub struct GameAssets {
     pub font: Handle<Font>,
@@ -34,7 +39,8 @@ pub struct GameAssets {
     pub title_screen_background: asset_loading::GameTexture,
     pub title_screen_logo: asset_loading::GameTexture,
 
-    pub burro: GameMesh,
+    pub burro: Handle<Gltf>,
+    pub burro_run: Handle<AnimationClip>,
     pub pinata_texture: asset_loading::GameTexture,
     pub meow_texture: asset_loading::GameTexture,
     pub salud_texture: asset_loading::GameTexture,

@@ -16,14 +16,15 @@ mod direction;
 mod game_state;
 mod player;
 mod game_camera;
+mod scene_hook;
 mod ingame;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_state::<AppState>()
-//      .add_plugin(WorldInspectorPlugin::new())
-//      .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
+        .add_plugin(WorldInspectorPlugin::new())
+        .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
         .insert_resource(config::GameConfiguration::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
@@ -36,6 +37,7 @@ fn main() {
         .add_plugin(ToonShaderPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(ingame::InGamePlugin)
+        .add_plugin(scene_hook::HookPlugin)
         .add_system(debug)
         .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
 
