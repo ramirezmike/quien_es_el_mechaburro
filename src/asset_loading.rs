@@ -150,7 +150,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         match state {
 //          AppState::TitleScreen => title_screen::load(self, game_assets),
 //          AppState::Splash => splash::load(self, game_assets),
-            AppState::InGame => ingame::load(self, game_assets),
+            AppState::InGame => ingame::load(self, game_assets, game_state),
 //          AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
         }

@@ -37,6 +37,7 @@ impl Plugin for InGamePlugin {
 pub fn load(
     assets_handler: &mut asset_loading::AssetsHandler,
     game_assets: &mut ResMut<assets::GameAssets>,
+    game_state: &ResMut<game_state::GameState>,
 ) {
     assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
     assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
@@ -50,10 +51,17 @@ pub fn load(
         &mut game_assets.candy.mesh,
         "models/candy.gltf#Mesh0/Primitive0",
     );
+    assets_handler.add_mesh(
+        &mut game_assets.laser.mesh,
+        "models/laser.gltf#Mesh0/Primitive0",
+    );
+
+    assets_handler.add_glb(&mut game_assets.level, &format!("models/level_{:02}.glb", game_state.current_level))
 }
 
 fn setup(
     mut commands: Commands,
+    mut scene_spawner: ResMut<SceneSpawner>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut clear_color: ResMut<ClearColor>,
@@ -61,39 +69,41 @@ fn setup(
     game_assets: Res<assets::GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
     mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
+    mut game_state: ResMut<game_state::GameState>,
 ) {
-//    clear_color.0 = Color::hex(BACKGROUND_COLOR).unwrap();
 
-//  if let Some(gltf) = assets_gltf.get(&game_assets.TJ) {
-//      commands
-//          .spawn((
-//              RigidBody::KinematicPositionBased,
-//              Collider::cuboid(0.25, 0.25, 0.25),
-//              CleanupMarker,
-//              ColliderMassProperties::Density(2.0),
-//              KinematicCharacterController {
-//                  translation: Some(Vec3::new(0.0, 0.5, 0.0)),
-//                  offset: CharacterLength::Absolute(0.01),
-//                  autostep: Some(CharacterAutostep {
-//                      max_height: CharacterLength::Absolute(1.0),
-//                      min_width: CharacterLength::Absolute(0.05),
-//                      include_dynamic_bodies: true,
-//                  }),
-//                  ..default()
-//              },
-//             Velocity::default(),
-//  //        LockedAxes::ROTATION_LOCKED_X | LockedAxes::ROTATION_LOCKED_Z | LockedAxes::ROTATION_LOCKED_Y,
-//          ComputedVisibility::default(),
-//          Visibility::Visible,
-//          TransformBundle {
-//              local: Transform::from_xyz(0.0, 0.5, 0.0),
-//              ..default()
-//          },
-//          player::PlayerBundle::new(),
-//      )).with_children(|parent| {
-//          parent.spawn((SceneBundle { scene: gltf.scenes[0].clone(), ..default() }, player::InnerMesh));
-//      });
-//  }
+    game_state.current_level_over = false;
+    game_state.on_new_level();
+
+    // SETTING LEVEL BACKGROUND
+    *clear_color = match game_state.current_level {
+        0 => ClearColor(Color::rgb(0.55, 0.92, 0.96)), //light blue
+        1 => ClearColor(Color::rgb(1.0, 0.65, 0.62)),  // orange
+        2 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green
+        3 => ClearColor(Color::rgb(0.81, 0.72, 0.94)), // purple
+        4 => ClearColor(Color::rgb(1.0, 0.65, 0.62)),  // orange
+        5 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green
+        6 => ClearColor(Color::rgb(0.81, 0.72, 0.94)), // purple
+        _ => ClearColor(Color::rgb(1.0, 0.65, 0.62)),
+    };
+
+    if let Some(gltf) = assets_gltf.get(&game_assets.level) {
+        commands.spawn(scene_hook::HookedSceneBundle {
+            scene: SceneBundle { scene: gltf.scenes[0].clone(), ..default() },
+            hook: scene_hook::SceneHook::new(move |entity, cmds, mesh| {
+                if let Some(name) = entity.get::<Name>().map(|t|t.as_str()) {
+                    if name.contains("Cube") {
+                       if let Some(mesh) = mesh {
+                           cmds.insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+                       }
+                    }
+                    if name.contains("Invisible") {
+                        cmds.insert(Visibility::Hidden);
+                    }
+                }
+            })
+        });
+    }
         
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
@@ -115,15 +125,6 @@ fn setup(
         ..Default::default()
     }, ToonShaderSun));
 
-    // plane
-    let size = 50.0;
-    commands.spawn((PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(size).into()),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-        ..default()
-    },
-    Collider::cuboid(size / 2.0, 0.1, size / 2.0)));
-
     let toon_material_textured = toon_materials.add(ToonShaderMaterial {
         base_color_texture: Some(game_assets.pinata_texture.image.clone()),
         color: Color::default(),
@@ -135,59 +136,19 @@ fn setup(
 
 
     if let Some(gltf) = assets_gltf.get(&game_assets.burro) {
-//      commands.spawn(scene_hook::HookedSceneBundle {
-//          scene: SceneBundle { scene: gltf.scenes[0].clone(), ..default() },
-//          hook: scene_hook::SceneHook::new(move |entity, cmds, mesh| {
-//              if let Some(name) = entity.get::<Name>().map(|t|t.as_str()) {
-//                  if name.contains("Burro") {
-//                      cmds.insert((
-//                          RigidBody::KinematicPositionBased,
-//                          Collider::cuboid(1.00, 1.00, 1.00),
-//                          ColliderMassProperties::Density(2.0),
-//                          KinematicCharacterController {
-//                              translation: Some(Vec3::new(0.0, 1.0, 0.0)),
-//                              ..default()
-//                          },
-//                          OutlineBundle {
-//                              outline: OutlineVolume {
-//                                  visible: true,
-//                                  width: 5.0,
-//                                  colour: Color::WHITE,
-//                              },
-//                              ..default()
-//                          },
-//                          Velocity::default(),
-//                          ComputedVisibility::default(),
-//                          Visibility::Visible,
-//                          player::PlayerBundle::new(),
-//                      ));
-//                  }
-//              }
-//          })
-//      });
-
           commands.spawn((
-
-  //          MaterialMeshBundle {
-  //              mesh: game_assets.burro.mesh.clone(),
-  //              material: toon_material_textured.clone(),
-  //              transform: Transform::from_xyz(0.0, 0.5, 0.0),
-  //              ..default()
-  //          },
               RigidBody::KinematicPositionBased,
-              Collider::cuboid(1.00, 1.00, 1.00),
+              Collider::ball(1.0),
               ColliderMassProperties::Density(2.0),
               KinematicCharacterController {
+                  offset: CharacterLength::Relative(0.1),
+                  max_slope_climb_angle: std::f32::consts::PI / 2.0,
+                  min_slope_slide_angle: 0.0,
+                  slide: true,
                   translation: Some(Vec3::new(0.0, 1.0, 0.0)),
-  //              offset: CharacterLength::Absolute(0.00),
-  //              autostep: Some(CharacterAutostep {
-  //                  max_height: CharacterLength::Absolute(1.0),
-  //                  min_width: CharacterLength::Absolute(0.05),
-  //                  include_dynamic_bodies: true,
-  //              }),
                   ..default()
               },
-             Velocity::default(),
+              Velocity::default(),
               ComputedVisibility::default(),
               Visibility::Visible,
               player::PlayerBundle::new(),
