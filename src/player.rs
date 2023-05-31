@@ -1,17 +1,17 @@
 use crate::{
     direction,
-    AppState,assets,
+    assets,
     ZeroSignum,
     bullet,
     burro,
 };
 use bevy::prelude::*;
 use rand::Rng;
-use std::f32::consts::{TAU, PI};
+use std::f32::consts::TAU;
 use std::collections::HashMap;
 use bevy_rapier3d::prelude::*;
-use leafwing_input_manager::axislike::DualAxisData;
-use leafwing_input_manager::plugin::InputManagerSystem;
+//use leafwing_input_manager::axislike::DualAxisData;
+//use leafwing_input_manager::plugin::InputManagerSystem;
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerPlugin;
@@ -26,7 +26,6 @@ impl Plugin for PlayerPlugin {
 #[reflect(Component)]
 pub struct Player {
     pub speed: f32,
-    pub rotation_speed: f32,
     pub friction: f32,
     pub velocity: Vec3,
     pub random: f32,
@@ -38,7 +37,6 @@ impl Player {
 
         Player {
             speed: 60.0,
-            rotation_speed: 1.0,
             friction: 0.01,
             velocity: Vec3::ZERO,
             random: rng.gen_range(0.5..1.0),
@@ -48,7 +46,6 @@ impl Player {
 
 pub enum Movement {
     Normal(direction::Direction),
-    Jump,
 }
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
@@ -152,12 +149,11 @@ pub struct PlayerMoveEvent {
 }
 
 pub fn handle_input(
-    mut app_state: ResMut<State<AppState>>,
-    mut players: Query<(Entity, &ActionState<PlayerAction>, &Transform, &mut burro::Burro, &mut Player, &mut Velocity)>,
+    mut players: Query<(Entity, &ActionState<PlayerAction>, &Transform, &mut burro::Burro), With::<Player>>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
 ) {
-    for (entity, action_state, transform, mut burro, mut player, mut velocity) in &mut players {
+    for (entity, action_state, transform, mut burro) in &mut players {
         //println!("T: {:?}", transform.translation);
         let mut direction = direction::Direction::NEUTRAL;
         let mut facing = None;
@@ -171,13 +167,13 @@ pub fn handle_input(
             facing = Some(Quat::from_axis_angle(Vec3::Y, 0.0));
             fire = Some(Vec3::new(1.0, 0.0, 0.0));
         } else if action_state.pressed(PlayerAction::ActionDown) {
-            facing = Some(Quat::from_axis_angle(Vec3::Y, PI));
+            facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.5));
             fire = Some(Vec3::new(-1.0, 0.0, 0.0));
         } else if action_state.pressed(PlayerAction::ActionLeft) {
-            facing = Some(Quat::from_axis_angle(Vec3::Y, PI / 2.0));
+            facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.25));
             fire = Some(Vec3::new(0.0, 0.0, -1.0));
         } else if action_state.pressed(PlayerAction::ActionRight) {
-            facing = Some(Quat::from_axis_angle(Vec3::Y, (3.0 * PI) / 2.0));
+            facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.75));
             fire = Some(Vec3::new(0.0, 0.0, 1.0));
         }
 
@@ -213,7 +209,7 @@ pub fn handle_input(
 
 pub fn move_player(
     time: Res<Time>,
-    mut players: Query<(Entity, &mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Transform, &mut Player, &mut Velocity, &mut burro::Burro)>,
+    mut players: Query<(Entity, &mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Transform, &mut Player, &mut burro::Burro)>,
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
     mut animations: Query<(&mut AnimationPlayer, &assets::AnimationLink)>,
     game_assets: Res<assets::GameAssets>,
@@ -226,13 +222,12 @@ pub fn move_player(
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
-    for (entity, mut controller, controller_output, mut transform, mut player, p_velocity, mut burro) in players.iter_mut() {
+    for (entity, mut controller, controller_output, mut transform, mut player, mut burro) in players.iter_mut() {
         //transform.rotate_z(time.delta_seconds());
 
         let speed: f32 = player.speed;
-        let rotation_speed: f32 = player.rotation_speed;
         let friction: f32 = player.friction;
-        let mut gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
+        let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
 
         player.velocity *= friction.powf(time.delta_seconds());
 //        player.velocity += (Vec3::X * speed) * time.delta_seconds();
@@ -246,7 +241,6 @@ pub fn move_player(
                     }
                     player.velocity += (acceleration * speed) * time.delta_seconds();
                 },
-                _ => ()
             }
         }
 
@@ -280,10 +274,6 @@ pub fn move_player(
                 }
             }
         }
-
-        let new_rotation = transform
-            .rotation
-            .lerp(Quat::from_axis_angle(Vec3::Y, TAU * 0.75), time.delta_seconds() * rotation_speed);
 
         // don't rotate if we're not moving or if rotation isnt a number
         if let Some(facing) = facing { 

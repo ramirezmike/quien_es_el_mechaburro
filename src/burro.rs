@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, game_state, player, AppState};
+use crate::game_state;
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -102,7 +102,7 @@ pub fn handle_burros(
     mut burros: Query<(Entity, &mut Burro)>,
     mut burro_death_event_writer: EventWriter<BurroDeathEvent>,
     mut flash_event_writer: EventWriter<BurroFlashEvent>,
-    mut game_state: ResMut<game_state::GameState>,
+    game_state: Res<game_state::GameState>,
 ) {
     for (entity, mut burro) in burros.iter_mut() {
         let current_sin = (time.elapsed_seconds() * (1.0 + burro.random) * 8.0).sin();

@@ -61,12 +61,8 @@ pub fn load(
 
 fn setup(
     mut commands: Commands,
-    mut scene_spawner: ResMut<SceneSpawner>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut clear_color: ResMut<ClearColor>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
-    asset_server: Res<AssetServer>,
     game_assets: Res<assets::GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
     mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
@@ -135,9 +131,8 @@ fn setup(
             scene_hook::SceneOnComplete::new(move |cmds, assets_gltf| {
                 if let Ok(spawn_points) = on_complete_spawn_points.lock() {
                     println!("iterating spawn point");
-                    for (i, point) in spawn_points.iter().enumerate() {
-                        println!("spawn point {:?}", point);
-                        let toon_material_textured  = toon_material_textured.clone();
+                    for point in spawn_points.iter() {
+                        let toon_material_textured = toon_material_textured.clone();
                         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
                             cmds.spawn((
                                 RigidBody::KinematicPositionBased,
