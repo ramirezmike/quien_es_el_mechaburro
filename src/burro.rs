@@ -5,11 +5,9 @@ use rand::Rng;
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
-
-        app
-        .add_event::<BurroFlashEvent>()
-        .add_event::<BurroHitEvent>()
-        .add_event::<BurroDeathEvent>();
+        app.add_event::<BurroFlashEvent>()
+            .add_event::<BurroHitEvent>()
+            .add_event::<BurroDeathEvent>();
     }
 }
 
@@ -96,7 +94,6 @@ impl Burro {
     }
 }
 
-
 pub fn handle_burros(
     time: Res<Time>,
     mut burros: Query<(Entity, &mut Burro)>,
@@ -117,13 +114,11 @@ pub fn handle_burros(
         }
 
         // handling firing cool down
-        burro.fire_cooldown -= 
-            if burro.is_mechaburro { 
-                2.0 * game_state.difficulty
-            } else { 
-                1.0 
-            } 
-            * time.delta_seconds();
+        burro.fire_cooldown -= if burro.is_mechaburro {
+            2.0 * game_state.difficulty
+        } else {
+            1.0
+        } * time.delta_seconds();
 
         burro.fire_cooldown = burro.fire_cooldown.clamp(-10.0, 3.0);
 

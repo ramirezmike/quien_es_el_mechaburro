@@ -1,4 +1,4 @@
-use crate::{AppState};
+use crate::AppState;
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -53,7 +53,11 @@ impl GameState {
         map
     }
 
-    pub fn initialize(players: Vec<BurroCharacter>, number_of_bots: usize, difficulty: f32) -> Self {
+    pub fn initialize(
+        players: Vec<BurroCharacter>,
+        number_of_bots: usize,
+        difficulty: f32,
+    ) -> Self {
         let mut burros = vec![];
         let skins = vec![
             BurroSkin::Pinata,

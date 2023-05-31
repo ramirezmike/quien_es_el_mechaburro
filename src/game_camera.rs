@@ -1,18 +1,18 @@
 //use crate::{inspect, player};
-use bevy::prelude::*;
-use bevy::input::mouse::{MouseMotion, MouseWheel};
-use bevy::window::Window;
 use crate::AppState;
+use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::prelude::*;
+use bevy::window::Window;
 use bevy_toon_shader::ToonShaderMainCamera;
 
 pub struct GameCameraPlugin;
 impl Plugin for GameCameraPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CameraSettings::default())
-//            .add_system(debug_camera.in_set(OnUpdate(AppState::InGame)))
-//          .add_system(check_for_follow_burros)
-//          .add_system(follow_following)
-           .add_system(update_camera.in_set(OnUpdate(AppState::InGame)));
+            //            .add_system(debug_camera.in_set(OnUpdate(AppState::InGame)))
+            //          .add_system(check_for_follow_burros)
+            //          .add_system(follow_following)
+            .add_system(update_camera.in_set(OnUpdate(AppState::InGame)));
     }
 }
 
@@ -66,8 +66,8 @@ impl CameraSettings {
 #[cfg(feature = "debug")]
 fn update_camera(
     mut cameras: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
-//  camera_settings: ResMut<CameraSettings>,
-//  time: Res<Time>,
+    //  camera_settings: ResMut<CameraSettings>,
+    //  time: Res<Time>,
     windows: Query<&Window>,
     mut ev_motion: EventReader<MouseMotion>,
     mut ev_scroll: EventReader<MouseWheel>,
@@ -110,7 +110,7 @@ fn update_camera(
     for (mut pan_orbit, mut transform, projection) in cameras.iter_mut() {
         if orbit_button_changed {
             // only check for upside down when orbiting started or ended this frame
-            // if the camera is "upside" down, panning horizontally would be inverted, 
+            // if the camera is "upside" down, panning horizontally would be inverted,
             // so invert the input to make it correct
             let up = transform.rotation * Vec3::Y;
             pan_orbit.upside_down = up.y <= 0.0;
@@ -140,8 +140,8 @@ fn update_camera(
             match projection {
                 Projection::Perspective(p) => {
                     pan *= Vec2::new(p.fov * p.aspect_ratio, p.fov) / window;
-                },
-                _ => ()
+                }
+                _ => (),
             }
             // translate by local axes
             let right = transform.rotation * Vec3::X * -pan.x;
@@ -166,7 +166,6 @@ fn update_camera(
         }
     }
 }
-
 
 #[cfg(not(feature = "debug"))]
 fn update_camera(
@@ -232,7 +231,8 @@ pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
 
     let radius = translation.length();
 
-    commands.spawn((Camera3dBundle {
+    commands.spawn((
+        Camera3dBundle {
             transform: Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
@@ -243,6 +243,6 @@ pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
         PanOrbitCamera {
             radius,
             ..Default::default()
-        }
+        },
     ));
 }

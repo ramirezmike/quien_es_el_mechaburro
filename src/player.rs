@@ -1,15 +1,9 @@
-use crate::{
-    direction,
-    assets,
-    ZeroSignum,
-    bullet,
-    burro,
-};
+use crate::{assets, bullet, burro, direction, ZeroSignum};
 use bevy::prelude::*;
-use rand::Rng;
-use std::f32::consts::TAU;
-use std::collections::HashMap;
 use bevy_rapier3d::prelude::*;
+use rand::Rng;
+use std::collections::HashMap;
+use std::f32::consts::TAU;
 //use leafwing_input_manager::axislike::DualAxisData;
 //use leafwing_input_manager::plugin::InputManagerSystem;
 use leafwing_input_manager::prelude::*;
@@ -135,8 +129,8 @@ impl PlayerBundle {
         input_map.insert(KeyCode::K, ActionDown);
         input_map.insert(GamepadButtonType::South, ActionDown);
 
-//      input_map.insert(KeyCode::Space, Action);
-//      input_map.insert(KeyCode::Return, Action);
+        //      input_map.insert(KeyCode::Space, Action);
+        //      input_map.insert(KeyCode::Return, Action);
 
         input_map
     }
@@ -145,11 +139,19 @@ impl PlayerBundle {
 pub struct PlayerMoveEvent {
     pub entity: Entity,
     pub movement: Movement,
-    pub facing: Option::<Quat>,
+    pub facing: Option<Quat>,
 }
 
 pub fn handle_input(
-    mut players: Query<(Entity, &ActionState<PlayerAction>, &Transform, &mut burro::Burro), With::<Player>>,
+    mut players: Query<
+        (
+            Entity,
+            &ActionState<PlayerAction>,
+            &Transform,
+            &mut burro::Burro,
+        ),
+        With<Player>,
+    >,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
 ) {
@@ -180,11 +182,12 @@ pub fn handle_input(
         if burro.can_fire() && fire.is_some() {
             bullet_event_writer.send(bullet::BulletEvent {
                 source: entity,
-                speed: 12.0, //burro.bullet_speed,
-                time_to_live: 3.0,//burro.bullet_time_alive,
+                speed: 12.0,       //burro.bullet_speed,
+                time_to_live: 3.0, //burro.bullet_time_alive,
                 position: transform.translation,
                 direction: fire.unwrap(),
-                bullet_type: if false { //burro.is_mechaburro {
+                bullet_type: if false {
+                    //burro.is_mechaburro {
                     bullet::BulletType::Laser
                 } else {
                     bullet::BulletType::Candy
@@ -209,11 +212,18 @@ pub fn handle_input(
 
 pub fn move_player(
     time: Res<Time>,
-    mut players: Query<(Entity, &mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Transform, &mut Player, &mut burro::Burro)>,
+    mut players: Query<(
+        Entity,
+        &mut KinematicCharacterController,
+        &KinematicCharacterControllerOutput,
+        &mut Transform,
+        &mut Player,
+        &mut burro::Burro,
+    )>,
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
     mut animations: Query<(&mut AnimationPlayer, &assets::AnimationLink)>,
     game_assets: Res<assets::GameAssets>,
-//    mut audio: audio::GameAudio,
+    //    mut audio: audio::GameAudio,
 ) {
     let mut move_events = HashMap::new();
     let mut facing = None;
@@ -222,7 +232,9 @@ pub fn move_player(
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
-    for (entity, mut controller, controller_output, mut transform, mut player, mut burro) in players.iter_mut() {
+    for (entity, mut controller, controller_output, mut transform, mut player, mut burro) in
+        players.iter_mut()
+    {
         //transform.rotate_z(time.delta_seconds());
 
         let speed: f32 = player.speed;
@@ -230,7 +242,7 @@ pub fn move_player(
         let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
 
         player.velocity *= friction.powf(time.delta_seconds());
-//        player.velocity += (Vec3::X * speed) * time.delta_seconds();
+        //        player.velocity += (Vec3::X * speed) * time.delta_seconds();
 
         if let Some(move_event) = move_events.get(&entity) {
             match move_event.movement {
@@ -240,7 +252,7 @@ pub fn move_player(
                         acceleration.z *= 0.5;
                     }
                     player.velocity += (acceleration * speed) * time.delta_seconds();
-                },
+                }
             }
         }
 
@@ -252,12 +264,11 @@ pub fn move_player(
         let angle = (-(new_position.z - transform.translation.z))
             .atan2(new_position.x - transform.translation.x);
         let rotation = Quat::from_axis_angle(Vec3::Y, angle);
-//       velocity.angvel = rotation.to_scaled_axis();
+        //       velocity.angvel = rotation.to_scaled_axis();
         controller.translation = Some(new_translation);
-//        velocity.linvel = player.velocity * time.delta_seconds();
+        //        velocity.linvel = player.velocity * time.delta_seconds();
 
-//        transform.translation.x = 0.0; // hardcoding for now
-
+        //        transform.translation.x = 0.0; // hardcoding for now
 
         for (mut animation, link) in &mut animations {
             if link.entity == entity {
@@ -267,7 +278,9 @@ pub fn move_player(
                     burro.current_animation = game_assets.burro_run.clone_weak();
                     animation.set_speed(3.0 + (100.0 * player.velocity.length()));
                 }
-                if burro.current_animation == game_assets.burro_run && player.velocity.length() < 0.1 {
+                if burro.current_animation == game_assets.burro_run
+                    && player.velocity.length() < 0.1
+                {
                     animation.pause();
                 } else {
                     animation.resume();
@@ -276,11 +289,10 @@ pub fn move_player(
         }
 
         // don't rotate if we're not moving or if rotation isnt a number
-        if let Some(facing) = facing { 
+        if let Some(facing) = facing {
             transform.rotation = facing;
         } else if !rotation.is_nan() && player.velocity.length() > 0.1 {
             transform.rotation = rotation;
         }
     }
 }
-

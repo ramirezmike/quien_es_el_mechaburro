@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, AppState, game_state, ingame, };//, , title_screen, splash};
+use crate::{assets::GameAssets, game_state, ingame, AppState}; //, , title_screen, splash};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -69,32 +69,32 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         self.next_state.set(AppState::Loading);
     }
 
-//  pub fn load_next_level(
-//      &mut self,
-//      game_state: &ResMut<game_state::GameState>,
-//      game_assets: &mut ResMut<GameAssets>,
-//  ) {
-//      let next_state = self.get_next_state(game_state);
-//      self.queue_assets_for_state(&next_state, game_assets, game_state);
-//      self.next_state.state = next_state;
-//      self.asset_server.watch_for_changes().unwrap();
-//      self.state.set(AppState::Loading).unwrap();
-//  }
+    //  pub fn load_next_level(
+    //      &mut self,
+    //      game_state: &ResMut<game_state::GameState>,
+    //      game_assets: &mut ResMut<GameAssets>,
+    //  ) {
+    //      let next_state = self.get_next_state(game_state);
+    //      self.queue_assets_for_state(&next_state, game_assets, game_state);
+    //      self.next_state.state = next_state;
+    //      self.asset_server.watch_for_changes().unwrap();
+    //      self.state.set(AppState::Loading).unwrap();
+    //  }
 
-//  fn get_next_state(&self, game_state: &game_state::GameState) -> AppState {
-//      println!("Loading level {}", game_state.current_level);
+    //  fn get_next_state(&self, game_state: &game_state::GameState) -> AppState {
+    //      println!("Loading level {}", game_state.current_level);
 
-//      match game_state.current_level {
-//          0 => AppState::Debug,
-//          1 => AppState::Debug,
-//          2 => AppState::Debug,
-//          3 => AppState::Debug,
-//          4 => AppState::Debug,
-//          5 => AppState::Debug,
-//          6 => AppState::Debug,
-//          _ => AppState::WinnerDisplay,
-//      }
-//  }
+    //      match game_state.current_level {
+    //          0 => AppState::Debug,
+    //          1 => AppState::Debug,
+    //          2 => AppState::Debug,
+    //          3 => AppState::Debug,
+    //          4 => AppState::Debug,
+    //          5 => AppState::Debug,
+    //          6 => AppState::Debug,
+    //          _ => AppState::WinnerDisplay,
+    //      }
+    //  }
 
     pub fn add_mesh(&mut self, mesh: &mut Handle<Mesh>, path: &str) {
         self.add_asset(mesh, path);
@@ -148,10 +148,10 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         game_state: &ResMut<game_state::GameState>,
     ) {
         match state {
-//          AppState::TitleScreen => title_screen::load(self, game_assets),
-//          AppState::Splash => splash::load(self, game_assets),
+            //          AppState::TitleScreen => title_screen::load(self, game_assets),
+            //          AppState::Splash => splash::load(self, game_assets),
             AppState::InGame => ingame::load(self, game_assets, game_state),
-//          AppState::Debug => levels::debug::load(self, game_assets, game_state),
+            //          AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
         }
     }

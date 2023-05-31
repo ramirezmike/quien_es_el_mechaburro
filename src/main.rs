@@ -1,28 +1,27 @@
 #![allow(clippy::type_complexity, clippy::too_many_arguments)]
 #![windows_subsystem = "windows"]
 
-use bevy::{prelude::*, app::AppExit};
-use bevy_rapier3d::prelude::*;
-use bevy_inspector_egui::{quick::WorldInspectorPlugin, bevy_egui};
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::{app::AppExit, prelude::*};
+use bevy_inspector_egui::{bevy_egui, quick::WorldInspectorPlugin};
+use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
 mod assets;
 mod bullet;
-mod config;
 mod burro;
+mod config;
 mod direction;
-mod game_state;
-mod player;
 mod game_camera;
-mod scene_hook;
+mod game_state;
 mod ingame;
+mod player;
+mod scene_hook;
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins)
-        .add_state::<AppState>();
+    app.add_plugins(DefaultPlugins).add_state::<AppState>();
 
     #[cfg(feature = "inspect")]
     app.add_plugin(WorldInspectorPlugin::new());
@@ -31,28 +30,28 @@ fn main() {
     app.add_plugin(RapierDebugRenderPlugin::default());
 
     #[cfg(feature = "fps")]
-    app.add_plugin(LogDiagnosticsPlugin::default()).add_plugin(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default());
 
-    app
-        .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
-        .insert_resource(config::GameConfiguration::default())
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(asset_loading::AssetLoadingPlugin)
-        .add_plugin(assets::AssetsPlugin)
-        .add_plugin(bullet::BulletPlugin)
-        .add_plugin(burro::BurroPlugin)
-        .add_plugin(game_state::GameStatePlugin)
-        .add_plugin(game_camera::GameCameraPlugin)
-        .add_plugin(ToonShaderPlugin)
-        .add_plugin(player::PlayerPlugin)
-        .add_plugin(ingame::InGamePlugin)
-        .add_plugin(scene_hook::HookPlugin)
-        .add_system(debug)
-        .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
-
-
-
-        .run();
+    app.insert_resource(bevy_egui::EguiSettings {
+        scale_factor: 1.8,
+        ..default()
+    })
+    .insert_resource(config::GameConfiguration::default())
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugin(asset_loading::AssetLoadingPlugin)
+    .add_plugin(assets::AssetsPlugin)
+    .add_plugin(bullet::BulletPlugin)
+    .add_plugin(burro::BurroPlugin)
+    .add_plugin(game_state::GameStatePlugin)
+    .add_plugin(game_camera::GameCameraPlugin)
+    .add_plugin(ToonShaderPlugin)
+    .add_plugin(player::PlayerPlugin)
+    .add_plugin(ingame::InGamePlugin)
+    .add_plugin(scene_hook::HookPlugin)
+    .add_system(debug)
+    .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
+    .run();
 }
 
 #[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, States)]
@@ -84,10 +83,10 @@ fn bootstrap(
 }
 
 fn debug(
-//    mut commands: Commands,
-    keys: Res<Input<KeyCode>>, 
+    //    mut commands: Commands,
+    keys: Res<Input<KeyCode>>,
     mut exit: ResMut<Events<AppExit>>,
- ) {
+) {
     if keys.just_pressed(KeyCode::Q) {
         exit.send(AppExit);
     }
@@ -118,13 +117,3 @@ impl ZeroSignum for Vec3 {
         Vec3::new(convert(self.x), convert(self.y), convert(self.z))
     }
 }
-
-
-
-
-
-
-
-
-
-
