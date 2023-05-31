@@ -63,6 +63,7 @@ impl CameraSettings {
     }
 }
 
+#[cfg(feature = "debug")]
 fn update_camera(
     mut cameras: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
 //  camera_settings: ResMut<CameraSettings>,
@@ -163,6 +164,61 @@ fn update_camera(
             transform.translation =
                 pan_orbit.focus + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, pan_orbit.radius));
         }
+    }
+}
+
+
+#[cfg(not(feature = "debug"))]
+fn update_camera(
+    mut cameras: Query<&mut Transform, With<PanOrbitCamera>>,
+    camera_settings: ResMut<CameraSettings>,
+    time: Res<Time>,
+) {
+    let mut c = camera_settings;
+
+    if (c.distance - c.target_distance).abs() > 0.1 {
+        if c.distance > c.target_distance {
+            c.distance -= time.delta_seconds() * 8.0;
+        } else {
+            c.distance += time.delta_seconds() * 8.0;
+        }
+    }
+
+    for mut transform in cameras.iter_mut() {
+        if transform.translation.is_nan() {
+            transform.translation = Vec3::new(0.1, 0.1, 0.1);
+        }
+        let height_difference = transform.translation.y - c.height;
+        if height_difference.abs() > 0.1 {
+            transform.translation.y +=
+                (c.height - transform.translation.y) * c.speed * time.delta_seconds();
+            //          if height_difference > 0.0 {
+            //              transform.translation.y -=
+            //                  (c.height - transform.translation.y)
+            //                 * c.speed
+            //                 * time.delta_seconds();
+            //          } else {
+            //              transform.translation.y +=
+            //                  (c.height - transform.translation.y)
+            //                 * c.speed
+            //                 * time.delta_seconds();
+            //          }
+        }
+
+        if c.orbit {
+            let yaw = Quat::from_rotation_y(time.delta_seconds() as f32 * 0.3);
+            transform.rotation *= yaw; // rotate around global y axis
+        } else {
+            transform.rotation = Quat::from_rotation_y((3.0 * std::f32::consts::PI) / 2.0);
+        }
+
+        let rot_matrix = Mat3::from_quat(transform.rotation);
+        let new_translation = c.look_at + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, c.distance));
+
+        transform.translation.x = new_translation.x;
+        transform.translation.z = new_translation.z;
+
+        transform.look_at(c.look_at, Vec3::Y);
     }
 }
 

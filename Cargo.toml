@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
+[features]
+debug = []
+inspect = []
+lines = []
+fps = []
+
 # Enable only a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1

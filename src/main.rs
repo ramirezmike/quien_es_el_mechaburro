@@ -4,7 +4,7 @@
 use bevy::{prelude::*, app::AppExit};
 use bevy_rapier3d::prelude::*;
 use bevy_inspector_egui::{quick::WorldInspectorPlugin, bevy_egui};
-//use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
@@ -20,14 +20,23 @@ mod scene_hook;
 mod ingame;
 
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_state::<AppState>()
-//      .add_plugin(WorldInspectorPlugin::new())
-//      .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
+    let mut app = App::new();
+    app.add_plugins(DefaultPlugins)
+        .add_state::<AppState>();
+
+    #[cfg(feature = "inspect")]
+    app.add_plugin(WorldInspectorPlugin::new());
+
+    #[cfg(feature = "lines")]
+    app.add_plugin(RapierDebugRenderPlugin::default());
+
+    #[cfg(feature = "fps")]
+    app.add_plugin(LogDiagnosticsPlugin::default()).add_plugin(FrameTimeDiagnosticsPlugin::default());
+
+    app
+        .insert_resource(bevy_egui::EguiSettings { scale_factor: 1.8, ..default() })
         .insert_resource(config::GameConfiguration::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(asset_loading::AssetLoadingPlugin)
         .add_plugin(assets::AssetsPlugin)
         .add_plugin(bullet::BulletPlugin)

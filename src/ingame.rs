@@ -10,7 +10,7 @@ use crate::{
     game_camera,
     scene_hook, burro,
 };
-use bevy_toon_shader::{ ToonShaderMaterial, ToonShaderPlugin, ToonShaderSun};
+use bevy_toon_shader::{ ToonShaderMaterial, ToonShaderSun};
 use bevy_mod_outline::{
     AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
 };
@@ -65,6 +65,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut clear_color: ResMut<ClearColor>,
+    mut camera_settings: ResMut<game_camera::CameraSettings>,
     asset_server: Res<AssetServer>,
     game_assets: Res<assets::GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
@@ -72,12 +73,14 @@ fn setup(
     mut game_state: ResMut<game_state::GameState>,
 ) {
 
+    camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
+
     game_state.current_level_over = false;
     game_state.on_new_level();
 
     // SETTING LEVEL BACKGROUND
     *clear_color = match game_state.current_level {
-        0 => ClearColor(Color::rgb(0.55, 0.92, 0.96)), //light blue
+        0 => ClearColor(Color::rgb(0.55, 0.92, 0.96)), // light blue
         1 => ClearColor(Color::rgb(1.0, 0.65, 0.62)),  // orange
         2 => ClearColor(Color::rgb(0.72, 0.98, 0.75)), // green
         3 => ClearColor(Color::rgb(0.81, 0.72, 0.94)), // purple
@@ -87,29 +90,120 @@ fn setup(
         _ => ClearColor(Color::rgb(1.0, 0.65, 0.62)),
     };
 
+    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+        base_color_texture: Some(game_assets.pinata_texture.image.clone()),
+        color: Color::default(),
+        sun_dir: Vec3::new(0.0, 0.0, 0.0),
+        sun_color: Color::default(),
+        camera_pos: Vec3::new(0.0, 1.0, -1.0),
+        ambient_color: Color::default(),
+    });
+
+    use std::sync::{Arc, Mutex};
+    let hook_spawn_points = Arc::new(Mutex::new(vec!()));
+    let on_complete_spawn_points = Arc::clone(&hook_spawn_points);
+    let burro_mesh_handle = game_assets.burro.clone();
     if let Some(gltf) = assets_gltf.get(&game_assets.level) {
-        commands.spawn(scene_hook::HookedSceneBundle {
+        commands.spawn((scene_hook::HookedSceneBundle {
             scene: SceneBundle { scene: gltf.scenes[0].clone(), ..default() },
-            hook: scene_hook::SceneHook::new(move |entity, cmds, mesh| {
+            hook: scene_hook::SceneHook::new(move |entity, cmds, hook_data| {
                 if let Some(name) = entity.get::<Name>().map(|t|t.as_str()) {
                     if name.contains("Cube") {
-                       if let Some(mesh) = mesh {
-                           cmds.insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+                       if let Some(mesh) = hook_data.mesh {
+                           cmds.insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap())
+                               .insert(CollisionGroups::new(Group::GROUP_1, Group::ALL));
                        }
                     }
+
+                    if name.contains("spawn_point") {
+                        let matrix = hook_data.global_transform.unwrap().compute_matrix();
+                        let translation = matrix.transform_point3(hook_data.aabb.unwrap().center.into());
+                        println!("Got spawn point");
+                        if let Ok(mut spawn_points) = hook_spawn_points.lock() {
+                            println!("inserted spawn point");
+                            spawn_points.push(translation);
+                        }
+                        cmds.insert(Visibility::Hidden);
+                    }
+
                     if name.contains("Invisible") {
                         cmds.insert(Visibility::Hidden);
                     }
                 }
             })
-        });
+        },
+            scene_hook::SceneOnComplete::new(move |cmds, assets_gltf| {
+                if let Ok(spawn_points) = on_complete_spawn_points.lock() {
+                    println!("iterating spawn point");
+                    for (i, point) in spawn_points.iter().enumerate() {
+                        println!("spawn point {:?}", point);
+                        let toon_material_textured  = toon_material_textured.clone();
+                        if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
+                            cmds.spawn((
+                                RigidBody::KinematicPositionBased,
+                                Collider::ball(1.0),
+                                ColliderMassProperties::Density(2.0),
+                                KinematicCharacterController {
+                                    offset: CharacterLength::Relative(0.1),
+                                    max_slope_climb_angle: std::f32::consts::PI / 2.0,
+                                    min_slope_slide_angle: 0.0,
+                                    slide: true,
+                                    translation: Some(Vec3::new(0.0, 1.0, 0.0)),
+                                    filter_groups: Some(CollisionGroups::new(Group::GROUP_2, Group::GROUP_1)),
+                                    ..default()
+                                },
+                                Velocity::default(),
+                                ComputedVisibility::default(),
+                                Visibility::Visible,
+                                CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
+                                player::PlayerBundle::new(),
+                                burro::Burro::new(game_state::BurroSkin::Pinata),
+                                TransformBundle {
+                                    local: Transform::from_xyz(point.x, 0.5, point.z),
+                                    ..default()
+                                },
+                            )).with_children(|parent| {
+                                let parent_entity = parent.parent_entity();
+                                parent.spawn(scene_hook::HookedSceneBundle {
+                                    scene: SceneBundle { scene: gltf.scenes[0].clone(), ..default() },
+                                    hook: scene_hook::SceneHook::new(move |entity, cmds, _| {
+                                        if let Some(name) = entity.get::<Name>().map(|t|t.as_str()) {
+                                            if name.contains("Armature") {
+                                                cmds.insert(
+                                                    assets::AnimationLink {
+                                                        entity: parent_entity
+                                                    }
+                                                );
+                                            }
+                                            if name.contains("Cube") {
+                                                cmds.insert((
+                                                     OutlineBundle {
+                                                             outline: OutlineVolume {
+                                                                 visible: true,
+                                                                 width: 5.0,
+                                                                 colour: Color::WHITE,
+                                                             },
+                                                             ..default()
+                                                         },
+                                                      toon_material_textured.clone()
+                                                ));
+                                            }
+                                        }
+                                    })
+                                });
+                            });
+                        }
+                    }
+                }
+            })
+        ));
     }
+
         
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.50,
     });
-
 
     game_camera::spawn_camera(&mut commands, CleanupMarker);
 
@@ -125,69 +219,8 @@ fn setup(
         ..Default::default()
     }, ToonShaderSun));
 
-    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
-        base_color_texture: Some(game_assets.pinata_texture.image.clone()),
-        color: Color::default(),
-        sun_dir: Vec3::new(0.0, 0.0, 0.0),
-        sun_color: Color::default(),
-        camera_pos: Vec3::new(0.0, 1.0, -1.0),
-        ambient_color: Color::default(),
-    });
 
 
-    if let Some(gltf) = assets_gltf.get(&game_assets.burro) {
-          commands.spawn((
-              RigidBody::KinematicPositionBased,
-              Collider::ball(1.0),
-              ColliderMassProperties::Density(2.0),
-              KinematicCharacterController {
-                  offset: CharacterLength::Relative(0.1),
-                  max_slope_climb_angle: std::f32::consts::PI / 2.0,
-                  min_slope_slide_angle: 0.0,
-                  slide: true,
-                  translation: Some(Vec3::new(0.0, 1.0, 0.0)),
-                  ..default()
-              },
-              Velocity::default(),
-              ComputedVisibility::default(),
-              Visibility::Visible,
-              player::PlayerBundle::new(),
-              burro::Burro::new(game_state::BurroSkin::Pinata),
-              TransformBundle {
-                  local: Transform::from_xyz(0.0, 0.5, 0.0),
-                  ..default()
-              },
-          )).with_children(|parent| {
-              let parent_entity = parent.parent_entity();
-              parent.spawn(scene_hook::HookedSceneBundle {
-                  scene: SceneBundle { scene: gltf.scenes[0].clone(), ..default() },
-                  hook: scene_hook::SceneHook::new(move |entity, cmds, mesh| {
-                      if let Some(name) = entity.get::<Name>().map(|t|t.as_str()) {
-                          if name.contains("Armature") {
-                              cmds.insert(
-                                  assets::AnimationLink {
-                                      entity: parent_entity
-                                  }
-                              );
-                          }
-                          if name.contains("Cube") {
-                              cmds.insert((
-                                   OutlineBundle {
-                                           outline: OutlineVolume {
-                                               visible: true,
-                                               width: 5.0,
-                                               colour: Color::WHITE,
-                                           },
-                                           ..default()
-                                       },
-                                    toon_material_textured.clone()
-                              ));
-                          }
-                      }
-                  })
-              });
-          });
-    }
 }
 
 #[derive(Component)]
