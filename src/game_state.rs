@@ -23,7 +23,6 @@ fn handle_score_add_event(
             .iter()
             .enumerate()
             .map(|(i, b)| (*b, i))
-            .into_iter()
             .collect();
         let max_score = game_state.dead_burros.len();
 
@@ -110,8 +109,9 @@ impl GameState {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BurroSkin {
+    #[default]
     Pinata,
     Meow,
     Salud,
@@ -120,12 +120,6 @@ pub enum BurroSkin {
     Morir,
     Gators,
     Aguas,
-}
-
-impl Default for BurroSkin {
-    fn default() -> Self {
-        BurroSkin::Pinata
-    }
 }
 
 #[derive(Default)]

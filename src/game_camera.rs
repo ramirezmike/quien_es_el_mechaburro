@@ -119,7 +119,7 @@ fn update_camera(
         let mut any = false;
         if rotation_move.length_squared() > 0.0 {
             any = true;
-            let window = get_primary_window_size(&window);
+            let window = get_primary_window_size(window);
             let delta_x = {
                 let delta = rotation_move.x / window.x * std::f32::consts::PI * 2.0;
                 if pan_orbit.upside_down {
@@ -131,18 +131,16 @@ fn update_camera(
             let delta_y = rotation_move.y / window.y * std::f32::consts::PI;
             let yaw = Quat::from_rotation_y(-delta_x);
             let pitch = Quat::from_rotation_x(-delta_y);
-            transform.rotation = yaw * transform.rotation; // rotate around global y axis
-            transform.rotation = transform.rotation * pitch; // rotate around local x axis
+            transform.rotation *= yaw; // rotate around global y axis
+            transform.rotation *= pitch; // rotate around local x axis
         } else if pan.length_squared() > 0.0 {
             any = true;
             // make panning distance independent of resolution and FOV,
-            let window = get_primary_window_size(&window);
-            match projection {
-                Projection::Perspective(p) => {
-                    pan *= Vec2::new(p.fov * p.aspect_ratio, p.fov) / window;
-                }
-                _ => (),
+            let window = get_primary_window_size(window);
+            if let Projection::Perspective(p) = projection {
+                pan *= Vec2::new(p.fov * p.aspect_ratio, p.fov) / window;
             }
+
             // translate by local axes
             let right = transform.rotation * Vec3::X * -pan.x;
             let up = transform.rotation * Vec3::Y * pan.y;
@@ -222,8 +220,7 @@ fn update_camera(
 }
 
 fn get_primary_window_size(window: &Window) -> Vec2 {
-    let window = Vec2::new(window.width() as f32, window.height() as f32);
-    window
+    Vec2::new(window.width(), window.height())
 }
 
 pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {

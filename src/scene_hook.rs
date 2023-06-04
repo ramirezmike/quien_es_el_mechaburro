@@ -67,8 +67,7 @@ pub fn run_hooks(
             let mut cmd = cmds.entity(entity_ref.id());
             let mesh = entity_ref
                 .get::<Handle<Mesh>>()
-                .map(|m| meshes.get(m))
-                .flatten();
+                .and_then(|m| meshes.get(m));
             let global_transform = entity_ref.get::<GlobalTransform>();
             let aabb = entity_ref.get::<Aabb>();
 
