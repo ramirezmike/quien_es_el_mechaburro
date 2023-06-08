@@ -5,7 +5,7 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{app::AppExit, prelude::*};
 use bevy_inspector_egui::{bevy_egui, quick::WorldInspectorPlugin};
 use bevy_rapier3d::prelude::*;
-use bevy_toon_shader::ToonShaderPlugin;
+use bevy_toon_shader::{ToonShaderPlugin, ToonShaderMaterial};
 
 mod asset_loading;
 mod assets;
@@ -75,11 +75,12 @@ pub enum AppState {
 fn bootstrap(
     mut assets_handler: asset_loading::AssetsHandler,
     mut game_assets: ResMut<assets::GameAssets>,
+    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
     game_state: ResMut<game_state::GameState>,
     mut clear_color: ResMut<ClearColor>,
 ) {
     clear_color.0 = Color::hex("000000").unwrap();
-    assets_handler.load(AppState::InGame, &mut game_assets, &game_state);
+    assets_handler.load(AppState::InGame, &mut game_assets, &game_state, &mut toon_materials);
 }
 
 fn debug(

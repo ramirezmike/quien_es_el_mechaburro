@@ -2,6 +2,7 @@ use crate::{assets::GameAssets, game_state, ingame, AppState}; //, , title_scree
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
+use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
 pub struct AssetLoadingPlugin;
 impl Plugin for AssetLoadingPlugin {
@@ -63,8 +64,9 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         queued_state: AppState,
         game_assets: &mut ResMut<GameAssets>,
         game_state: &ResMut<game_state::GameState>,
+        toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
     ) {
-        self.queue_assets_for_state(&queued_state, game_assets, game_state);
+        self.queue_assets_for_state(&queued_state, game_assets, game_state, toon_materials);
         self.queued_state.state = queued_state;
         self.next_state.set(AppState::Loading);
     }
@@ -146,11 +148,12 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         state: &AppState,
         game_assets: &mut ResMut<GameAssets>,
         game_state: &ResMut<game_state::GameState>,
+        toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
     ) {
         match state {
             //          AppState::TitleScreen => title_screen::load(self, game_assets),
             //          AppState::Splash => splash::load(self, game_assets),
-            AppState::InGame => ingame::load(self, game_assets, game_state),
+            AppState::InGame => ingame::load(self, game_assets, game_state, toon_materials),
             //          AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
         }

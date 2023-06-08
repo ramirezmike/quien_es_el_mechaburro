@@ -5,6 +5,8 @@ use bevy::{
     render::primitives::Aabb,
     scene::SceneInstance,
 };
+use crate::assets;
+
 #[derive(Component, Debug)]
 pub struct SceneHooked;
 
@@ -37,10 +39,10 @@ impl SceneHook {
 
 #[derive(Component)]
 pub struct SceneOnComplete {
-    on_complete: Box<dyn Fn(&mut Commands, &Res<Assets<Gltf>>) + Send + Sync + 'static>,
+    on_complete: Box<dyn Fn(&mut Commands, &Res<Assets<Gltf>>, &Res<assets::GameAssets>) + Send + Sync + 'static>,
 }
 impl SceneOnComplete {
-    pub fn new<F: Fn(&mut Commands, &Res<Assets<Gltf>>) + Send + Sync + 'static>(f: F) -> Self {
+    pub fn new<F: Fn(&mut Commands, &Res<Assets<Gltf>>, &Res<assets::GameAssets>) + Send + Sync + 'static>(f: F) -> Self {
         Self {
             on_complete: Box::new(f),
         }
@@ -56,6 +58,7 @@ pub fn run_hooks(
     world: &World,
     meshes: Res<Assets<Mesh>>,
     gltfs: Res<Assets<Gltf>>,
+    game_assets: Res<assets::GameAssets>,
     mut cmds: Commands,
 ) {
     for (entity, instance, hooked, maybe_on_complete) in &unloaded_instances {
@@ -79,7 +82,7 @@ pub fn run_hooks(
             (hooked.hook)(&entity_ref, &mut cmd, hook_data);
         }
         if let Some(on_complete) = maybe_on_complete {
-            (on_complete.on_complete)(&mut cmds, &gltfs);
+            (on_complete.on_complete)(&mut cmds, &gltfs, &game_assets);
         }
     }
 }

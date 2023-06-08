@@ -2,6 +2,7 @@ use crate::asset_loading;
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioSource;
+use bevy_toon_shader::ToonShaderMaterial;
 
 pub struct AssetsPlugin;
 impl Plugin for AssetsPlugin {
@@ -13,6 +14,12 @@ impl Plugin for AssetsPlugin {
 #[derive(Component)]
 pub struct AnimationLink {
     pub entity: Entity,
+}
+
+pub struct BurroAsset {
+    pub name: String,
+    pub texture: asset_loading::GameTexture,
+    pub toon_texture: Handle<ToonShaderMaterial>,
 }
 
 #[derive(Default, Resource)]
@@ -41,15 +48,7 @@ pub struct GameAssets {
 
     pub burro: Handle<Gltf>,
     pub burro_run: Handle<AnimationClip>,
-    pub pinata_texture: asset_loading::GameTexture,
-    pub meow_texture: asset_loading::GameTexture,
-    pub salud_texture: asset_loading::GameTexture,
-    pub mexico_texture: asset_loading::GameTexture,
-    pub medianoche_texture: asset_loading::GameTexture,
-    pub morir_texture: asset_loading::GameTexture,
-    pub gators_texture: asset_loading::GameTexture,
-    pub aguas_texture: asset_loading::GameTexture,
-    pub mechaburro_texture: asset_loading::GameTexture,
+    pub burro_assets: Vec::<BurroAsset>,
 
     pub heart_texture: asset_loading::GameTexture,
     pub pinata_logo_texture: asset_loading::GameTexture,

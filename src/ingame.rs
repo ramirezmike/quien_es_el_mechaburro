@@ -7,6 +7,7 @@ use bevy_mod_outline::{
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::sync::{Arc, Mutex};
+use std::{fs, path::Path};
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
@@ -31,6 +32,7 @@ pub fn load(
     assets_handler: &mut asset_loading::AssetsHandler,
     game_assets: &mut ResMut<assets::GameAssets>,
     game_state: &ResMut<game_state::GameState>,
+    toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
 ) {
     assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
     assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
@@ -38,11 +40,50 @@ pub fn load(
         &mut game_assets.burro_run,
         "models/burro_new.glb#Animation0",
     );
-    assets_handler.add_material(
-        &mut game_assets.pinata_texture,
-        "textures/pinata.png",
-        false,
-    );
+
+    let folder_path = "assets/textures/burros";
+    if let Ok(entries) = fs::read_dir(folder_path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let file_path = entry.path();
+
+                if let Some(extension) = file_path.extension() {
+                    if extension == "png" {
+                        if let Some(file_name) = file_path.file_stem() {
+                            if let Some(name) = file_name.to_str() {
+                                println!("Adding {}", name);
+                                let mut texture = asset_loading::GameTexture::default();
+                                assets_handler.add_material(
+                                    &mut texture,
+                                    &format!("textures/burros/{}.png", name),
+                                    false,
+                                );
+
+                                let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+                                    base_color_texture: Some(texture.image.clone()),
+                                    color: Color::default(),
+                                    sun_dir: Vec3::new(0.0, 0.0, 0.0),
+                                    sun_color: Color::default(),
+                                    camera_pos: Vec3::new(0.0, 1.0, -1.0),
+                                    ambient_color: Color::default(),
+                                });
+
+                                game_assets.burro_assets.push(assets::BurroAsset {
+                                    name: name.into(),
+                                    texture,
+                                    toon_texture: toon_material_textured 
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        panic!("Assets folder or burros folder not found, can't run the game");
+    }
+
+
     assets_handler.add_mesh(
         &mut game_assets.candy.mesh,
         "models/candy.gltf#Mesh0/Primitive0",
@@ -84,15 +125,6 @@ fn setup(
         _ => ClearColor(Color::rgb(1.0, 0.65, 0.62)),
     };
 
-    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
-        base_color_texture: Some(game_assets.pinata_texture.image.clone()),
-        color: Color::default(),
-        sun_dir: Vec3::new(0.0, 0.0, 0.0),
-        sun_color: Color::default(),
-        camera_pos: Vec3::new(0.0, 1.0, -1.0),
-        ambient_color: Color::default(),
-    });
-
     let hook_spawn_points = Arc::new(Mutex::new(vec![]));
     let on_complete_spawn_points = Arc::clone(&hook_spawn_points);
     let burro_mesh_handle = game_assets.burro.clone();
@@ -132,10 +164,10 @@ fn setup(
                     }
                 }),
             },
-            scene_hook::SceneOnComplete::new(move |cmds, assets_gltf| {
+            scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets| {
                 if let Ok(spawn_points) = on_complete_spawn_points.lock() {
-                    for point in spawn_points.iter() {
-                        let toon_material_textured = toon_material_textured.clone();
+                    for (i, point) in spawn_points.iter().enumerate() {
+                        let toon_material_textured = game_assets.burro_assets[i].toon_texture.clone();
                         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
                             cmds.spawn((
                                 RigidBody::KinematicPositionBased,
