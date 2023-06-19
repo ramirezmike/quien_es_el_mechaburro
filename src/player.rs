@@ -16,28 +16,6 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-pub struct Player {
-    pub speed: f32,
-    pub friction: f32,
-    pub velocity: Vec3,
-    pub random: f32,
-}
-
-impl Player {
-    pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
-
-        Player {
-            speed: 60.0,
-            friction: 0.01,
-            velocity: Vec3::ZERO,
-            random: rng.gen_range(0.5..1.0),
-        }
-    }
-}
-
 pub enum Movement {
     Normal(direction::Direction),
 }
@@ -75,7 +53,6 @@ impl PlayerAction {
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
-    player: Player,
     #[bundle]
     input_manager: InputManagerBundle<PlayerAction>,
 }
@@ -83,7 +60,6 @@ pub struct PlayerBundle {
 impl PlayerBundle {
     pub fn new() -> Self {
         PlayerBundle {
-            player: Player::new(),
             input_manager: InputManagerBundle {
                 input_map: PlayerBundle::default_input_map(),
                 action_state: ActionState::default(),
@@ -98,21 +74,25 @@ impl PlayerBundle {
         input_map.set_gamepad(Gamepad { id: 0 });
 
         // Movement
-        input_map.insert(KeyCode::Up, Up);
+        #[cfg(not(feature = "debug"))]
+        {
+            input_map.insert(KeyCode::Up, Up);
+            input_map.insert(KeyCode::Down, Down);
+            input_map.insert(KeyCode::Left, Left);
+            input_map.insert(KeyCode::Right, Right);
+        }
+
         input_map.insert(KeyCode::W, Up);
         input_map.insert(KeyCode::Z, Up);
         input_map.insert(GamepadButtonType::DPadUp, Up);
 
-        input_map.insert(KeyCode::Down, Down);
         input_map.insert(KeyCode::S, Down);
         input_map.insert(GamepadButtonType::DPadDown, Down);
 
-        input_map.insert(KeyCode::Left, Left);
         input_map.insert(KeyCode::A, Left);
         input_map.insert(KeyCode::Q, Left);
         input_map.insert(GamepadButtonType::DPadLeft, Left);
 
-        input_map.insert(KeyCode::Right, Right);
         input_map.insert(KeyCode::D, Right);
         input_map.insert(GamepadButtonType::DPadRight, Right);
 
@@ -150,7 +130,6 @@ pub fn handle_input(
             &Transform,
             &mut burro::Burro,
         ),
-        With<Player>,
     >,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
@@ -212,12 +191,11 @@ pub fn handle_input(
 
 pub fn move_player(
     time: Res<Time>,
-    mut players: Query<(
+    mut burros: Query<(
         Entity,
         &mut KinematicCharacterController,
         &KinematicCharacterControllerOutput,
         &mut Transform,
-        &mut Player,
         &mut burro::Burro,
     )>,
     mut player_move_event_reader: EventReader<PlayerMoveEvent>,
@@ -232,33 +210,33 @@ pub fn move_player(
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
-    for (entity, mut controller, controller_output, mut transform, mut player, mut burro) in
-        players.iter_mut()
+    for (entity, mut controller, controller_output, mut transform, mut burro) in
+        burros.iter_mut()
     {
         //transform.rotate_z(time.delta_seconds());
 
-        let speed: f32 = player.speed;
-        let friction: f32 = player.friction;
+        let speed: f32 = burro.speed;
+        let friction: f32 = burro.friction;
         let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
 
-        player.velocity *= friction.powf(time.delta_seconds());
-        //        player.velocity += (Vec3::X * speed) * time.delta_seconds();
+        burro.velocity *= friction.powf(time.delta_seconds());
+        //        burro.velocity += (Vec3::X * speed) * time.delta_seconds();
 
         if let Some(move_event) = move_events.get(&entity) {
             match move_event.movement {
                 Movement::Normal(direction) => {
-                    let mut acceleration = Vec3::from(direction).zero_signum();
+                    let acceleration = Vec3::from(direction).zero_signum();
                     if !controller_output.grounded {
-                        acceleration.z *= 0.5;
+//                        acceleration.z *= 0.5;
                     }
-                    player.velocity += (acceleration * speed) * time.delta_seconds();
+                    burro.velocity += (acceleration * speed) * time.delta_seconds();
                 }
             }
         }
 
-        player.velocity = player.velocity.clamp_length_max(speed);
+        burro.velocity = burro.velocity.clamp_length_max(speed);
 
-        let new_translation = (gravity + player.velocity) * time.delta_seconds();
+        let new_translation = (gravity + burro.velocity) * time.delta_seconds();
         let new_position = new_translation + transform.translation;
 
         let angle = (-(new_position.z - transform.translation.z))
@@ -266,7 +244,7 @@ pub fn move_player(
         let rotation = Quat::from_axis_angle(Vec3::Y, angle);
         //       velocity.angvel = rotation.to_scaled_axis();
         controller.translation = Some(new_translation);
-        //        velocity.linvel = player.velocity * time.delta_seconds();
+        //        velocity.linvel = burro.velocity * time.delta_seconds();
 
         //        transform.translation.x = 0.0; // hardcoding for now
 
@@ -276,10 +254,10 @@ pub fn move_player(
                     animation.play(game_assets.burro_run.clone_weak()).repeat();
                     animation.resume();
                     burro.current_animation = game_assets.burro_run.clone_weak();
-                    animation.set_speed(3.0 + (100.0 * player.velocity.length()));
+                    animation.set_speed(3.0 + (100.0 * burro.velocity.length()));
                 }
                 if burro.current_animation == game_assets.burro_run
-                    && player.velocity.length() < 0.1
+                    && burro.velocity.length() < 0.1
                 {
                     animation.pause();
                 } else {
@@ -288,11 +266,15 @@ pub fn move_player(
             }
         }
 
-        // don't rotate if we're not moving or if rotation isnt a number
-        if let Some(facing) = facing {
-            transform.rotation = facing;
-        } else if !rotation.is_nan() && player.velocity.length() > 0.1 {
-            transform.rotation = rotation;
+        if !rotation.is_nan()
+            && burro.velocity.length() > 0.1
+            && !burro.is_down
+        {
+            if let Some(facing) = facing {
+                transform.rotation = facing;
+            } else {
+                transform.rotation = rotation;
+            }
         }
     }
 }

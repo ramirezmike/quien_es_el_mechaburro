@@ -9,15 +9,18 @@ use bevy_toon_shader::{ToonShaderPlugin, ToonShaderMaterial};
 
 mod asset_loading;
 mod assets;
+mod audio;
 mod bullet;
 mod burro;
 mod config;
 mod direction;
+mod hit;
 mod game_camera;
 mod game_state;
 mod ingame;
 mod player;
 mod scene_hook;
+mod smoke;
 
 fn main() {
     let mut app = App::new();
@@ -41,14 +44,17 @@ fn main() {
     .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugin(asset_loading::AssetLoadingPlugin)
     .add_plugin(assets::AssetsPlugin)
+    .add_plugin(audio::GameAudioPlugin)
     .add_plugin(bullet::BulletPlugin)
     .add_plugin(burro::BurroPlugin)
+    .add_plugin(hit::HitPlugin)
     .add_plugin(game_state::GameStatePlugin)
     .add_plugin(game_camera::GameCameraPlugin)
     .add_plugin(ToonShaderPlugin)
     .add_plugin(player::PlayerPlugin)
     .add_plugin(ingame::InGamePlugin)
     .add_plugin(scene_hook::HookPlugin)
+    .add_plugin(smoke::SmokePlugin)
     .add_system(debug)
     .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
     .run();

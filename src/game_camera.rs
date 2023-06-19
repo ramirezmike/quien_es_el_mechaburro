@@ -224,7 +224,11 @@ fn get_primary_window_size(window: &Window) -> Vec2 {
 }
 
 pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
+    #[cfg(not(feature = "debug"))]
     let translation = Vec3::new(-4.0, 1.0, 0.0);
+
+    #[cfg(feature = "debug")]
+    let translation = Vec3::new(-30.0, 20.0, 0.0);
 
     let radius = translation.length();
 

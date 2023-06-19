@@ -1,4 +1,5 @@
 use crate::{asset_loading, assets, burro, game_camera, game_state, player, scene_hook, AppState};
+use bevy::ecs::entity;
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_mod_outline::{
@@ -7,7 +8,7 @@ use bevy_mod_outline::{
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::sync::{Arc, Mutex};
-use std::{fs, path::Path};
+use std::fs;
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
@@ -17,7 +18,6 @@ impl Plugin for InGamePlugin {
             .add_system(setup.in_schedule(OnEnter(AppState::InGame)))
             .add_systems(
                 (
-                    burro::handle_burros,
                     player::handle_input,
                     player::move_player,
                     apply_system_buffers,
@@ -83,7 +83,6 @@ pub fn load(
         panic!("Assets folder or burros folder not found, can't run the game");
     }
 
-
     assets_handler.add_mesh(
         &mut game_assets.candy.mesh,
         "models/candy.gltf#Mesh0/Primitive0",
@@ -96,7 +95,7 @@ pub fn load(
     assets_handler.add_glb(
         &mut game_assets.level,
         &format!("models/level_{:02}.glb", game_state.current_level),
-    )
+    );
 }
 
 fn setup(
@@ -169,6 +168,7 @@ fn setup(
                     for (i, point) in spawn_points.iter().enumerate() {
                         let toon_material_textured = game_assets.burro_assets[i].toon_texture.clone();
                         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
+                            let mut entity_commands = 
                             cmds.spawn((
                                 RigidBody::KinematicPositionBased,
                                 Collider::ball(1.0),
@@ -189,13 +189,18 @@ fn setup(
                                 ComputedVisibility::default(),
                                 Visibility::Visible,
                                 CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
-                                player::PlayerBundle::new(),
                                 burro::Burro::new(game_state::BurroSkin::Pinata),
                                 TransformBundle {
                                     local: Transform::from_xyz(point.x, 0.5, point.z),
                                     ..default()
                                 },
-                            ))
+                            ));
+
+                            if i == 0 {
+                                entity_commands.insert(player::PlayerBundle::new());
+                            }
+
+                            entity_commands
                             .with_children(|parent| {
                                 let parent_entity = parent.parent_entity();
                                 parent.spawn(scene_hook::HookedSceneBundle {

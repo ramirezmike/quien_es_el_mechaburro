@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, burro, cleanup, config, AppState};
+use crate::{assets::GameAssets, burro, cleanup, config, AppState, hit};
 use bevy::prelude::*;
 
 pub struct BulletPlugin;
@@ -112,8 +112,8 @@ fn handle_bullets(
     mut bullets: Query<(Entity, &mut Bullet, &mut Transform), Without<burro::Burro>>,
     burros: Query<(Entity, &Transform, &burro::Burro), Without<Bullet>>,
     game_config: Res<config::GameConfiguration>,
-    //  mut create_hit_event_writer: EventWriter<CreateHitEvent>,
-    //  mut burro_hit_event_writer: EventWriter<burro::BurroHitEvent>,
+    mut create_hit_event_writer: EventWriter<hit::CreateHitEvent>,
+    mut burro_hit_event_writer: EventWriter<burro::BurroHitEvent>,
 ) {
     'bullets: for (entity, mut bullet, mut transform) in bullets.iter_mut() {
         transform.translation += bullet.direction * bullet.speed * time.delta_seconds();
@@ -146,15 +146,15 @@ fn handle_bullets(
                 Vec2::new(burro_transform.translation.x, burro_transform.translation.z);
             if bullet_position.distance(burro_position) <= game_config.bullet_distance {
                 commands.entity(entity).despawn_recursive();
-                //              burro_hit_event_writer.send(burro::BurroHitEvent {
-                //                  entity: burro_entity,
-                //                  is_laser: bullet.bullet_type == BulletType::Laser,
-                //                  velocity: bullet.direction * bullet.speed,
-                //              });
-                //              create_hit_event_writer.send(CreateHitEvent {
-                //                  position: burro_transform.translation,
-                //                  is_candy: bullet.bullet_type == BulletType::Candy,
-                //              });
+                burro_hit_event_writer.send(burro::BurroHitEvent {
+                    entity: burro_entity,
+                    is_laser: bullet.bullet_type == BulletType::Laser,
+                    velocity: bullet.direction * bullet.speed,
+                });
+                create_hit_event_writer.send(hit::CreateHitEvent {
+                    position: burro_transform.translation,
+                    is_candy: bullet.bullet_type == BulletType::Candy,
+                });
 
                 continue 'bullets;
             }
