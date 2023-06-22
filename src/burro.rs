@@ -1,4 +1,4 @@
-use crate::{game_state, AppState, config, assets, audio, smoke};
+use crate::{game_state, AppState, config, assets, audio, smoke, burro};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
 use rand::Rng;
@@ -15,6 +15,7 @@ impl Plugin for BurroPlugin {
                 (handle_fallen_burros, handle_burro_flash_events)
                 .in_set(OnUpdate(AppState::InGame)),
             )
+            .add_system(squish_burros.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
             .add_event::<BurroFlashEvent>()
             .add_event::<BurroHitEvent>()
             .add_event::<BurroDeathEvent>();
@@ -29,7 +30,7 @@ pub struct BurroHitEvent {
 
 pub struct BurroDeathEvent {
     pub entity: Entity,
-    pub skin: game_state::BurroSkin,
+    pub id: usize,
 }
 
 pub struct BurroFlashEvent {
@@ -39,7 +40,7 @@ pub struct BurroFlashEvent {
 
 #[derive(Component)]
 pub struct Burro {
-    pub burro_skin: game_state::BurroSkin,
+    pub id: usize,
     pub max_health: usize,
     pub health: usize,
     pub bullet_speed: f32,
@@ -58,11 +59,11 @@ pub struct Burro {
 }
 
 impl Burro {
-    pub fn new(burro_skin: game_state::BurroSkin) -> Self {
+    pub fn new(id: usize) -> Self {
         let mut rng = rand::thread_rng();
 
         Burro {
-            burro_skin,
+            id,
             max_health: 3,
             health: 3,
             bullet_speed: 12.0,
@@ -110,6 +111,30 @@ impl Burro {
     }
 }
 
+#[derive(Component)]
+pub struct BurroMeshMarker {
+    pub parent: Entity
+}
+
+fn squish_burros(
+    time: Res<Time>,
+    mut burros: Query<&mut Transform, With<burro::Burro>>,
+) {
+    for mut transform in burros.iter_mut() {
+        // make the burros all squishy like
+        if transform.scale.x != 1.0 || transform.scale.y != 1.0 {
+            let new_scale = transform
+                .scale
+                .lerp(Vec3::new(1.0, 1.0, 1.0), time.delta_seconds() * 4.0);
+            if new_scale.is_nan() || transform.scale.distance(new_scale) < 0.0001 {
+                transform.scale = Vec3::new(1.0, 1.0, 1.0);
+            } else {
+                transform.scale = new_scale;
+            }
+        }
+    }
+}
+
 fn handle_burro_hit(
     mut commands: Commands,
     mut burro_hit_event_reader: EventReader<BurroHitEvent>,
@@ -154,7 +179,7 @@ fn handle_burros(
         if burro.health == 0 {
             burro_death_event_writer.send(BurroDeathEvent {
                 entity,
-                skin: burro.burro_skin,
+                id: burro.id,
             });
             continue;
         }
@@ -205,10 +230,9 @@ fn handle_burro_death_events(
 //                  commands.entity(text_entity).despawn_recursive();
 //              }
 //          }
-            if !game_state.dead_burros.contains(&death_event.skin) {
-                game_state.dead_burros.push(death_event.skin);
+            if !game_state.dead_burros.contains(&death_event.id) {
+                game_state.dead_burros.push(death_event.id);
             }
-            // probably do a bunch of UI/animation stuff here and play sounds or something
 
             audio.play_sfx(&game_assets.eliminated_sfx);
         }

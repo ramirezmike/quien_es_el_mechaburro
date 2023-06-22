@@ -1,5 +1,4 @@
 use crate::{asset_loading, assets, burro, game_camera, game_state, player, scene_hook, AppState};
-use bevy::ecs::entity;
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_mod_outline::{
@@ -15,7 +14,7 @@ impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(OutlinePlugin)
             .add_plugin(AutoGenerateOutlineNormalsPlugin)
-            .add_system(setup.in_schedule(OnEnter(AppState::InGame)))
+            .add_system(setup.in_schedule(OnEnter(AppState::LoadInGame)))
             .add_systems(
                 (
                     player::handle_input,
@@ -34,12 +33,33 @@ pub fn load(
     game_state: &ResMut<game_state::GameState>,
     toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
 ) {
-    assets_handler.add_font(&mut game_assets.font, "fonts/monogram.ttf");
+    assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
+    assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
     assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
     assets_handler.add_animation(
         &mut game_assets.burro_run,
         "models/burro_new.glb#Animation0",
     );
+
+    let mut mechaburro_texture = asset_loading::GameTexture::default();
+    assets_handler.add_material(
+        &mut mechaburro_texture,
+        &"textures/mechaburro.png",
+        false,
+    );
+    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+        base_color_texture: Some(mechaburro_texture.image.clone()),
+        color: Color::default(),
+        sun_dir: Vec3::new(0.0, 0.0, 0.0),
+        sun_color: Color::default(),
+        camera_pos: Vec3::new(0.0, 1.0, -1.0),
+        ambient_color: Color::default(),
+    });
+    game_assets.mechaburro_texture = assets::BurroAsset {
+        name: "Mechaburro".into(),
+        texture: mechaburro_texture,
+        toon_texture: toon_material_textured 
+    };
 
     let folder_path = "assets/textures/burros";
     if let Ok(entries) = fs::read_dir(folder_path) {
@@ -51,7 +71,6 @@ pub fn load(
                     if extension == "png" {
                         if let Some(file_name) = file_path.file_stem() {
                             if let Some(name) = file_name.to_str() {
-                                println!("Adding {}", name);
                                 let mut texture = asset_loading::GameTexture::default();
                                 assets_handler.add_material(
                                     &mut texture,
@@ -106,8 +125,21 @@ fn setup(
     assets_gltf: Res<Assets<Gltf>>,
     mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
     mut game_state: ResMut<game_state::GameState>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
+
+
+    // TODO: This is temporary, this will be done by menus
+    *game_state = 
+    game_state::GameState::initialize(vec!(game_state::BurroCharacter {
+        player: 0,
+        is_playing: true,
+        has_picked: true,
+        selected_burro: 0,
+        action_cooldown: 0.0,
+    }), 7, 1.0, &game_assets.burro_assets);
+
 
     game_state.current_level_over = false;
     game_state.on_new_level();
@@ -163,10 +195,13 @@ fn setup(
                     }
                 }),
             },
-            scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets| {
+            scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets, game_state| {
                 if let Ok(spawn_points) = on_complete_spawn_points.lock() {
-                    for (i, point) in spawn_points.iter().enumerate() {
-                        let toon_material_textured = game_assets.burro_assets[i].toon_texture.clone();
+                    for (i, burro_state) in game_state.burros.iter().enumerate() {
+                        let point = spawn_points[i];
+
+                        let toon_material_textured = game_assets.burro_assets[burro_state.selected_burro].toon_texture.clone();
+
                         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
                             let mut entity_commands = 
                             cmds.spawn((
@@ -189,7 +224,7 @@ fn setup(
                                 ComputedVisibility::default(),
                                 Visibility::Visible,
                                 CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
-                                burro::Burro::new(game_state::BurroSkin::Pinata),
+                                burro::Burro::new(burro_state.selected_burro),
                                 TransformBundle {
                                     local: Transform::from_xyz(point.x, 0.5, point.z),
                                     ..default()
@@ -212,9 +247,11 @@ fn setup(
                                         if let Some(name) = entity.get::<Name>().map(|t| t.as_str())
                                         {
                                             if name.contains("Armature") {
-                                                cmds.insert(assets::AnimationLink {
+                                                cmds.insert(( assets::AnimationLink {
                                                     entity: parent_entity,
-                                                });
+                                                }, 
+                                                    Transform::from_xyz(0.0, -1.3, 0.0),
+                                                ));
                                             }
                                             if name.contains("Cube") {
                                                 cmds.insert((
@@ -225,6 +262,9 @@ fn setup(
                                                             colour: Color::WHITE,
                                                         },
                                                         ..default()
+                                                    },
+                                                    burro::BurroMeshMarker {
+                                                        parent: parent_entity
                                                     },
                                                     toon_material_textured.clone(),
                                                 ));
@@ -264,6 +304,8 @@ fn setup(
         },
         ToonShaderSun,
     ));
+
+    next_state.set(AppState::MechaPicker);
 }
 
 #[derive(Component)]

@@ -16,6 +16,7 @@ pub struct AnimationLink {
     pub entity: Entity,
 }
 
+#[derive(Default)]
 pub struct BurroAsset {
     pub name: String,
     pub texture: asset_loading::GameTexture,
@@ -49,6 +50,7 @@ pub struct GameAssets {
     pub burro: Handle<Gltf>,
     pub burro_run: Handle<AnimationClip>,
     pub burro_assets: Vec::<BurroAsset>,
+    pub mechaburro_texture: BurroAsset,
 
     pub heart_texture: asset_loading::GameTexture,
     pub pinata_logo_texture: asset_loading::GameTexture,

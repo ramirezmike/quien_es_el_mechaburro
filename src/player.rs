@@ -257,7 +257,7 @@ pub fn move_player(
                     animation.set_speed(3.0 + (100.0 * burro.velocity.length()));
                 }
                 if burro.current_animation == game_assets.burro_run
-                    && burro.velocity.length() < 0.1
+                    && (burro.velocity.length() < 0.1 || burro.is_down)
                 {
                     animation.pause();
                 } else {

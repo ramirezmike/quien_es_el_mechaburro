@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, burro, cleanup, config, AppState, hit};
+use crate::{assets::GameAssets, burro, cleanup, config, AppState, hit, audio};
 use bevy::prelude::*;
 
 pub struct BulletPlugin;
@@ -7,9 +7,9 @@ impl Plugin for BulletPlugin {
         app.add_event::<BulletEvent>()
             .add_system(cleanup::<CleanupMarker>.in_schedule(OnExit(AppState::InGame)))
             .add_systems(
-                (handle_bullet_events, handle_bullets)
-                    .chain()
-                    .in_set(OnUpdate(AppState::InGame)),
+                (handle_bullet_events.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))),
+                 handle_bullets.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
+                .chain()
             );
     }
 }
@@ -47,9 +47,10 @@ fn handle_bullet_events(
     game_assets: Res<GameAssets>,
     mut bullet_reader: EventReader<BulletEvent>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    //    mut audio: audio::GameAudio,
+    mut audio: audio::GameAudio,
 ) {
     for bullet in bullet_reader.iter() {
+        println!("Bullet receive");
         commands
             .spawn(match bullet.bullet_type {
                 BulletType::Candy => PbrBundle {
@@ -98,11 +99,11 @@ fn handle_bullet_events(
             })
             .insert(CleanupMarker);
 
-        //      if bullet.bullet_type == BulletType::Laser {
-        //          audio.play_sfx(&game_assets.laser_sfx);
-        //      } else {
-        //          audio.play_sfx(&game_assets.bloop_sfx);
-        //      }
+            if bullet.bullet_type == BulletType::Laser {
+                audio.play_sfx(&game_assets.laser_sfx);
+            } else {
+                audio.play_sfx(&game_assets.bloop_sfx);
+            }
     }
 }
 

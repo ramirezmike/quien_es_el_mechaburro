@@ -1,6 +1,7 @@
-use crate::AppState;
+use crate::{AppState, assets};
 use bevy::prelude::*;
 use std::collections::HashMap;
+use rand::Rng;
 
 pub struct GameStatePlugin;
 impl Plugin for GameStatePlugin {
@@ -18,7 +19,7 @@ fn handle_score_add_event(
     mut game_state: ResMut<GameState>,
 ) {
     if score_add_event_reader.iter().count() > 0 {
-        let burro_points: HashMap<BurroSkin, usize> = game_state
+        let burro_points: HashMap<usize, usize> = game_state
             .dead_burros
             .iter()
             .enumerate()
@@ -27,7 +28,7 @@ fn handle_score_add_event(
         let max_score = game_state.dead_burros.len();
 
         for burro in game_state.burros.iter_mut() {
-            let new_score = burro_points.get(&burro.skin).unwrap_or(&max_score);
+            let new_score = burro_points.get(&burro.selected_burro).unwrap_or(&max_score);
             burro.score += new_score;
         }
     }
@@ -36,7 +37,7 @@ fn handle_score_add_event(
 #[derive(Default, Resource)]
 pub struct GameState {
     pub burros: Vec<BurroState>,
-    pub dead_burros: Vec<BurroSkin>,
+    pub dead_burros: Vec<usize>,
     pub current_level: usize,
     pub current_level_over: bool,
     pub players: Vec<BurroCharacter>,
@@ -44,51 +45,43 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn get_skin_player_map(&self) -> HashMap<BurroSkin, usize> {
-        let mut map: HashMap<BurroSkin, usize> = HashMap::new();
-        for player in self.players.iter() {
-            map.insert(player.selected_burro, player.player);
-        }
-        map
-    }
+//  pub fn get_skin_player_map(&self) -> HashMap<BurroSkin, usize> {
+//      let mut map: HashMap<BurroSkin, usize> = HashMap::new();
+//      for player in self.players.iter() {
+//          map.insert(player.selected_burro, player.player);
+//      }
+//      map
+//  }
 
     pub fn initialize(
         players: Vec<BurroCharacter>,
         number_of_bots: usize,
         difficulty: f32,
+        burro_assets: &Vec<assets::BurroAsset>,
     ) -> Self {
         let mut burros = vec![];
-        let skins = vec![
-            BurroSkin::Pinata,
-            BurroSkin::Meow,
-            BurroSkin::Salud,
-            BurroSkin::Mexico,
-            BurroSkin::Medianoche,
-            BurroSkin::Morir,
-            BurroSkin::Gators,
-            BurroSkin::Aguas,
-        ];
-        let picked_skins = players.iter().map(|b| b.selected_burro).collect::<Vec<_>>();
-        let skins = skins
-            .iter()
-            .filter(|s| !picked_skins.contains(s))
-            .collect::<Vec<_>>();
+        let mut available_burros: Vec<usize> = (0..burro_assets.len()).collect();
 
         // human players
         for p in players.iter() {
             burros.push(BurroState {
+                selected_burro: p.selected_burro,
                 score: 0,
-                skin: p.selected_burro,
                 is_bot: false,
                 hearts: vec![],
             });
         }
 
+        let claimed_burros: Vec<usize> = burros.iter().map(|x| x.selected_burro).collect();
+        available_burros.retain(|x| !claimed_burros.contains(&x));
+
         // bots
-        for skin in skins.iter().take(number_of_bots) {
+        for _ in 0..number_of_bots {
+            let index = rand::thread_rng().gen_range(0..available_burros.len());
+
             burros.push(BurroState {
+                selected_burro: available_burros.remove(index),
                 score: 0,
-                skin: **skin,
                 is_bot: true,
                 hearts: vec![],
             });
@@ -109,23 +102,10 @@ impl GameState {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum BurroSkin {
-    #[default]
-    Pinata,
-    Meow,
-    Salud,
-    Mexico,
-    Medianoche,
-    Morir,
-    Gators,
-    Aguas,
-}
-
 #[derive(Default)]
 pub struct BurroState {
+    pub selected_burro: usize,
     pub score: usize,
-    pub skin: BurroSkin,
     pub is_bot: bool,
     pub hearts: Vec<Entity>,
 }
@@ -135,6 +115,6 @@ pub struct BurroCharacter {
     pub player: usize,
     pub is_playing: bool,
     pub has_picked: bool,
-    pub selected_burro: BurroSkin,
+    pub selected_burro: usize,
     pub action_cooldown: f32,
 }

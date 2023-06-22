@@ -12,6 +12,7 @@ impl Plugin for GameCameraPlugin {
             //            .add_system(debug_camera.in_set(OnUpdate(AppState::InGame)))
             //          .add_system(check_for_follow_burros)
             //          .add_system(follow_following)
+            .add_system(update_camera.in_set(OnUpdate(AppState::MechaPicker)))
             .add_system(update_camera.in_set(OnUpdate(AppState::InGame)));
     }
 }

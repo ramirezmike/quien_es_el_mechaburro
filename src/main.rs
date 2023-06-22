@@ -18,9 +18,12 @@ mod hit;
 mod game_camera;
 mod game_state;
 mod ingame;
+mod mecha_picker;
+mod menus;
 mod player;
 mod scene_hook;
 mod smoke;
+mod ui;
 
 fn main() {
     let mut app = App::new();
@@ -50,11 +53,13 @@ fn main() {
     .add_plugin(hit::HitPlugin)
     .add_plugin(game_state::GameStatePlugin)
     .add_plugin(game_camera::GameCameraPlugin)
+    .add_plugin(mecha_picker::MechaPickerPlugin)
     .add_plugin(ToonShaderPlugin)
     .add_plugin(player::PlayerPlugin)
     .add_plugin(ingame::InGamePlugin)
     .add_plugin(scene_hook::HookPlugin)
     .add_plugin(smoke::SmokePlugin)
+    .add_plugin(ui::text_size::TextSizePlugin)
     .add_system(debug)
     .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
     .run();
@@ -67,6 +72,7 @@ pub enum AppState {
     Pause,
     Debug,
     Options,
+    LoadInGame,
     InGame,
     TitleScreen,
     CharacterSelect,
@@ -86,7 +92,7 @@ fn bootstrap(
     mut clear_color: ResMut<ClearColor>,
 ) {
     clear_color.0 = Color::hex("000000").unwrap();
-    assets_handler.load(AppState::InGame, &mut game_assets, &game_state, &mut toon_materials);
+    assets_handler.load(AppState::LoadInGame, &mut game_assets, &game_state, &mut toon_materials);
 }
 
 fn debug(
