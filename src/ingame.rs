@@ -213,7 +213,7 @@ fn setup(
                                     max_slope_climb_angle: std::f32::consts::PI / 2.0,
                                     min_slope_slide_angle: 0.0,
                                     slide: true,
-                                    translation: Some(Vec3::new(0.0, 1.0, 0.0)),
+                                    translation: Some(Vec3::new(0.0, 0.5, 0.0)),
                                     filter_groups: Some(CollisionGroups::new(
                                         Group::GROUP_2,
                                         Group::GROUP_1,
@@ -250,7 +250,7 @@ fn setup(
                                                 cmds.insert(( assets::AnimationLink {
                                                     entity: parent_entity,
                                                 }, 
-                                                    Transform::from_xyz(0.0, -1.3, 0.0),
+                                                    Transform::from_xyz(0.0, -1.0, 0.0),
                                                 ));
                                             }
                                             if name.contains("Cube") {
