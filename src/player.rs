@@ -204,20 +204,17 @@ pub fn move_player(
     //    mut audio: audio::GameAudio,
 ) {
     let mut move_events = HashMap::new();
-    let mut facing = None;
     for move_event in player_move_event_reader.iter() {
-        facing = move_event.facing;
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
     for (entity, mut controller, controller_output, mut transform, mut burro) in
         burros.iter_mut()
     {
-        //transform.rotate_z(time.delta_seconds());
-
         let speed: f32 = burro.speed;
         let friction: f32 = burro.friction;
         let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
+        let mut facing = None;
 
         burro.velocity *= friction.powf(time.delta_seconds());
         //        burro.velocity += (Vec3::X * speed) * time.delta_seconds();
@@ -232,6 +229,8 @@ pub fn move_player(
                     burro.velocity += (acceleration * speed) * time.delta_seconds();
                 }
             }
+
+            facing = move_event.facing;
         }
 
         burro.velocity = burro.velocity.clamp_length_max(speed);
@@ -266,13 +265,10 @@ pub fn move_player(
             }
         }
 
-        if !rotation.is_nan()
-            && burro.velocity.length() > 0.1
-            && !burro.is_down
-        {
+        if !rotation.is_nan() && !burro.is_down {
             if let Some(facing) = facing {
                 transform.rotation = facing;
-            } else {
+            } else if burro.velocity.length() > 0.1 {
                 transform.rotation = rotation;
             }
         }

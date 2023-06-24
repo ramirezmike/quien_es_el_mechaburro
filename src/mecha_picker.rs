@@ -181,17 +181,17 @@ fn setup(
                         ..Default::default()
                     },
                     text: Text::from_section(
-                        "Y el \nMechaburro es..",
+                        "MECHABURRO!",
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.5),
                             color: Color::BLACK,
                         },
-                    ),
+                    ).with_alignment(TextAlignment::Center),
                     ..Default::default()
                 })
-                .insert(TopTextMarker)
-                .insert(CleanupMarker);
+                .insert(CleanupMarker)
+                .insert(TextMarker);
 
             parent
                 .spawn(TextBundle {
@@ -203,17 +203,17 @@ fn setup(
                         ..Default::default()
                     },
                     text: Text::from_section(
-                        "MECHABURRO!",
+                        "Y el \nMechaburro es..",
                         TextStyle {
                             font: game_assets.font.clone(),
-                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.5),
+                            font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
                             color: Color::BLACK,
                         },
-                    ),
+                    ).with_alignment(TextAlignment::Center),
                     ..Default::default()
                 })
-                .insert(CleanupMarker)
-                .insert(TextMarker);
+                .insert(TopTextMarker)
+                .insert(CleanupMarker);
         });
 }
 

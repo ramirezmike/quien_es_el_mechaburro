@@ -8,6 +8,7 @@ use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::sync::{Arc, Mutex};
 use std::fs;
+use std::f32::consts::TAU;
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
@@ -226,7 +227,11 @@ fn setup(
                                 CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
                                 burro::Burro::new(burro_state.selected_burro),
                                 TransformBundle {
-                                    local: Transform::from_xyz(point.x, 0.5, point.z),
+                                    local: {
+                                        let mut t = Transform::from_xyz(point.x, 0.5, point.z);
+                                        t.rotation = Quat::from_axis_angle(Vec3::Y, TAU * 0.5);
+                                        t
+                                    },
                                     ..default()
                                 },
                             ));
