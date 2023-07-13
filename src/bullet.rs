@@ -50,7 +50,6 @@ fn handle_bullet_events(
     mut audio: audio::GameAudio,
 ) {
     for bullet in bullet_reader.iter() {
-        println!("Bullet receive");
         commands
             .spawn(match bullet.bullet_type {
                 BulletType::Candy => PbrBundle {

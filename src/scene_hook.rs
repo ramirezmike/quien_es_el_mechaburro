@@ -5,7 +5,7 @@ use bevy::{
     render::primitives::Aabb,
     scene::SceneInstance,
 };
-use crate::{assets, game_state};
+use crate::{assets, game_state, floor};
 
 #[derive(Component, Debug)]
 pub struct SceneHooked;
@@ -17,18 +17,20 @@ pub struct HookedSceneBundle {
     pub scene: SceneBundle,
 }
 
-pub struct HookData<'a> {
+pub struct HookData<'a, 'w> {
     pub mesh: Option<&'a Mesh>,
     pub global_transform: Option<&'a GlobalTransform>,
     pub aabb: Option<&'a Aabb>,
+    pub name: Option<&'a Name>,
+    pub floor_manager: &'a mut ResMut<'w, floor::FloorManager>,
 }
 
 #[derive(Component)]
 pub struct SceneHook {
-    hook: Box<dyn Fn(&EntityRef, &mut EntityCommands, HookData) + Send + Sync + 'static>,
+    hook: Box<dyn Fn(&mut EntityCommands, HookData) + Send + Sync + 'static>,
 }
 impl SceneHook {
-    pub fn new<F: Fn(&EntityRef, &mut EntityCommands, HookData) + Send + Sync + 'static>(
+    pub fn new<F: Fn(&mut EntityCommands, HookData) + Send + Sync + 'static>(
         hook: F,
     ) -> Self {
         Self {
@@ -55,36 +57,39 @@ pub fn run_hooks(
         Without<SceneHooked>,
     >,
     scene_manager: Res<SceneSpawner>,
-    world: &World,
     meshes: Res<Assets<Mesh>>,
+    components: Query<(Option<&GlobalTransform>, Option<&Aabb>, Option<&Handle<Mesh>>, Option<&Name>)>,
     gltfs: Res<Assets<Gltf>>,
     game_assets: Res<assets::GameAssets>,
     game_state: Res<game_state::GameState>,
+    mut floor_manager: ResMut<floor::FloorManager>,
     mut cmds: Commands,
 ) {
     for (entity, instance, hooked, maybe_on_complete) in &unloaded_instances {
+        for entity in scene_manager.iter_instance_entities(**instance) {
+            if let Ok((global_transform, aabb, mesh_handle, name)) = components.get(entity) {
+                let mesh = mesh_handle.and_then(|m| meshes.get(m));
+
+                let hook_data = HookData {
+                    mesh,
+                    global_transform,
+                    aabb,
+                    name,
+                    floor_manager: &mut floor_manager,
+                };
+
+                let mut cmd = cmds.entity(entity);
+                (hooked.hook)(&mut cmd, hook_data);
+
+            }
+        }
+
         if scene_manager.instance_is_ready(**instance) {
             cmds.entity(entity).insert(SceneHooked);
-        }
-        let entities = scene_manager.iter_instance_entities(**instance);
-        for entity_ref in entities.filter_map(|e| world.get_entity(e)) {
-            let mut cmd = cmds.entity(entity_ref.id());
-            let mesh = entity_ref
-                .get::<Handle<Mesh>>()
-                .and_then(|m| meshes.get(m));
-            let global_transform = entity_ref.get::<GlobalTransform>();
-            let aabb = entity_ref.get::<Aabb>();
-
-            let hook_data = HookData {
-                mesh,
-                global_transform,
-                aabb,
-            };
-            (hooked.hook)(&entity_ref, &mut cmd, hook_data);
-        }
-        if let Some(on_complete) = maybe_on_complete {
-            (on_complete.on_complete)(&mut cmds, &gltfs, &game_assets, &game_state);
-        }
+            if let Some(on_complete) = maybe_on_complete {
+                (on_complete.on_complete)(&mut cmds, &gltfs, &game_assets, &game_state);
+            }
+        } 
     }
 }
 

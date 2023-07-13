@@ -1,4 +1,4 @@
-use crate::{asset_loading, assets, burro, game_camera, game_state, player, scene_hook, AppState};
+use crate::{asset_loading, assets, bot, burro, game_camera, game_state, player, scene_hook, AppState, floor};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_mod_outline::{
@@ -168,8 +168,10 @@ fn setup(
                     scene: gltf.scenes[0].clone(),
                     ..default()
                 },
-                hook: scene_hook::SceneHook::new(move |entity, cmds, hook_data| {
-                    if let Some(name) = entity.get::<Name>().map(|t| t.as_str()) {
+                hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
+                    if let Some(name) = hook_data.name {
+                        let name = name.as_str();
+                        println!("{}", name);
                         if name.contains("Cube") {
                             if let Some(mesh) = hook_data.mesh {
                                 cmds.insert(
@@ -178,16 +180,26 @@ fn setup(
                                 )
                                 .insert(CollisionGroups::new(Group::GROUP_1, Group::ALL));
                             }
+
+                        }
+
+                        if name.contains("floor") {
+                            if let (Some(global_transform), Some(aabb)) = (hook_data.global_transform, hook_data.aabb) {
+                                hook_data.floor_manager.store_floor(&global_transform, &aabb);
+                            }
                         }
 
                         if name.contains("spawn_point") {
-                            let matrix = hook_data.global_transform.unwrap().compute_matrix();
-                            let translation =
-                                matrix.transform_point3(hook_data.aabb.unwrap().center.into());
-                            if let Ok(mut spawn_points) = hook_spawn_points.lock() {
-                                spawn_points.push(translation);
+                            println!("LOADING SPAWN POINTS");
+                            if let (Some(global_transform), Some(aabb)) = (hook_data.global_transform, hook_data.aabb) {
+                                let matrix = global_transform.compute_matrix();
+                                let translation =
+                                    matrix.transform_point3(aabb.center.into());
+                                if let Ok(mut spawn_points) = hook_spawn_points.lock() {
+                                    spawn_points.push(translation);
+                                }
+                                cmds.insert(Visibility::Hidden);
                             }
-                            cmds.insert(Visibility::Hidden);
                         }
 
                         if name.contains("Invisible") {
@@ -198,6 +210,7 @@ fn setup(
             },
             scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets, game_state| {
                 if let Ok(spawn_points) = on_complete_spawn_points.lock() {
+                    println!("SCENE ON COMPLETE STARTING");
                     for (i, burro_state) in game_state.burros.iter().enumerate() {
                         let point = spawn_points[i];
 
@@ -238,6 +251,8 @@ fn setup(
 
                             if i == 0 {
                                 entity_commands.insert(player::PlayerBundle::new());
+                            } else {
+                                entity_commands.insert(bot::BotBundle::new());
                             }
 
                             entity_commands
@@ -248,9 +263,9 @@ fn setup(
                                         scene: gltf.scenes[0].clone(),
                                         ..default()
                                     },
-                                    hook: scene_hook::SceneHook::new(move |entity, cmds, _| {
-                                        if let Some(name) = entity.get::<Name>().map(|t| t.as_str())
-                                        {
+                                    hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
+                                        if let Some(name) = hook_data.name {
+                                            let name = name.as_str();
                                             if name.contains("Armature") {
                                                 cmds.insert(( assets::AnimationLink {
                                                     entity: parent_entity,
