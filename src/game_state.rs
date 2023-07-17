@@ -8,10 +8,11 @@ impl Plugin for GameStatePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameState::default())
             .add_event::<ScoreAddEvent>()
-            .add_system(handle_score_add_event.in_set(OnUpdate(AppState::ScoreDisplay)));
+            .add_systems(Update, handle_score_add_event.run_if(in_state(AppState::ScoreDisplay)));
     }
 }
 
+#[derive(Event)]
 pub struct ScoreAddEvent;
 
 fn handle_score_add_event(

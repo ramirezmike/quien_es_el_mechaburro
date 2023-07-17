@@ -11,14 +11,14 @@ pub struct MechaPickerPlugin;
 impl Plugin for MechaPickerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TextDisplayTimers::default())
-            .add_system(setup.in_schedule(OnEnter(AppState::MechaPicker)))
+            .add_systems(OnEnter(AppState::MechaPicker), setup)
             .add_event::<PickMechaEvent>()
-            .add_system(cleanup::<CleanupMarker>.in_schedule(OnExit(AppState::MechaPicker)))
-            .add_systems(
+            .add_systems(OnExit(AppState::MechaPicker), cleanup::<CleanupMarker>)
+            .add_systems(Update,
                 (pick_mecha,
                 animate_mecha_selection,
                 handle_mecha_pick_event)
-                .in_set(OnUpdate(AppState::MechaPicker))
+                .run_if(in_state(AppState::MechaPicker))
             );
     }
 }
@@ -32,6 +32,7 @@ struct TopTextMarker;
 #[derive(Component)]
 struct CleanupMarker;
 
+#[derive(Event)]
 struct PickMechaEvent {
     burro_id: usize,
 }

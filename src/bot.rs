@@ -7,13 +7,9 @@ pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_systems(Update,
             (update_bot_ai, update_virtual_controllers).chain()
-                    .in_set(OnUpdate(AppState::InGame))
-        )
-        .add_systems(
-            (update_bot_ai, update_virtual_controllers).chain()
-                    .in_set(OnUpdate(AppState::ScoreDisplay))
+                    .run_if(in_state(AppState::InGame).or_else(in_state(AppState::ScoreDisplay)))
         );
     }
 }
@@ -58,7 +54,6 @@ enum Cardinal {
 #[derive(Bundle)]
 pub struct BotBundle {
     bot: Bot,
-    #[bundle]
     input_manager: InputManagerBundle<PlayerAction>,
 }
 

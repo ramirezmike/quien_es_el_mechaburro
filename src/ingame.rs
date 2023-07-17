@@ -15,15 +15,15 @@ impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(OutlinePlugin)
             .add_plugin(AutoGenerateOutlineNormalsPlugin)
-            .add_system(setup.in_schedule(OnEnter(AppState::LoadInGame)))
-            .add_systems(
+            .add_systems(OnEnter(AppState::LoadInGame), setup)
+            .add_systems(Update,
                 (
                     player::handle_input,
                     player::move_player,
-                    apply_system_buffers,
+                    apply_deferred,
                 )
                     .chain()
-                    .in_set(OnUpdate(AppState::InGame)),
+                    .run_if(in_state(AppState::InGame)),
             );
     }
 }

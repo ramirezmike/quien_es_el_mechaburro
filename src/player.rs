@@ -1,5 +1,5 @@
 use crate::{assets, bullet, burro, direction, ZeroSignum};
-use bevy::prelude::*;
+use bevy::{prelude::*, reflect::TypePath};
 use bevy_rapier3d::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
@@ -20,7 +20,7 @@ pub enum Movement {
     Normal(direction::Direction),
 }
 
-#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
+#[derive(Actionlike, TypePath, PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub enum PlayerAction {
     Up,
     Down,
@@ -53,7 +53,6 @@ impl PlayerAction {
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
-    #[bundle]
     input_manager: InputManagerBundle<PlayerAction>,
 }
 
@@ -116,6 +115,7 @@ impl PlayerBundle {
     }
 }
 
+#[derive(Event)]
 pub struct PlayerMoveEvent {
     pub entity: Entity,
     pub movement: Movement,

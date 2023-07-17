@@ -16,6 +16,7 @@ pub struct Hit {
     pub move_toward: Vec3,
 }
 
+#[derive(Event)]
 pub struct CreateHitEvent {
     pub position: Vec3,
     pub is_candy: bool,

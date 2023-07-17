@@ -5,8 +5,8 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<BulletEvent>()
-            .add_system(cleanup::<CleanupMarker>.in_schedule(OnExit(AppState::InGame)))
-            .add_systems(
+            .add_systems(OnExit(AppState::InGame), cleanup::<CleanupMarker>)
+            .add_systems(Update,
                 (handle_bullet_events.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))),
                  handle_bullets.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
                 .chain()
@@ -14,6 +14,7 @@ impl Plugin for BulletPlugin {
     }
 }
 
+#[derive(Event)]
 pub struct BulletEvent {
     pub source: Entity,
     pub speed: f32,

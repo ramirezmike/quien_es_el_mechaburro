@@ -41,10 +41,11 @@ fn main() {
     app.add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default());
 
-    app.insert_resource(bevy_egui::EguiSettings {
-        scale_factor: 1.8,
-        ..default()
-    })
+    app
+//  .insert_resource(bevy_egui::EguiSettings {
+//      scale_factor: 1.8,
+//      ..default()
+//  })
     .insert_resource(config::GameConfiguration::default())
     .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugin(asset_loading::AssetLoadingPlugin)
@@ -64,8 +65,8 @@ fn main() {
     .add_plugin(scene_hook::HookPlugin)
     .add_plugin(smoke::SmokePlugin)
     .add_plugin(ui::text_size::TextSizePlugin)
-    .add_system(debug)
-    .add_system(bootstrap.in_set(OnUpdate(AppState::Initial)))
+    .add_systems(Update, debug)
+    .add_systems(Update, bootstrap.run_if(in_state(AppState::Initial)))
     .run();
 }
 

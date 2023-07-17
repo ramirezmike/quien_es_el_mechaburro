@@ -13,7 +13,6 @@ pub struct SceneHooked;
 #[derive(Bundle)]
 pub struct HookedSceneBundle {
     pub hook: SceneHook,
-    #[bundle]
     pub scene: SceneBundle,
 }
 

@@ -9,7 +9,7 @@ impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<QueueState>()
             .init_resource::<AssetsLoading>()
-            .add_system(check_assets_ready.in_set(OnUpdate(AppState::Loading)));
+            .add_systems(Update, check_assets_ready.run_if(in_state(AppState::Loading)));
     }
 }
 

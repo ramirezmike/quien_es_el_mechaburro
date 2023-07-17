@@ -6,14 +6,14 @@ use rand::Rng;
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_systems(Update,
                 (handle_burros, handle_burro_death_events, handle_burro_hit)
                 .chain()
-                .in_set(OnUpdate(AppState::InGame)),
+                .run_if(in_state(AppState::InGame)),
             )
-            .add_systems(
+            .add_systems(Update,
                 (handle_fallen_burros, handle_burro_flash_events)
-                .in_set(OnUpdate(AppState::InGame)),
+                .run_if(in_state(AppState::InGame)),
             )
             .add_system(squish_burros.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
             .add_event::<BurroFlashEvent>()
@@ -22,17 +22,20 @@ impl Plugin for BurroPlugin {
     }
 }
 
+#[derive(Event)]
 pub struct BurroHitEvent {
     pub entity: Entity,
     pub velocity: Vec3,
     pub is_laser: bool,
 }
 
+#[derive(Event)]
 pub struct BurroDeathEvent {
     pub entity: Entity,
     pub id: usize,
 }
 
+#[derive(Event)]
 pub struct BurroFlashEvent {
     entity: Entity,
     show: bool,
