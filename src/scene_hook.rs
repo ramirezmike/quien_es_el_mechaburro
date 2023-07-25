@@ -95,6 +95,6 @@ pub fn run_hooks(
 pub struct HookPlugin;
 impl Plugin for HookPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(run_hooks);
+        app.add_systems(Update, run_hooks);
     }
 }

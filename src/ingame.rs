@@ -13,8 +13,7 @@ use std::f32::consts::TAU;
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(OutlinePlugin)
-            .add_plugin(AutoGenerateOutlineNormalsPlugin)
+        app.add_plugins((OutlinePlugin, AutoGenerateOutlineNormalsPlugin))
             .add_systems(OnEnter(AppState::LoadInGame), setup)
             .add_systems(Update,
                 (

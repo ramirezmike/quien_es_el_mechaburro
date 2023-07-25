@@ -5,7 +5,7 @@ use bevy::window::PrimaryWindow;
 pub struct TextSizePlugin;
 impl Plugin for TextSizePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(store_current_window_size)
+        app.add_systems(Update, store_current_window_size)
             .insert_resource(WindowSize {
                 width: 0.0,
                 height: 0.0,

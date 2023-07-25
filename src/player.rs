@@ -11,7 +11,7 @@ use leafwing_input_manager::prelude::*;
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(InputManagerPlugin::<PlayerAction>::default())
+        app.add_plugins(InputManagerPlugin::<PlayerAction>::default())
             .add_event::<PlayerMoveEvent>();
     }
 }

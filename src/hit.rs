@@ -5,9 +5,8 @@ use rand::{thread_rng, Rng};
 pub struct HitPlugin;
 impl Plugin for HitPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(handle_create_hit_event)
-            .add_event::<CreateHitEvent>()
-            .add_system(animate_hit);
+        app.add_systems(Update, (handle_create_hit_event, animate_hit))
+            .add_event::<CreateHitEvent>();
     }
 }
 

@@ -7,7 +7,7 @@ impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_audio_channel::<MusicChannel>()
             .add_audio_channel::<SoundChannel>()
-            .add_plugin(AudioPlugin);
+            .add_plugins(AudioPlugin);
     }
 }
 

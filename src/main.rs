@@ -32,14 +32,13 @@ fn main() {
     app.add_plugins(DefaultPlugins).add_state::<AppState>();
 
     #[cfg(feature = "inspect")]
-    app.add_plugin(WorldInspectorPlugin::new());
+    app.add_plugins(WorldInspectorPlugin::new());
 
     #[cfg(feature = "lines")]
-    app.add_plugin(RapierDebugRenderPlugin::default());
+    app.add_plugins(RapierDebugRenderPlugin::default());
 
     #[cfg(feature = "fps")]
-    app.add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugins((LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()));
 
     app
 //  .insert_resource(bevy_egui::EguiSettings {
@@ -47,24 +46,28 @@ fn main() {
 //      ..default()
 //  })
     .insert_resource(config::GameConfiguration::default())
-    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-    .add_plugin(asset_loading::AssetLoadingPlugin)
-    .add_plugin(assets::AssetsPlugin)
-    .add_plugin(audio::GameAudioPlugin)
-    .add_plugin(bullet::BulletPlugin)
-    .add_plugin(burro::BurroPlugin)
-    .add_plugin(bot::BotPlugin)
-    .add_plugin(hit::HitPlugin)
-    .add_plugin(game_state::GameStatePlugin)
-    .add_plugin(game_camera::GameCameraPlugin)
-    .add_plugin(mecha_picker::MechaPickerPlugin)
-    .add_plugin(ToonShaderPlugin)
-    .add_plugin(floor::FloorPlugin)
-    .add_plugin(player::PlayerPlugin)
-    .add_plugin(ingame::InGamePlugin)
-    .add_plugin(scene_hook::HookPlugin)
-    .add_plugin(smoke::SmokePlugin)
-    .add_plugin(ui::text_size::TextSizePlugin)
+    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugins((
+        audio::GameAudioPlugin,
+        bullet::BulletPlugin,
+        burro::BurroPlugin,
+        bot::BotPlugin,
+        hit::HitPlugin,
+        game_state::GameStatePlugin,
+        game_camera::GameCameraPlugin,
+        mecha_picker::MechaPickerPlugin,
+        floor::FloorPlugin,
+        player::PlayerPlugin,
+        ingame::InGamePlugin,
+        smoke::SmokePlugin,
+    ))
+    .add_plugins((
+        asset_loading::AssetLoadingPlugin,
+        assets::AssetsPlugin,
+        ToonShaderPlugin,
+        scene_hook::HookPlugin,
+        ui::text_size::TextSizePlugin,
+    ))
     .add_systems(Update, debug)
     .add_systems(Update, bootstrap.run_if(in_state(AppState::Initial)))
     .run();

@@ -15,7 +15,7 @@ impl Plugin for BurroPlugin {
                 (handle_fallen_burros, handle_burro_flash_events)
                 .run_if(in_state(AppState::InGame)),
             )
-            .add_system(squish_burros.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
+            .add_systems(Update, squish_burros.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
             .add_event::<BurroFlashEvent>()
             .add_event::<BurroHitEvent>()
             .add_event::<BurroDeathEvent>();
