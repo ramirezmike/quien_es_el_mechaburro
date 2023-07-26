@@ -20,6 +20,8 @@ mod hit;
 mod game_camera;
 mod game_state;
 mod ingame;
+mod input;
+mod options;
 mod mecha_picker;
 mod menus;
 mod player;
@@ -41,12 +43,15 @@ fn main() {
     app.add_plugins((LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()));
 
     app
-//  .insert_resource(bevy_egui::EguiSettings {
-//      scale_factor: 1.8,
-//      ..default()
-//  })
+    .insert_resource(bevy_egui::EguiSettings {
+        scale_factor: 1.8,
+        ..default()
+    })
     .insert_resource(config::GameConfiguration::default())
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugins((
+        options::OptionsMenuPlugin,
+    ))
     .add_plugins((
         audio::GameAudioPlugin,
         bullet::BulletPlugin,
@@ -65,6 +70,7 @@ fn main() {
         asset_loading::AssetLoadingPlugin,
         assets::AssetsPlugin,
         ToonShaderPlugin,
+        input::InputPlugin,
         scene_hook::HookPlugin,
         ui::text_size::TextSizePlugin,
     ))
@@ -100,7 +106,7 @@ fn bootstrap(
     mut clear_color: ResMut<ClearColor>,
 ) {
     clear_color.0 = Color::hex("000000").unwrap();
-    assets_handler.load(AppState::LoadInGame, &mut game_assets, &game_state, &mut toon_materials);
+    assets_handler.load(AppState::Options, &mut game_assets, &game_state, &mut toon_materials);
 }
 
 fn debug(

@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, game_state, ingame, AppState}; //, , title_screen, splash};
+use crate::{assets::GameAssets, game_state, ingame, AppState, options}; //, , title_screen, splash};
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
@@ -153,6 +153,7 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         match state {
             //          AppState::TitleScreen => title_screen::load(self, game_assets),
             //          AppState::Splash => splash::load(self, game_assets),
+            AppState::Options => options::load(self, game_assets, game_state),
             AppState::LoadInGame => ingame::load(self, game_assets, game_state, toon_materials),
             //          AppState::Debug => levels::debug::load(self, game_assets, game_state),
             _ => (),
