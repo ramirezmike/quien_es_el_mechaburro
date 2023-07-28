@@ -1,5 +1,6 @@
-use crate::{asset_loading, assets, bot, burro, game_camera, game_state, player, scene_hook, AppState, floor};
+use crate::{asset_loading, assets, bot, burro, game_camera, game_state, player, scene_hook, AppState, floor, };
 use bevy::gltf::Gltf;
+use bevy::ecs::system::{Command, SystemState};
 use bevy::prelude::*;
 use bevy_mod_outline::{
     AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
@@ -24,6 +25,102 @@ impl Plugin for InGamePlugin {
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             );
+    }
+}
+
+pub struct IngameLoader;
+impl Command for IngameLoader {
+    fn apply(self, world: &mut World) {
+        let mut system_state: SystemState<(
+             asset_loading::AssetsHandler,
+             ResMut<assets::GameAssets>,
+             ResMut<game_state::GameState>,
+             ResMut<Assets<ToonShaderMaterial>>)> = SystemState::new(world);
+        let (mut assets_handler, mut game_assets, game_state, mut toon_materials,) = system_state.get_mut(world);
+
+
+        assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
+        assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
+        assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
+        assets_handler.add_animation(
+            &mut game_assets.burro_run,
+            "models/burro_new.glb#Animation0",
+        );
+
+        let mut mechaburro_texture = asset_loading::GameTexture::default();
+        assets_handler.add_material(
+            &mut mechaburro_texture,
+            &"textures/mechaburro.png",
+            false,
+        );
+        let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+            base_color_texture: Some(mechaburro_texture.image.clone()),
+            color: Color::default(),
+            sun_dir: Vec3::new(0.0, 0.0, 0.0),
+            sun_color: Color::default(),
+            camera_pos: Vec3::new(0.0, 1.0, -1.0),
+            ambient_color: Color::default(),
+        });
+        game_assets.mechaburro_texture = assets::BurroAsset {
+            name: "Mechaburro".into(),
+            texture: mechaburro_texture,
+            toon_texture: toon_material_textured 
+        };
+
+        let folder_path = "assets/textures/burros";
+        if let Ok(entries) = fs::read_dir(folder_path) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let file_path = entry.path();
+
+                    if let Some(extension) = file_path.extension() {
+                        if extension == "png" {
+                            if let Some(file_name) = file_path.file_stem() {
+                                if let Some(name) = file_name.to_str() {
+                                    let mut texture = asset_loading::GameTexture::default();
+                                    assets_handler.add_material(
+                                        &mut texture,
+                                        &format!("textures/burros/{}.png", name),
+                                        false,
+                                    );
+
+                                    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
+                                        base_color_texture: Some(texture.image.clone()),
+                                        color: Color::default(),
+                                        sun_dir: Vec3::new(0.0, 0.0, 0.0),
+                                        sun_color: Color::default(),
+                                        camera_pos: Vec3::new(0.0, 1.0, -1.0),
+                                        ambient_color: Color::default(),
+                                    });
+
+                                    game_assets.burro_assets.push(assets::BurroAsset {
+                                        name: name.into(),
+                                        texture,
+                                        toon_texture: toon_material_textured 
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            panic!("Assets folder or burros folder not found, can't run the game");
+        }
+
+        assets_handler.add_mesh(
+            &mut game_assets.candy.mesh,
+            "models/candy.gltf#Mesh0/Primitive0",
+        );
+        assets_handler.add_mesh(
+            &mut game_assets.laser.mesh,
+            "models/laser.gltf#Mesh0/Primitive0",
+        );
+
+        assets_handler.add_glb(
+            &mut game_assets.level,
+            &format!("models/level_{:02}.glb", game_state.current_level),
+        );
     }
 }
 

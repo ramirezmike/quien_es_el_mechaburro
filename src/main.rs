@@ -19,15 +19,16 @@ mod floor;
 mod hit;
 mod game_camera;
 mod game_state;
+mod loading;
 mod ingame;
 mod input;
-mod options;
 mod mecha_picker;
-mod menus;
+mod menu;
 mod player;
 mod scene_hook;
 mod smoke;
 mod ui;
+mod util;
 
 fn main() {
     let mut app = App::new();
@@ -50,7 +51,7 @@ fn main() {
     .insert_resource(config::GameConfiguration::default())
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins((
-        options::OptionsMenuPlugin,
+        menu::options::OptionsMenuPlugin,
     ))
     .add_plugins((
         audio::GameAudioPlugin,
@@ -98,15 +99,14 @@ pub enum AppState {
     Splash,
 }
 
+use loading::command_ext::*;
 fn bootstrap(
-    mut assets_handler: asset_loading::AssetsHandler,
-    mut game_assets: ResMut<assets::GameAssets>,
-    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
-    game_state: ResMut<game_state::GameState>,
+    mut commands: Commands,
     mut clear_color: ResMut<ClearColor>,
 ) {
     clear_color.0 = Color::hex("000000").unwrap();
-    assets_handler.load(AppState::Options, &mut game_assets, &game_state, &mut toon_materials);
+
+    commands.load_state(AppState::Options);
 }
 
 fn debug(

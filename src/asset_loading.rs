@@ -1,8 +1,7 @@
-use crate::{assets::GameAssets, game_state, ingame, AppState, options}; //, , title_screen, splash};
+use crate::AppState;
 use bevy::{asset::Asset, ecs::system::SystemParam, gltf::Gltf, prelude::*};
 use bevy_kira_audio::AudioSource;
 use std::marker::PhantomData;
-use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
 pub struct AssetLoadingPlugin;
 impl Plugin for AssetLoadingPlugin {
@@ -21,7 +20,7 @@ pub struct GameTexture {
 
 #[derive(Resource)]
 pub struct QueueState {
-    state: AppState,
+    pub state: AppState,
 }
 impl Default for QueueState {
     fn default() -> Self {
@@ -57,18 +56,6 @@ impl<'w, 's> AssetsHandler<'w, 's> {
         self.assets_loading
             .asset_handles
             .push((asset.clone_untyped(), path.to_string()));
-    }
-
-    pub fn load(
-        &mut self,
-        queued_state: AppState,
-        game_assets: &mut ResMut<GameAssets>,
-        game_state: &ResMut<game_state::GameState>,
-        toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
-    ) {
-        self.queue_assets_for_state(&queued_state, game_assets, game_state, toon_materials);
-        self.queued_state.state = queued_state;
-        self.next_state.set(AppState::Loading);
     }
 
     //  pub fn load_next_level(
@@ -141,23 +128,6 @@ impl<'w, 's> AssetsHandler<'w, 's> {
             },
             ..Default::default()
         });
-    }
-
-    fn queue_assets_for_state(
-        &mut self,
-        state: &AppState,
-        game_assets: &mut ResMut<GameAssets>,
-        game_state: &ResMut<game_state::GameState>,
-        toon_materials: &mut ResMut<Assets<ToonShaderMaterial>>,
-    ) {
-        match state {
-            //          AppState::TitleScreen => title_screen::load(self, game_assets),
-            //          AppState::Splash => splash::load(self, game_assets),
-            AppState::Options => options::load(self, game_assets, game_state),
-            AppState::LoadInGame => ingame::load(self, game_assets, game_state, toon_materials),
-            //          AppState::Debug => levels::debug::load(self, game_assets, game_state),
-            _ => (),
-        }
     }
 }
 

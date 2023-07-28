@@ -1,6 +1,7 @@
-use crate::{AppState, assets, menus, ui::text_size, game_camera, game_state, asset_loading, input, input::InputCommandsExt, audio, cleanup};
+use crate::{AppState, assets, ui, game_camera, game_state, asset_loading, input, input::InputCommandsExt, audio, cleanup, };
+use crate::loading::command_ext::*;
+use crate::util::num_ext::*;
 use bevy::prelude::*;
-use bevy_toon_shader::ToonShaderMaterial;
 use leafwing_input_manager::prelude::*;
 
 pub struct OptionsMenuPlugin;
@@ -8,8 +9,8 @@ impl Plugin for OptionsMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Options), setup)
            .init_resource::<OptionState>()
-           .add_systems(OnExit(AppState::Options), cleanup::<CleanupMarker>)
-           .add_systems(Update, (highlight_selection, handle_input, update_values).run_if(in_state(AppState::Options)));
+           .add_systems(Update, (highlight_selection, handle_input, update_values).run_if(in_state(AppState::Options)))
+           .add_systems(OnExit(AppState::Options), cleanup::<CleanupMarker>);
     }
 }
 
@@ -19,35 +20,6 @@ pub struct OptionState {
     number_of_players: isize,
     number_of_bots: isize,
     unfair_advantage: isize,
-}
-
-trait RangedWrap<Rhs = Self> {
-    type Output;
-
-    fn sub_with_wrap(self, value: Rhs, max: Rhs) -> Self::Output;
-    fn add_with_wrap(self, value: Rhs, max: Rhs) -> Self::Output;
-}
-
-impl RangedWrap for isize {
-    type Output = Self;
-
-    fn sub_with_wrap(self, value: Self, max: Self) -> Self::Output {
-        let result = self - value;
-        if result < 0 {
-            max - 1
-        } else {
-            result
-        }
-    }
-
-    fn add_with_wrap(self, value: Self, max: Self) -> Self::Output {
-        let result = self + value;
-        if result < max {
-            result
-        } else {
-            0
-        }
-    }
 }
 
 impl OptionState {
@@ -145,13 +117,18 @@ const _:() = {
 #[derive(Component)]
 struct CleanupMarker;
 
-pub fn load(
-    assets_handler: &mut asset_loading::AssetsHandler,
-    game_assets: &mut ResMut<assets::GameAssets>,
-    game_state: &ResMut<game_state::GameState>,
-) {
-    assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
-    assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
+use bevy::ecs::system::{Command, SystemState};
+pub struct OptionsMenutLoader;
+impl Command for OptionsMenutLoader {
+    fn apply(self, world: &mut World) {
+        let mut system_state: SystemState<(
+             asset_loading::AssetsHandler,
+             ResMut<assets::GameAssets>)> = SystemState::new(world);
+        let (mut assets_handler, mut game_assets) = system_state.get_mut(world);
+
+        assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
+        assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
+    }
 }
 
 fn highlight_selection(
@@ -161,7 +138,7 @@ fn highlight_selection(
     for (&option, maybe_background_color, maybe_text) in &mut options {
         if option == options_state.selected_option {
             if let Some(mut background_color) = maybe_background_color {
-                *background_color = BackgroundColor(menus::HOVERED_BUTTON);
+                *background_color = BackgroundColor(ui::HOVERED_BUTTON);
             }
             if let Some(mut text) = maybe_text {
                 for text_section in text.sections.iter_mut() {
@@ -170,7 +147,7 @@ fn highlight_selection(
             }
         } else {
             if let Some(mut background_color) = maybe_background_color {
-                *background_color = BackgroundColor(menus::NORMAL_BUTTON);
+                *background_color = BackgroundColor(ui::NORMAL_BUTTON);
             }
             if let Some(mut text) = maybe_text {
                 for text_section in text.sections.iter_mut() {
@@ -191,12 +168,10 @@ fn update_values(
 }
 
 fn handle_input(
+    mut commands: Commands,
     mut option_state: ResMut<OptionState>,
     action_state: Query<&ActionState<input::MenuAction>>,
-    mut assets_handler: asset_loading::AssetsHandler,
-    mut game_assets: ResMut<assets::GameAssets>,
-    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
-    game_state: ResMut<game_state::GameState>,
+    game_assets: Res<assets::GameAssets>,
     mut audio: audio::GameAudio,
 ) {
     let action_state = action_state.single();
@@ -224,7 +199,7 @@ fn handle_input(
     if action_state.just_pressed(input::MenuAction::Select) {
         if option_state.selected_option == Options::Vamos {
             audio.play_sfx(&game_assets.sfx_1);
-            assets_handler.load(AppState::LoadInGame, &mut game_assets, &game_state, &mut toon_materials);
+            commands.load_state(AppState::LoadInGame);
         }
     }
 }
@@ -232,7 +207,7 @@ fn handle_input(
 fn setup(
     mut commands: Commands,
     game_assets: Res<assets::GameAssets>,
-    text_scaler: text_size::TextScaler,
+    text_scaler: ui::text_size::TextScaler,
 ) {
     game_camera::spawn_camera(&mut commands, CleanupMarker);
     commands.spawn_menu_input(CleanupMarker);
@@ -256,7 +231,6 @@ fn setup(
             width: Val::Percent(100.),
             height: Val::Percent(20.),
             display: Display::Flex,
-            flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::Center,
             ..default()
         },
@@ -268,7 +242,7 @@ fn setup(
                 "Game Settings",
                 TextStyle {
                     font: game_assets.font.clone(),
-                    font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE * 1.2),
+                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 1.2),
                     color: Color::WHITE,
                 },
             ),
@@ -300,7 +274,6 @@ fn setup(
                         ..default()
                     },
                     border_color: BorderColor(Color::WHITE),
-                    background_color: BackgroundColor(Color::RED),
                     ..default()
                 }, option.clone()))
                 .with_children(|builder| {
@@ -309,7 +282,7 @@ fn setup(
                             format!("{}", option.get_label()),
                             TextStyle {
                                 font: game_assets.score_font.clone(),
-                                font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                 color: Color::WHITE,
                             },
                         ),
@@ -338,7 +311,7 @@ fn setup(
                             format!("{}:", option.get_label()),
                             TextStyle {
                                 font: game_assets.font.clone(),
-                                font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                 color: Color::WHITE,
                             },
                         ),
@@ -363,7 +336,7 @@ fn setup(
                                 "<",
                                 TextStyle {
                                     font: game_assets.score_font.clone(),
-                                    font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                     color: Color::WHITE,
                                 },
                             ),
@@ -374,7 +347,7 @@ fn setup(
                                 "5",
                                 TextStyle {
                                     font: game_assets.score_font.clone(),
-                                    font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                     color: Color::WHITE,
                                 },
                             ),
@@ -385,7 +358,7 @@ fn setup(
                                 ">",
                                 TextStyle {
                                     font: game_assets.score_font.clone(),
-                                    font_size: text_scaler.scale(menus::DEFAULT_FONT_SIZE),
+                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                     color: Color::WHITE,
                                 },
                             ),
