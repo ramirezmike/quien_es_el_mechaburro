@@ -1,52 +1,53 @@
 use crate::{AppState, assets, ui, game_camera, asset_loading, input, input::InputCommandsExt, audio, cleanup, };
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
+use super::MenuOption;
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-pub struct OptionsMenuPlugin;
-impl Plugin for OptionsMenuPlugin {
+pub struct SettingsMenuPlugin;
+impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Options), setup)
-           .init_resource::<OptionState>()
-           .add_systems(Update, (highlight_selection, handle_input, update_values).run_if(in_state(AppState::Options)))
-           .add_systems(OnExit(AppState::Options), cleanup::<CleanupMarker>);
+        app.add_systems(OnEnter(AppState::Settings), setup)
+           .init_resource::<SettingsMenuState>()
+           .add_systems(Update, (highlight_selection, handle_input, update_values).run_if(in_state(AppState::Settings)))
+           .add_systems(OnExit(AppState::Settings), cleanup::<CleanupMarker>);
     }
 }
 
 #[derive(Default, Resource)]
-pub struct OptionState {
-    selected_option: Options,
+pub struct SettingsMenuState {
+    selected_setting: Settings,
     number_of_players: isize,
     number_of_bots: isize,
     unfair_advantage: isize,
 }
 
-impl OptionState {
-    fn display(&self, option: &Options) -> String {
-        match option {
-            Options::NumberOfPlayers => format!("{}", self.number_of_players + 1),
-            Options::NumberOfBots => format!("{}", self.number_of_bots + 1),
-            Options::UnfairAdvantage => {
+impl SettingsMenuState {
+    fn display(&self, setting: &Settings) -> String {
+        match setting {
+            Settings::NumberOfPlayers => format!("{}", self.number_of_players + 1),
+            Settings::NumberOfBots => format!("{}", self.number_of_bots + 1),
+            Settings::UnfairAdvantage => {
                 match self.unfair_advantage {
                     0 => "Mechaburrito".to_string(),
                     1 => " Mechaburro ".to_string(),
                     _ => "Mechagigante".to_string(),
                 }
             },
-            option => option.get_label().to_string()
+            setting => setting.get_label().to_string()
         }
     }
 
     fn increment(&mut self) {
-        match self.selected_option {
-            Options::NumberOfPlayers => {
+        match self.selected_setting {
+            Settings::NumberOfPlayers => {
                 self.number_of_players = self.number_of_players.add_with_wrap(1, 8);
             },
-            Options::NumberOfBots => {
+            Settings::NumberOfBots => {
                 self.number_of_bots = self.number_of_bots.add_with_wrap(1, 8);
             },
-            Options::UnfairAdvantage => {
+            Settings::UnfairAdvantage => {
                 self.unfair_advantage = self.unfair_advantage.add_with_wrap(1, 3);
             },
             _ => ()
@@ -54,14 +55,14 @@ impl OptionState {
     }
 
     fn decrement(&mut self) {
-        match self.selected_option {
-            Options::NumberOfPlayers => {
+        match self.selected_setting {
+            Settings::NumberOfPlayers => {
                 self.number_of_players = self.number_of_players.sub_with_wrap(1, 8);
             },
-            Options::NumberOfBots => {
+            Settings::NumberOfBots => {
                 self.number_of_bots = self.number_of_bots.sub_with_wrap(1, 8);
             },
-            Options::UnfairAdvantage => {
+            Settings::UnfairAdvantage => {
                 self.unfair_advantage = self.unfair_advantage.sub_with_wrap(1, 3);
             },
             _ => ()
@@ -70,10 +71,10 @@ impl OptionState {
 }
 
 #[derive(Component)]
-struct OptionDisplayMarker;
+struct SettingDisplayMarker;
 
 #[derive(Component, Copy, Clone, PartialEq, Default)]
-enum Options {
+enum Settings {
     NumberOfPlayers,
     #[default]
     NumberOfBots,
@@ -81,45 +82,29 @@ enum Options {
     Vamos,
 }
 
-const _:() = {
-    const OPTIONS: [Options; 4] = 
-            [Options::NumberOfPlayers,
-            Options::NumberOfBots,
-            Options::UnfairAdvantage,
-            Options::Vamos,];
+impl MenuOption<4> for Settings {
+    const ITEM: [Settings; 4] = 
+            [Settings::NumberOfPlayers,
+            Settings::NumberOfBots,
+            Settings::UnfairAdvantage,
+            Settings::Vamos,];
 
-    impl Options {
-        fn get() -> impl IntoIterator::<Item=Options> + Clone {
-            OPTIONS
-        }
-
-        fn next(&self) -> Self {
-            let position = OPTIONS.iter().position(|x| x == self).unwrap();
-            *OPTIONS.iter().cycle().nth(position + 1).unwrap()
-        }
-
-        fn previous(&self) -> Self {
-            let position = OPTIONS.iter().rev().position(|x| x == self).unwrap();
-            *OPTIONS.iter().rev().cycle().nth(position + 1).unwrap()
-        }
-
-        fn get_label(&self) -> &str {
-            match self {
-                Options::NumberOfPlayers => "Number of Players",
-                Options::NumberOfBots => "Number of Bots",
-                Options::UnfairAdvantage => "Unfair Advantage",
-                Options::Vamos => "¡Vamos!",
-            }
+    fn get_label(&self) -> &str {
+        match self {
+            Settings::NumberOfPlayers => "Number of Players",
+            Settings::NumberOfBots => "Number of Bots",
+            Settings::UnfairAdvantage => "Unfair Advantage",
+            Settings::Vamos => "¡Vamos!",
         }
     }
-};
+}
 
 #[derive(Component)]
 struct CleanupMarker;
 
 use bevy::ecs::system::{Command, SystemState};
-pub struct OptionsMenuLoader;
-impl Command for OptionsMenuLoader {
+pub struct SettingsMenuLoader;
+impl Command for SettingsMenuLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
              asset_loading::AssetsHandler,
@@ -132,11 +117,11 @@ impl Command for OptionsMenuLoader {
 }
 
 fn highlight_selection(
-    options_state: Res<OptionState>,
-    mut options: Query<(&Options, Option<&mut BackgroundColor>, Option<&mut Text>)>,
+    settings_state: Res<SettingsMenuState>,
+    mut settings: Query<(&Settings, Option<&mut BackgroundColor>, Option<&mut Text>)>,
 ) {
-    for (&option, maybe_background_color, maybe_text) in &mut options {
-        if option == options_state.selected_option {
+    for (&setting, maybe_background_color, maybe_text) in &mut settings {
+        if setting == settings_state.selected_setting {
             if let Some(mut background_color) = maybe_background_color {
                 *background_color = BackgroundColor(ui::HOVERED_BUTTON);
             }
@@ -159,17 +144,17 @@ fn highlight_selection(
 }
 
 fn update_values(
-    option_state: ResMut<OptionState>,
-    mut options: Query<(&mut Text, &Options), With<OptionDisplayMarker>>,
+    setting_state: ResMut<SettingsMenuState>,
+    mut settings: Query<(&mut Text, &Settings), With<SettingDisplayMarker>>,
 ) {
-    for (mut text, option) in &mut options {
-        text.sections[0].value = option_state.display(&option).to_string();
+    for (mut text, setting) in &mut settings {
+        text.sections[0].value = setting_state.display(&setting).to_string();
     }
 }
 
 fn handle_input(
     mut commands: Commands,
-    mut option_state: ResMut<OptionState>,
+    mut setting_state: ResMut<SettingsMenuState>,
     action_state: Query<&ActionState<input::MenuAction>>,
     game_assets: Res<assets::GameAssets>,
     mut audio: audio::GameAudio,
@@ -178,26 +163,26 @@ fn handle_input(
 
     if action_state.just_pressed(input::MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
-        option_state.selected_option = option_state.selected_option.previous();
+        setting_state.selected_setting = setting_state.selected_setting.previous();
     }
 
     if action_state.just_pressed(input::MenuAction::Down) {
         audio.play_sfx(&game_assets.sfx_1);
-        option_state.selected_option = option_state.selected_option.next();
+        setting_state.selected_setting = setting_state.selected_setting.next();
     }
 
     if action_state.just_pressed(input::MenuAction::Left) {
         audio.play_sfx(&game_assets.sfx_1);
-        option_state.decrement();
+        setting_state.decrement();
     }
 
     if action_state.just_pressed(input::MenuAction::Right) {
         audio.play_sfx(&game_assets.sfx_1);
-        option_state.increment();
+        setting_state.increment();
     }
 
     if action_state.just_pressed(input::MenuAction::Select) {
-        if option_state.selected_option == Options::Vamos {
+        if setting_state.selected_setting == Settings::Vamos {
             audio.play_sfx(&game_assets.sfx_1);
             commands.load_state(AppState::LoadInGame);
         }
@@ -251,11 +236,11 @@ fn setup(
     })
     .id();
 
-    let options =
-    Options::get()
-    .into_iter().map(|option| {
-        match option {
-            Options::Vamos => {
+    let settings = 
+    Settings::get()
+    .into_iter().map(|setting| {
+        match setting {
+            Settings::Vamos => {
                 commands.spawn((NodeBundle {
                     style: Style {
                         width: Val::Percent(20.),
@@ -275,11 +260,11 @@ fn setup(
                     },
                     border_color: BorderColor(Color::WHITE),
                     ..default()
-                }, option.clone()))
+                }, setting.clone()))
                 .with_children(|builder| {
                     builder.spawn((TextBundle {
                         text: Text::from_section(
-                            format!("{}", option.get_label()),
+                            format!("{}", setting.get_label()),
                             TextStyle {
                                 font: game_assets.score_font.clone(),
                                 font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
@@ -287,7 +272,7 @@ fn setup(
                             },
                         ),
                         ..default()
-                    }, option.clone()));
+                    }, setting.clone()));
                 })
                 .id()
             },
@@ -304,11 +289,11 @@ fn setup(
                         ..default()
                     },
                     ..default()
-                }, option.clone()))
+                }, setting.clone()))
                 .with_children(|builder| {
                     builder.spawn((TextBundle {
                         text: Text::from_section(
-                            format!("{}:", option.get_label()),
+                            format!("{}:", setting.get_label()),
                             TextStyle {
                                 font: game_assets.font.clone(),
                                 font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
@@ -316,7 +301,7 @@ fn setup(
                             },
                         ),
                         ..default()
-                    }, option.clone()));
+                    }, setting.clone()));
 
                     builder.spawn(NodeBundle {
                         style: Style {
@@ -341,7 +326,7 @@ fn setup(
                                 },
                             ),
                             ..default()
-                        }, option.clone()));
+                        }, setting.clone()));
                         builder.spawn((TextBundle {
                             text: Text::from_section(
                                 "5",
@@ -352,7 +337,7 @@ fn setup(
                                 },
                             ),
                             ..default()
-                        }, option.clone(), OptionDisplayMarker));
+                        }, setting.clone(), SettingDisplayMarker));
                         builder.spawn((TextBundle {
                             text: Text::from_section(
                                 ">",
@@ -363,7 +348,7 @@ fn setup(
                                 },
                             ),
                             ..default()
-                        }, option.clone()));
+                        }, setting.clone()));
                     });
                 }) 
                 .id()
@@ -374,7 +359,7 @@ fn setup(
 
     commands.entity(root_node).add_child(title_text);
 
-    for entity in options {
+    for entity in settings {
         commands.entity(root_node).add_child(entity);
     }
 }

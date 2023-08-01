@@ -3,6 +3,7 @@ use crate::{
     ui, AppState, input, assets, game_camera, audio,
 };
 use crate::loading::command_ext::*;
+use super::MenuOption;
 use bevy::prelude::*;
 use bevy::{app::AppExit, ecs::event::Events};
 use crate::input::InputCommandsExt;
@@ -53,32 +54,16 @@ enum TitleScreenOptions {
     Quit
 }
 
-const _:() = {
-    const OPTIONS: [TitleScreenOptions; 2] = [TitleScreenOptions::Start, TitleScreenOptions::Quit];
+impl MenuOption<2> for TitleScreenOptions {
+    const ITEM: [TitleScreenOptions; 2] = [TitleScreenOptions::Start, TitleScreenOptions::Quit];
 
-    impl TitleScreenOptions  {
-        fn get() -> impl IntoIterator::<Item=TitleScreenOptions> + Clone {
-            OPTIONS
-        }
-
-        fn next(&self) -> Self {
-            let position = OPTIONS.iter().position(|x| x == self).unwrap();
-            *OPTIONS.iter().cycle().nth(position + 1).unwrap()
-        }
-
-        fn previous(&self) -> Self {
-            let position = OPTIONS.iter().rev().position(|x| x == self).unwrap();
-            *OPTIONS.iter().rev().cycle().nth(position + 1).unwrap()
-        }
-
-        fn get_label(&self) -> &str {
-            match self {
-                TitleScreenOptions::Start => "Start",
-                TitleScreenOptions::Quit => "Quit",
-            }
+    fn get_label(&self) -> &str {
+        match self {
+            TitleScreenOptions::Start => "Start",
+            TitleScreenOptions::Quit => "Quit",
         }
     }
-};
+}
 
 use bevy::ecs::system::{Command, SystemState};
 pub struct TitleScreenLoader;
@@ -271,7 +256,7 @@ fn handle_input(
     if action_state.just_pressed(input::MenuAction::Select) {
         audio.play_sfx(&game_assets.sfx_1);
         match title_screen_state.selected_option {
-            TitleScreenOptions::Start => commands.load_state(AppState::Options),
+            TitleScreenOptions::Start => commands.load_state(AppState::Settings),
             TitleScreenOptions::Quit => exit.send(AppExit),
         }
     }

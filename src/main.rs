@@ -52,7 +52,7 @@ fn main() {
     .insert_resource(config::GameConfiguration::default())
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins((
-        menu::options::OptionsMenuPlugin,
+        menu::settings::SettingsMenuPlugin,
         menu::splash::SplashPlugin,
         menu::title_screen::TitlePlugin,
     ))
@@ -90,7 +90,7 @@ pub enum AppState {
     Initial,
     Pause,
     Debug,
-    Options,
+    Settings,
     LoadInGame,
     InGame,
     TitleScreen,
