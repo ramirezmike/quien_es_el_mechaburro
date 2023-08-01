@@ -1,4 +1,4 @@
-use crate::{AppState, assets, ui, game_camera, game_state, asset_loading, input, input::InputCommandsExt, audio, cleanup, };
+use crate::{AppState, assets, ui, game_camera, asset_loading, input, input::InputCommandsExt, audio, cleanup, };
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use bevy::prelude::*;
@@ -118,8 +118,8 @@ const _:() = {
 struct CleanupMarker;
 
 use bevy::ecs::system::{Command, SystemState};
-pub struct OptionsMenutLoader;
-impl Command for OptionsMenutLoader {
+pub struct OptionsMenuLoader;
+impl Command for OptionsMenuLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
              asset_loading::AssetsHandler,

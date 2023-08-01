@@ -1,6 +1,6 @@
 
 pub mod command_ext {
-    use crate::{AppState, menu::options, ingame, asset_loading::QueueState};
+    use crate::{AppState, menu::{options, splash, title_screen}, ingame, asset_loading::QueueState};
     use bevy::prelude::*;
     use bevy::ecs::system::{Command, SystemState};
 
@@ -24,8 +24,10 @@ pub mod command_ext {
             next_state.set(AppState::Loading);
 
             match self.0 {
-                AppState::Options => options::OptionsMenutLoader.apply(world),
+                AppState::Options => options::OptionsMenuLoader.apply(world),
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
+                AppState::Splash => splash::SplashLoader.apply(world),
+                AppState::TitleScreen => title_screen::TitleScreenLoader.apply(world),
                 _ => ()
             }
         }

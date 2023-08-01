@@ -153,7 +153,7 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
     }
 
     if ready {
-        println!("ready!");
+        println!("ready! {:?}", assets_handler.queued_state.state);
         assets_handler.assets_loading.asset_handles = vec![]; // clear list since we've loaded everything
         assets_handler
             .next_state

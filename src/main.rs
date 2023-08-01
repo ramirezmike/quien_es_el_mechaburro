@@ -23,6 +23,7 @@ mod loading;
 mod ingame;
 mod input;
 mod mecha_picker;
+mod mesh;
 mod menu;
 mod player;
 mod scene_hook;
@@ -52,6 +53,8 @@ fn main() {
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins((
         menu::options::OptionsMenuPlugin,
+        menu::splash::SplashPlugin,
+        menu::title_screen::TitlePlugin,
     ))
     .add_plugins((
         audio::GameAudioPlugin,
@@ -71,6 +74,7 @@ fn main() {
         asset_loading::AssetLoadingPlugin,
         assets::AssetsPlugin,
         ToonShaderPlugin,
+        mesh::MeshPlugin,
         input::InputPlugin,
         scene_hook::HookPlugin,
         ui::text_size::TextSizePlugin,
@@ -106,7 +110,7 @@ fn bootstrap(
 ) {
     clear_color.0 = Color::hex("000000").unwrap();
 
-    commands.load_state(AppState::Options);
+    commands.load_state(AppState::TitleScreen);
 }
 
 fn debug(

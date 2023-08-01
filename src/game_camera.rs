@@ -224,18 +224,16 @@ fn get_primary_window_size(window: &Window) -> Vec2 {
     Vec2::new(window.width(), window.height())
 }
 
-pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
-    #[cfg(not(feature = "debug"))]
-    let translation = Vec3::new(-4.0, 1.0, 0.0);
-
-    #[cfg(feature = "debug")]
-    let translation = Vec3::new(-30.0, 20.0, 0.0);
-
-    let radius = translation.length();
+pub fn spawn_camera_with_transform<T: Component>(
+    commands: &mut Commands, 
+    transform: Transform,
+    cleanup_marker: T,
+) {
+    let radius = transform.translation.length();
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
+            transform,
             ..default()
         },
         cleanup_marker,
@@ -247,4 +245,15 @@ pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
             ..Default::default()
         },
     ));
+}
+
+pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
+    #[cfg(not(feature = "debug"))]
+    let translation = Vec3::new(-4.0, 1.0, 0.0);
+
+    #[cfg(feature = "debug")]
+    let translation = Vec3::new(-30.0, 20.0, 0.0);
+
+    let transform = Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y);
+    spawn_camera_with_transform(commands, transform, cleanup_marker);
 }
