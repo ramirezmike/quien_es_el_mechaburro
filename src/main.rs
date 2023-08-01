@@ -5,7 +5,7 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{app::AppExit, prelude::*};
 use bevy_inspector_egui::{bevy_egui, quick::WorldInspectorPlugin};
 use bevy_rapier3d::prelude::*;
-use bevy_toon_shader::{ToonShaderPlugin, ToonShaderMaterial};
+use bevy_toon_shader::{ToonShaderMaterial, ToonShaderPlugin};
 
 mod asset_loading;
 mod assets;
@@ -16,15 +16,15 @@ mod burro;
 mod config;
 mod direction;
 mod floor;
-mod hit;
 mod game_camera;
 mod game_state;
-mod loading;
+mod hit;
 mod ingame;
 mod input;
+mod loading;
 mod mecha_picker;
-mod mesh;
 mod menu;
+mod mesh;
 mod player;
 mod scene_hook;
 mod smoke;
@@ -42,10 +42,12 @@ fn main() {
     app.add_plugins(RapierDebugRenderPlugin::default());
 
     #[cfg(feature = "fps")]
-    app.add_plugins((LogDiagnosticsPlugin::default(), FrameTimeDiagnosticsPlugin::default()));
+    app.add_plugins((
+        LogDiagnosticsPlugin::default(),
+        FrameTimeDiagnosticsPlugin::default(),
+    ));
 
-    app
-    .insert_resource(bevy_egui::EguiSettings {
+    app.insert_resource(bevy_egui::EguiSettings {
         scale_factor: 1.8,
         ..default()
     })
@@ -104,10 +106,7 @@ pub enum AppState {
 }
 
 use loading::command_ext::*;
-fn bootstrap(
-    mut commands: Commands,
-    mut clear_color: ResMut<ClearColor>,
-) {
+fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
     commands.load_state(AppState::TitleScreen);

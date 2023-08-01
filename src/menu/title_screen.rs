@@ -1,22 +1,23 @@
-use crate::{
-    asset_loading, assets::GameAssets, cleanup,
-    ui, AppState, input, assets, game_camera, audio,
-};
-use crate::loading::command_ext::*;
 use super::MenuOption;
+use crate::input::InputCommandsExt;
+use crate::loading::command_ext::*;
+use crate::{
+    asset_loading, assets, assets::GameAssets, audio, cleanup, game_camera, input, ui, AppState,
+};
 use bevy::prelude::*;
 use bevy::{app::AppExit, ecs::event::Events};
-use crate::input::InputCommandsExt;
 use leafwing_input_manager::prelude::*;
 
 pub struct TitlePlugin;
 impl Plugin for TitlePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(OnEnter(AppState::TitleScreen), setup)
+        app.add_systems(OnEnter(AppState::TitleScreen), setup)
             .init_resource::<TitleScreenState>()
             .add_plugins(MaterialPlugin::<ScrollingImageMaterial>::default())
-            .add_systems(Update, (highlight_selection, handle_input).run_if(in_state(AppState::TitleScreen)))
+            .add_systems(
+                Update,
+                (highlight_selection, handle_input).run_if(in_state(AppState::TitleScreen)),
+            )
             .add_systems(OnExit(AppState::TitleScreen), cleanup::<CleanupMarker>);
     }
 }
@@ -51,7 +52,7 @@ pub struct TitleScreenState {
 enum TitleScreenOptions {
     #[default]
     Start,
-    Quit
+    Quit,
 }
 
 impl MenuOption<2> for TitleScreenOptions {
@@ -70,8 +71,9 @@ pub struct TitleScreenLoader;
 impl Command for TitleScreenLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
-             asset_loading::AssetsHandler,
-             ResMut<assets::GameAssets>)> = SystemState::new(world);
+            asset_loading::AssetsHandler,
+            ResMut<assets::GameAssets>,
+        )> = SystemState::new(world);
         let (mut assets_handler, mut game_assets) = system_state.get_mut(world);
 
         assets_handler.add_audio(&mut game_assets.bgm_1, "audio/baila.ogg");
@@ -104,43 +106,52 @@ fn setup(
     game_camera::spawn_camera_with_transform(&mut commands, camera_transform, CleanupMarker);
     commands.spawn_menu_input(CleanupMarker);
 
-    commands.spawn((MaterialMeshBundle {
-        mesh: meshes.add(shape::Plane::from_size(50.0).into()),
-        material: scrolling_image_materials.add(ScrollingImageMaterial {
-            texture: game_assets.title_screen_background.image.clone()
-        }),
-        ..default()
-    }, CleanupMarker));
-
-  commands
-      .spawn((NodeBundle {
-          style: Style {
-              width: Val::Percent(100.0),
-              height: Val::Percent(100.0),
-              position_type: PositionType::Absolute,
-              justify_content: JustifyContent::FlexStart,
-              align_items: AlignItems::Center,
-              flex_direction: FlexDirection::Column,
-              ..default()
-          },
-          background_color: BackgroundColor(Color::NONE),
-          ..default()
-      }, CleanupMarker))
-      .with_children(|parent| {
-          parent.spawn(ImageBundle {
-              style: Style {
-                  width: Val::Auto,
-                  height: Val::Percent(80.0),
-                  margin: UiRect { top: Val::Percent(2.5), ..default() },
-                  ..default()
-              },
-              image: game_assets.title_screen_logo.image.clone().into(),
-              ..default()
-          });
-      });
+    commands.spawn((
+        MaterialMeshBundle {
+            mesh: meshes.add(shape::Plane::from_size(50.0).into()),
+            material: scrolling_image_materials.add(ScrollingImageMaterial {
+                texture: game_assets.title_screen_background.image.clone(),
+            }),
+            ..default()
+        },
+        CleanupMarker,
+    ));
 
     commands
-        .spawn((TextBundle {
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    position_type: PositionType::Absolute,
+                    justify_content: JustifyContent::FlexStart,
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Column,
+                    ..default()
+                },
+                background_color: BackgroundColor(Color::NONE),
+                ..default()
+            },
+            CleanupMarker,
+        ))
+        .with_children(|parent| {
+            parent.spawn(ImageBundle {
+                style: Style {
+                    width: Val::Auto,
+                    height: Val::Percent(80.0),
+                    margin: UiRect {
+                        top: Val::Percent(2.5),
+                        ..default()
+                    },
+                    ..default()
+                },
+                image: game_assets.title_screen_logo.image.clone().into(),
+                ..default()
+            });
+        });
+
+    commands.spawn((
+        TextBundle {
             style: Style {
                 align_self: AlignSelf::FlexEnd,
                 position_type: PositionType::Absolute,
@@ -155,38 +166,45 @@ fn setup(
                 },
             ),
             ..default()
-        }, CleanupMarker));
+        },
+        CleanupMarker,
+    ));
 
     commands
-        .spawn((NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(90.0),
-                position_type: PositionType::Absolute,
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::End,
-                ..default()
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(90.0),
+                    position_type: PositionType::Absolute,
+                    flex_direction: FlexDirection::Column,
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::End,
+                    ..default()
+                },
+                background_color: Color::NONE.into(),
+                ..Default::default()
             },
-            background_color: Color::NONE.into(),
-            ..Default::default()
-        }, CleanupMarker))
+            CleanupMarker,
+        ))
         .with_children(|parent| {
-            TitleScreenOptions::get()
-            .into_iter().for_each(|option| {
+            TitleScreenOptions::get().into_iter().for_each(|option| {
                 parent
-                    .spawn((ButtonBundle {
-                        style: Style {
-                            position_type: PositionType::Relative,
-                            width: Val::Percent(18.0),
-                            height: Val::Percent(12.5),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
+                    .spawn((
+                        ButtonBundle {
+                            style: Style {
+                                position_type: PositionType::Relative,
+                                width: Val::Percent(18.0),
+                                height: Val::Percent(12.5),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..Default::default()
+                            },
+                            background_color: ui::NORMAL_BUTTON.into(),
                             ..Default::default()
                         },
-                        background_color: ui::NORMAL_BUTTON.into(),
-                        ..Default::default()
-                    }, option.clone()))
+                        option.clone(),
+                    ))
                     .with_children(|parent| {
                         parent.spawn(TextBundle {
                             text: Text::from_section(
@@ -203,12 +221,16 @@ fn setup(
             });
         });
 
-      audio.play_bgm(&game_assets.bgm_1);
+    audio.play_bgm(&game_assets.bgm_1);
 }
 
 fn highlight_selection(
     options_state: Res<TitleScreenState>,
-    mut options: Query<(&TitleScreenOptions, Option<&mut BackgroundColor>, Option<&mut Text>)>,
+    mut options: Query<(
+        &TitleScreenOptions,
+        Option<&mut BackgroundColor>,
+        Option<&mut Text>,
+    )>,
 ) {
     for (&option, maybe_background_color, maybe_text) in &mut options {
         if option == options_state.selected_option {

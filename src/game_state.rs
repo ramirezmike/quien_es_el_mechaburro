@@ -1,14 +1,17 @@
-use crate::{AppState, assets};
+use crate::{assets, AppState};
 use bevy::prelude::*;
-use std::collections::HashMap;
 use rand::Rng;
+use std::collections::HashMap;
 
 pub struct GameStatePlugin;
 impl Plugin for GameStatePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameState::default())
             .add_event::<ScoreAddEvent>()
-            .add_systems(Update, handle_score_add_event.run_if(in_state(AppState::ScoreDisplay)));
+            .add_systems(
+                Update,
+                handle_score_add_event.run_if(in_state(AppState::ScoreDisplay)),
+            );
     }
 }
 
@@ -29,7 +32,9 @@ fn handle_score_add_event(
         let max_score = game_state.dead_burros.len();
 
         for burro in game_state.burros.iter_mut() {
-            let new_score = burro_points.get(&burro.selected_burro).unwrap_or(&max_score);
+            let new_score = burro_points
+                .get(&burro.selected_burro)
+                .unwrap_or(&max_score);
             burro.score += new_score;
         }
     }
@@ -46,13 +51,13 @@ pub struct GameState {
 }
 
 impl GameState {
-//  pub fn get_skin_player_map(&self) -> HashMap<BurroSkin, usize> {
-//      let mut map: HashMap<BurroSkin, usize> = HashMap::new();
-//      for player in self.players.iter() {
-//          map.insert(player.selected_burro, player.player);
-//      }
-//      map
-//  }
+    //  pub fn get_skin_player_map(&self) -> HashMap<BurroSkin, usize> {
+    //      let mut map: HashMap<BurroSkin, usize> = HashMap::new();
+    //      for player in self.players.iter() {
+    //          map.insert(player.selected_burro, player.player);
+    //      }
+    //      map
+    //  }
 
     pub fn initialize(
         players: Vec<BurroCharacter>,

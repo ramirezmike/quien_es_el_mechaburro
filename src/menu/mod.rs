@@ -2,9 +2,10 @@ pub mod settings;
 pub mod splash;
 pub mod title_screen;
 
-
-trait MenuOption<const N: usize> 
-where Self: PartialEq + Sized + Clone + Copy {
+trait MenuOption<const N: usize>
+where
+    Self: PartialEq + Sized + Clone + Copy,
+{
     const ITEM: [Self; N];
 
     fn get_label(&self) -> &str;
@@ -23,4 +24,3 @@ where Self: PartialEq + Sized + Clone + Copy {
         *Self::ITEM.iter().rev().cycle().nth(position + 1).unwrap()
     }
 }
-

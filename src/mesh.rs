@@ -1,13 +1,16 @@
 use crate::{asset_loading::GameTexture, assets::GameAssets, AppState};
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
-use bevy::render::texture::ImageSampler;
 use bevy::render::render_resource::AddressMode;
+use bevy::render::texture::ImageSampler;
 
 pub struct MeshPlugin;
 impl Plugin for MeshPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, scroll_meshes.run_if(in_state(AppState::TitleScreen)));
+        app.add_systems(
+            Update,
+            scroll_meshes.run_if(in_state(AppState::TitleScreen)),
+        );
     }
 }
 
@@ -72,11 +75,11 @@ impl MeshBuilder {
         let image = images.get_mut(&game_texture.image.clone());
         if let Some(image) = image {
             match &mut image.sampler_descriptor {
-                ImageSampler::Descriptor(i) =>  {
+                ImageSampler::Descriptor(i) => {
                     i.address_mode_u = AddressMode::Repeat;
                     i.address_mode_v = AddressMode::Repeat;
-                },
-                _ => ()
+                }
+                _ => (),
             }
         }
 
@@ -116,11 +119,11 @@ fn scroll_meshes(
     let image = images.get_mut(&game_assets.title_screen_background.image.clone());
     if let Some(image) = image {
         match &mut image.sampler_descriptor {
-            ImageSampler::Descriptor(i) =>  {
+            ImageSampler::Descriptor(i) => {
                 i.address_mode_u = AddressMode::Repeat;
                 i.address_mode_v = AddressMode::Repeat;
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 

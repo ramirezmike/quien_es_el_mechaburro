@@ -1,8 +1,12 @@
-
 pub mod command_ext {
-    use crate::{AppState, menu::{settings, splash, title_screen}, ingame, asset_loading::QueueState};
-    use bevy::prelude::*;
+    use crate::{
+        asset_loading::QueueState,
+        ingame,
+        menu::{settings, splash, title_screen},
+        AppState,
+    };
     use bevy::ecs::system::{Command, SystemState};
+    use bevy::prelude::*;
 
     pub trait CommandLoading {
         fn load_state(&mut self, state: AppState);
@@ -17,7 +21,8 @@ pub mod command_ext {
     pub struct StateSetter(AppState);
     impl Command for StateSetter {
         fn apply(self, world: &mut World) {
-            let mut system_state: SystemState<(ResMut<QueueState>, ResMut<NextState<AppState>>)> = SystemState::new(world);
+            let mut system_state: SystemState<(ResMut<QueueState>, ResMut<NextState<AppState>>)> =
+                SystemState::new(world);
             let (mut queued_state, mut next_state) = system_state.get_mut(world);
 
             queued_state.state = self.0;
@@ -28,7 +33,7 @@ pub mod command_ext {
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
                 AppState::Splash => splash::SplashLoader.apply(world),
                 AppState::TitleScreen => title_screen::TitleScreenLoader.apply(world),
-                _ => ()
+                _ => (),
             }
         }
     }

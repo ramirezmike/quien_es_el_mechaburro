@@ -123,14 +123,12 @@ pub struct PlayerMoveEvent {
 }
 
 pub fn handle_input(
-    mut players: Query<
-        (
-            Entity,
-            &ActionState<PlayerAction>,
-            &Transform,
-            &mut burro::Burro,
-        ),
-    >,
+    mut players: Query<(
+        Entity,
+        &ActionState<PlayerAction>,
+        &Transform,
+        &mut burro::Burro,
+    )>,
     mut player_move_event_writer: EventWriter<PlayerMoveEvent>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
 ) {
@@ -208,9 +206,7 @@ pub fn move_player(
         move_events.entry(move_event.entity).or_insert(move_event);
     }
 
-    for (entity, mut controller, controller_output, mut transform, mut burro) in
-        burros.iter_mut()
-    {
+    for (entity, mut controller, controller_output, mut transform, mut burro) in burros.iter_mut() {
         let speed: f32 = burro.speed;
         let friction: f32 = burro.friction;
         let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
@@ -224,7 +220,7 @@ pub fn move_player(
                 Movement::Normal(direction) => {
                     let acceleration = Vec3::from(direction).zero_signum();
                     if !controller_output.grounded {
-//                        acceleration.z *= 0.5;
+                        //                        acceleration.z *= 0.5;
                     }
                     burro.velocity += (acceleration * speed) * time.delta_seconds();
                 }

@@ -1,27 +1,26 @@
-use crate::{asset_loading, assets, bot, burro, game_camera, game_state, player, scene_hook, AppState, floor, };
-use bevy::gltf::Gltf;
+use crate::{
+    asset_loading, assets, bot, burro, floor, game_camera, game_state, player, scene_hook, AppState,
+};
 use bevy::ecs::system::{Command, SystemState};
+use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_mod_outline::{
     AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
 };
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
-use std::sync::{Arc, Mutex};
-use std::fs;
 use std::f32::consts::TAU;
+use std::fs;
+use std::sync::{Arc, Mutex};
 
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((OutlinePlugin, AutoGenerateOutlineNormalsPlugin))
             .add_systems(OnEnter(AppState::LoadInGame), setup)
-            .add_systems(Update,
-                (
-                    player::handle_input,
-                    player::move_player,
-                    apply_deferred,
-                )
+            .add_systems(
+                Update,
+                (player::handle_input, player::move_player, apply_deferred)
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             );
@@ -32,12 +31,13 @@ pub struct IngameLoader;
 impl Command for IngameLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
-             asset_loading::AssetsHandler,
-             ResMut<assets::GameAssets>,
-             ResMut<game_state::GameState>,
-             ResMut<Assets<ToonShaderMaterial>>)> = SystemState::new(world);
-        let (mut assets_handler, mut game_assets, game_state, mut toon_materials,) = system_state.get_mut(world);
-
+            asset_loading::AssetsHandler,
+            ResMut<assets::GameAssets>,
+            ResMut<game_state::GameState>,
+            ResMut<Assets<ToonShaderMaterial>>,
+        )> = SystemState::new(world);
+        let (mut assets_handler, mut game_assets, game_state, mut toon_materials) =
+            system_state.get_mut(world);
 
         assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
         assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
@@ -48,11 +48,7 @@ impl Command for IngameLoader {
         );
 
         let mut mechaburro_texture = asset_loading::GameTexture::default();
-        assets_handler.add_material(
-            &mut mechaburro_texture,
-            &"textures/mechaburro.png",
-            false,
-        );
+        assets_handler.add_material(&mut mechaburro_texture, &"textures/mechaburro.png", false);
         let toon_material_textured = toon_materials.add(ToonShaderMaterial {
             base_color_texture: Some(mechaburro_texture.image.clone()),
             color: Color::default(),
@@ -64,7 +60,7 @@ impl Command for IngameLoader {
         game_assets.mechaburro_texture = assets::BurroAsset {
             name: "Mechaburro".into(),
             texture: mechaburro_texture,
-            toon_texture: toon_material_textured 
+            toon_texture: toon_material_textured,
         };
 
         let folder_path = "assets/textures/burros";
@@ -84,19 +80,20 @@ impl Command for IngameLoader {
                                         false,
                                     );
 
-                                    let toon_material_textured = toon_materials.add(ToonShaderMaterial {
-                                        base_color_texture: Some(texture.image.clone()),
-                                        color: Color::default(),
-                                        sun_dir: Vec3::new(0.0, 0.0, 0.0),
-                                        sun_color: Color::default(),
-                                        camera_pos: Vec3::new(0.0, 1.0, -1.0),
-                                        ambient_color: Color::default(),
-                                    });
+                                    let toon_material_textured =
+                                        toon_materials.add(ToonShaderMaterial {
+                                            base_color_texture: Some(texture.image.clone()),
+                                            color: Color::default(),
+                                            sun_dir: Vec3::new(0.0, 0.0, 0.0),
+                                            sun_color: Color::default(),
+                                            camera_pos: Vec3::new(0.0, 1.0, -1.0),
+                                            ambient_color: Color::default(),
+                                        });
 
                                     game_assets.burro_assets.push(assets::BurroAsset {
                                         name: name.into(),
                                         texture,
-                                        toon_texture: toon_material_textured 
+                                        toon_texture: toon_material_textured,
                                     });
                                 }
                             }
@@ -139,11 +136,7 @@ pub fn load(
     );
 
     let mut mechaburro_texture = asset_loading::GameTexture::default();
-    assets_handler.add_material(
-        &mut mechaburro_texture,
-        &"textures/mechaburro.png",
-        false,
-    );
+    assets_handler.add_material(&mut mechaburro_texture, &"textures/mechaburro.png", false);
     let toon_material_textured = toon_materials.add(ToonShaderMaterial {
         base_color_texture: Some(mechaburro_texture.image.clone()),
         color: Color::default(),
@@ -155,7 +148,7 @@ pub fn load(
     game_assets.mechaburro_texture = assets::BurroAsset {
         name: "Mechaburro".into(),
         texture: mechaburro_texture,
-        toon_texture: toon_material_textured 
+        toon_texture: toon_material_textured,
     };
 
     let folder_path = "assets/textures/burros";
@@ -175,19 +168,20 @@ pub fn load(
                                     false,
                                 );
 
-                                let toon_material_textured = toon_materials.add(ToonShaderMaterial {
-                                    base_color_texture: Some(texture.image.clone()),
-                                    color: Color::default(),
-                                    sun_dir: Vec3::new(0.0, 0.0, 0.0),
-                                    sun_color: Color::default(),
-                                    camera_pos: Vec3::new(0.0, 1.0, -1.0),
-                                    ambient_color: Color::default(),
-                                });
+                                let toon_material_textured =
+                                    toon_materials.add(ToonShaderMaterial {
+                                        base_color_texture: Some(texture.image.clone()),
+                                        color: Color::default(),
+                                        sun_dir: Vec3::new(0.0, 0.0, 0.0),
+                                        sun_color: Color::default(),
+                                        camera_pos: Vec3::new(0.0, 1.0, -1.0),
+                                        ambient_color: Color::default(),
+                                    });
 
                                 game_assets.burro_assets.push(assets::BurroAsset {
                                     name: name.into(),
                                     texture,
-                                    toon_texture: toon_material_textured 
+                                    toon_texture: toon_material_textured,
                                 });
                             }
                         }
@@ -226,17 +220,19 @@ fn setup(
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
 
-
     // TODO: This is temporary, this will be done by menus
-    *game_state = 
-    game_state::GameState::initialize(vec!(game_state::BurroCharacter {
-        player: 0,
-        is_playing: true,
-        has_picked: true,
-        selected_burro: 0,
-        action_cooldown: 0.0,
-    }), 7, 1.0, &game_assets.burro_assets);
-
+    *game_state = game_state::GameState::initialize(
+        vec![game_state::BurroCharacter {
+            player: 0,
+            is_playing: true,
+            has_picked: true,
+            selected_burro: 0,
+            action_cooldown: 0.0,
+        }],
+        7,
+        1.0,
+        &game_assets.burro_assets,
+    );
 
     game_state.current_level_over = false;
     game_state.on_new_level();
@@ -276,21 +272,25 @@ fn setup(
                                 )
                                 .insert(CollisionGroups::new(Group::GROUP_1, Group::ALL));
                             }
-
                         }
 
                         if name.contains("floor") {
-                            if let (Some(global_transform), Some(aabb)) = (hook_data.global_transform, hook_data.aabb) {
-                                hook_data.floor_manager.store_floor(&global_transform, &aabb);
+                            if let (Some(global_transform), Some(aabb)) =
+                                (hook_data.global_transform, hook_data.aabb)
+                            {
+                                hook_data
+                                    .floor_manager
+                                    .store_floor(&global_transform, &aabb);
                             }
                         }
 
                         if name.contains("spawn_point") {
                             println!("LOADING SPAWN POINTS");
-                            if let (Some(global_transform), Some(aabb)) = (hook_data.global_transform, hook_data.aabb) {
+                            if let (Some(global_transform), Some(aabb)) =
+                                (hook_data.global_transform, hook_data.aabb)
+                            {
                                 let matrix = global_transform.compute_matrix();
-                                let translation =
-                                    matrix.transform_point3(aabb.center.into());
+                                let translation = matrix.transform_point3(aabb.center.into());
                                 if let Ok(mut spawn_points) = hook_spawn_points.lock() {
                                     spawn_points.push(translation);
                                 }
@@ -310,11 +310,13 @@ fn setup(
                     for (i, burro_state) in game_state.burros.iter().enumerate() {
                         let point = spawn_points[i];
 
-                        let toon_material_textured = game_assets.burro_assets[burro_state.selected_burro].toon_texture.clone();
+                        let toon_material_textured = game_assets.burro_assets
+                            [burro_state.selected_burro]
+                            .toon_texture
+                            .clone();
 
                         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
-                            let mut entity_commands = 
-                            cmds.spawn((
+                            let mut entity_commands = cmds.spawn((
                                 RigidBody::KinematicPositionBased,
                                 Collider::ball(1.0),
                                 ColliderMassProperties::Density(2.0),
@@ -351,8 +353,7 @@ fn setup(
                                 entity_commands.insert(bot::BotBundle::new());
                             }
 
-                            entity_commands
-                            .with_children(|parent| {
+                            entity_commands.with_children(|parent| {
                                 let parent_entity = parent.parent_entity();
                                 parent.spawn(scene_hook::HookedSceneBundle {
                                     scene: SceneBundle {
@@ -363,9 +364,10 @@ fn setup(
                                         if let Some(name) = hook_data.name {
                                             let name = name.as_str();
                                             if name.contains("Armature") {
-                                                cmds.insert(( assets::AnimationLink {
-                                                    entity: parent_entity,
-                                                }, 
+                                                cmds.insert((
+                                                    assets::AnimationLink {
+                                                        entity: parent_entity,
+                                                    },
                                                     Transform::from_xyz(0.0, -1.0, 0.0),
                                                 ));
                                             }
@@ -380,7 +382,7 @@ fn setup(
                                                         ..default()
                                                     },
                                                     burro::BurroMeshMarker {
-                                                        parent: parent_entity
+                                                        parent: parent_entity,
                                                     },
                                                     toon_material_textured.clone(),
                                                 ));

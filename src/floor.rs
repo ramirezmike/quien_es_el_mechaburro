@@ -11,7 +11,7 @@ impl Plugin for FloorPlugin {
 
 #[derive(Default, Resource)]
 pub struct FloorManager {
-    floors: Vec::<Floor>,
+    floors: Vec<Floor>,
 }
 
 struct Floor {
@@ -26,12 +26,10 @@ impl FloorManager {
 
     pub fn store_floor(&mut self, global_transform: &GlobalTransform, aabb: &Aabb) {
         let matrix = global_transform.compute_matrix();
-        self.floors.push(
-            Floor {
-                min: matrix.transform_point3(aabb.min().into()),
-                max: matrix.transform_point3(aabb.max().into()),
-            }
-        );
+        self.floors.push(Floor {
+            min: matrix.transform_point3(aabb.min().into()),
+            max: matrix.transform_point3(aabb.max().into()),
+        });
     }
 
     pub fn get_random_spot(&self) -> Option<Vec2> {

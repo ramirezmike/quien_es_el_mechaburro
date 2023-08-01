@@ -1,6 +1,6 @@
+use bevy::window::PrimaryWindow;
 use bevy::{ecs::system::SystemParam, prelude::*, window::WindowResized};
 use std::marker::PhantomData;
-use bevy::window::PrimaryWindow;
 
 pub struct TextSizePlugin;
 impl Plugin for TextSizePlugin {

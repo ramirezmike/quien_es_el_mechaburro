@@ -1,9 +1,6 @@
-use crate::{
-    assets, bullet, burro, cleanup, game_camera,
-    game_state, ui, AppState,
-};
-use bevy_toon_shader::ToonShaderMaterial;
+use crate::{assets, bullet, burro, cleanup, game_camera, game_state, ui, AppState};
 use bevy::prelude::*;
+use bevy_toon_shader::ToonShaderMaterial;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
@@ -14,11 +11,10 @@ impl Plugin for MechaPickerPlugin {
             .add_systems(OnEnter(AppState::MechaPicker), setup)
             .add_event::<PickMechaEvent>()
             .add_systems(OnExit(AppState::MechaPicker), cleanup::<CleanupMarker>)
-            .add_systems(Update,
-                (pick_mecha,
-                animate_mecha_selection,
-                handle_mecha_pick_event)
-                .run_if(in_state(AppState::MechaPicker))
+            .add_systems(
+                Update,
+                (pick_mecha, animate_mecha_selection, handle_mecha_pick_event)
+                    .run_if(in_state(AppState::MechaPicker)),
             );
     }
 }
@@ -71,11 +67,7 @@ fn animate_mecha_selection(
     mut text_display_timers: ResMut<TextDisplayTimers>,
     game_assets: Res<assets::GameAssets>,
     time: Res<Time>,
-    mut burros: Query<(
-        Entity,
-        &mut Transform,
-        &mut burro::Burro,
-    )>,
+    mut burros: Query<(Entity, &mut Transform, &mut burro::Burro)>,
     mut burro_meshes: Query<(&mut Handle<ToonShaderMaterial>, &burro::BurroMeshMarker)>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
@@ -104,10 +96,11 @@ fn animate_mecha_selection(
         }
 
         if let Ok((entity, mut transform, mut burro)) = burros.get_mut(selected_burro_entity) {
-            let (mut toon_material, _) = burro_meshes.iter_mut()
-                                .filter(|(_, m)| m.parent == entity) 
-                                .last()
-                                .unwrap();
+            let (mut toon_material, _) = burro_meshes
+                .iter_mut()
+                .filter(|(_, m)| m.parent == entity)
+                .last()
+                .unwrap();
             match text_display_timers.mecha_selection_stage {
                 MechaSelectionStage::Initial => (),
                 MechaSelectionStage::MovingToBurro => {
@@ -188,7 +181,8 @@ fn setup(
                             font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 1.5),
                             color: Color::BLACK,
                         },
-                    ).with_alignment(TextAlignment::Center),
+                    )
+                    .with_alignment(TextAlignment::Center),
                     ..Default::default()
                 })
                 .insert(CleanupMarker)
@@ -210,7 +204,8 @@ fn setup(
                             font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                             color: Color::BLACK,
                         },
-                    ).with_alignment(TextAlignment::Center),
+                    )
+                    .with_alignment(TextAlignment::Center),
                     ..Default::default()
                 })
                 .insert(TopTextMarker)

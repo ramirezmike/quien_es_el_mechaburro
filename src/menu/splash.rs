@@ -1,6 +1,6 @@
-use bevy::prelude::*;
-use crate::{AppState, ui::text_size, asset_loading, assets, ui, cleanup, game_camera};
 use crate::loading::command_ext::*;
+use crate::{asset_loading, assets, cleanup, game_camera, ui, ui::text_size, AppState};
+use bevy::prelude::*;
 
 pub struct SplashPlugin;
 impl Plugin for SplashPlugin {
@@ -17,8 +17,9 @@ pub struct SplashLoader;
 impl Command for SplashLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
-             asset_loading::AssetsHandler,
-             ResMut<assets::GameAssets>)> = SystemState::new(world);
+            asset_loading::AssetsHandler,
+            ResMut<assets::GameAssets>,
+        )> = SystemState::new(world);
         let (mut assets_handler, mut game_assets) = system_state.get_mut(world);
 
         assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
@@ -32,14 +33,10 @@ struct CleanupMarker;
 
 #[derive(Default, Resource)]
 struct SplashTracker {
-    time: f32
+    time: f32,
 }
 
-fn tick(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut splash_tracker: ResMut<SplashTracker>,
-) {
+fn tick(mut commands: Commands, time: Res<Time>, mut splash_tracker: ResMut<SplashTracker>) {
     splash_tracker.time += time.delta_seconds();
 
     if splash_tracker.time > 3.0 {
@@ -97,7 +94,8 @@ fn setup(
                         font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 1.2),
                         color: Color::WHITE,
                     },
-                ).with_alignment(TextAlignment::Center),
+                )
+                .with_alignment(TextAlignment::Center),
                 ..default()
             });
         });

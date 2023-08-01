@@ -5,9 +5,9 @@ use rand::{thread_rng, Rng};
 pub struct SmokePlugin;
 impl Plugin for SmokePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update,
-            (handle_smokers, handle_smokes)
-            .run_if(in_state(AppState::InGame))
+        app.add_systems(
+            Update,
+            (handle_smokers, handle_smokes).run_if(in_state(AppState::InGame)),
         )
         .add_systems(OnExit(AppState::InGame), cleanup::<CleanupMarker>);
     }

@@ -1,5 +1,5 @@
 use bevy::{ecs::system::SystemParam, prelude::*};
-use bevy_kira_audio::{AudioApp, AudioChannel, AudioPlugin, AudioSource, AudioControl};
+use bevy_kira_audio::{AudioApp, AudioChannel, AudioControl, AudioPlugin, AudioSource};
 use std::marker::PhantomData;
 
 pub struct GameAudioPlugin;

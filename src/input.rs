@@ -22,23 +22,25 @@ pub(crate) trait InputCommandsExt {
     fn spawn_menu_input(&mut self, cleanup_marker: impl Component);
 }
 
-impl <'w, 's> InputCommandsExt for Commands <'w, 's> {
+impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
     fn spawn_menu_input(&mut self, cleanup_marker: impl Component) {
-        self        
-        .spawn((InputManagerBundle::<MenuAction> {
-            action_state: ActionState::default(),
-            input_map: InputMap::new([
-                (KeyCode::Space, MenuAction::Select),
-                (KeyCode::Return, MenuAction::Select),
-                (KeyCode::Up, MenuAction::Up),
-                (KeyCode::Down, MenuAction::Down),
-                (KeyCode::Right, MenuAction::Right),
-                (KeyCode::Left, MenuAction::Left),
-                (KeyCode::W, MenuAction::Up),
-                (KeyCode::S, MenuAction::Down),
-                (KeyCode::A, MenuAction::Right),
-                (KeyCode::D, MenuAction::Left),
-            ]),
-        }, cleanup_marker));
+        self.spawn((
+            InputManagerBundle::<MenuAction> {
+                action_state: ActionState::default(),
+                input_map: InputMap::new([
+                    (KeyCode::Space, MenuAction::Select),
+                    (KeyCode::Return, MenuAction::Select),
+                    (KeyCode::Up, MenuAction::Up),
+                    (KeyCode::Down, MenuAction::Down),
+                    (KeyCode::Right, MenuAction::Right),
+                    (KeyCode::Left, MenuAction::Left),
+                    (KeyCode::W, MenuAction::Up),
+                    (KeyCode::S, MenuAction::Down),
+                    (KeyCode::A, MenuAction::Right),
+                    (KeyCode::D, MenuAction::Left),
+                ]),
+            },
+            cleanup_marker,
+        ));
     }
 }

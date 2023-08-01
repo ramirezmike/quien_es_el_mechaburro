@@ -7,9 +7,11 @@ pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update,
-            (update_bot_ai, update_virtual_controllers).chain()
-                    .run_if(in_state(AppState::InGame).or_else(in_state(AppState::ScoreDisplay)))
+        app.add_systems(
+            Update,
+            (update_bot_ai, update_virtual_controllers)
+                .chain()
+                .run_if(in_state(AppState::InGame).or_else(in_state(AppState::ScoreDisplay))),
         );
     }
 }

@@ -33,10 +33,9 @@ pub fn animate_hit(
         transform.rotate(Quat::from_rotation_y(time.delta_seconds()));
         transform.scale *= 1.0 - (time.delta_seconds() * config.hit_shrink_speed);
 
-        let target = transform.translation.lerp(
-            hit.move_toward,
-            time.delta_seconds() * config.hit_speed,
-        );
+        let target = transform
+            .translation
+            .lerp(hit.move_toward, time.delta_seconds() * config.hit_speed);
         if !target.is_nan() {
             transform.translation = target;
         }
@@ -81,15 +80,12 @@ pub fn handle_create_hit_event(
                 Color::rgba(0.6, 0.0, 0.0, 0.7 + inner_mesh_x.abs())
             };
 
-            let move_toward_x = thread_rng()
-                .gen_range(config.hit_min_spread_x..config.hit_max_spread_x)
-                as f32;
-            let move_toward_y = thread_rng()
-                .gen_range(config.hit_min_spread_y..config.hit_max_spread_y)
-                as f32;
-            let move_toward_z = thread_rng()
-                .gen_range(config.hit_min_spread_z..config.hit_max_spread_z)
-                as f32;
+            let move_toward_x =
+                thread_rng().gen_range(config.hit_min_spread_x..config.hit_max_spread_x) as f32;
+            let move_toward_y =
+                thread_rng().gen_range(config.hit_min_spread_y..config.hit_max_spread_y) as f32;
+            let move_toward_z =
+                thread_rng().gen_range(config.hit_min_spread_z..config.hit_max_spread_z) as f32;
             let move_toward = Vec3::new(move_toward_x, move_toward_y, move_toward_z);
 
             commands

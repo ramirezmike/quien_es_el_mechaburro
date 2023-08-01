@@ -1,3 +1,4 @@
+use crate::{assets, floor, game_state};
 use bevy::{
     ecs::{system::EntityCommands, world::EntityRef},
     gltf::Gltf,
@@ -5,7 +6,6 @@ use bevy::{
     render::primitives::Aabb,
     scene::SceneInstance,
 };
-use crate::{assets, game_state, floor};
 
 #[derive(Component, Debug)]
 pub struct SceneHooked;
@@ -29,9 +29,7 @@ pub struct SceneHook {
     hook: Box<dyn Fn(&mut EntityCommands, HookData) + Send + Sync + 'static>,
 }
 impl SceneHook {
-    pub fn new<F: Fn(&mut EntityCommands, HookData) + Send + Sync + 'static>(
-        hook: F,
-    ) -> Self {
+    pub fn new<F: Fn(&mut EntityCommands, HookData) + Send + Sync + 'static>(hook: F) -> Self {
         Self {
             hook: Box::new(hook),
         }
@@ -40,10 +38,30 @@ impl SceneHook {
 
 #[derive(Component)]
 pub struct SceneOnComplete {
-    on_complete: Box<dyn Fn(&mut Commands, &Res<Assets<Gltf>>, &Res<assets::GameAssets>, &Res<game_state::GameState>) + Send + Sync + 'static>,
+    on_complete: Box<
+        dyn Fn(
+                &mut Commands,
+                &Res<Assets<Gltf>>,
+                &Res<assets::GameAssets>,
+                &Res<game_state::GameState>,
+            ) + Send
+            + Sync
+            + 'static,
+    >,
 }
 impl SceneOnComplete {
-    pub fn new<F: Fn(&mut Commands, &Res<Assets<Gltf>>, &Res<assets::GameAssets>, &Res<game_state::GameState>) + Send + Sync + 'static>(f: F) -> Self {
+    pub fn new<
+        F: Fn(
+                &mut Commands,
+                &Res<Assets<Gltf>>,
+                &Res<assets::GameAssets>,
+                &Res<game_state::GameState>,
+            ) + Send
+            + Sync
+            + 'static,
+    >(
+        f: F,
+    ) -> Self {
         Self {
             on_complete: Box::new(f),
         }
@@ -57,7 +75,12 @@ pub fn run_hooks(
     >,
     scene_manager: Res<SceneSpawner>,
     meshes: Res<Assets<Mesh>>,
-    components: Query<(Option<&GlobalTransform>, Option<&Aabb>, Option<&Handle<Mesh>>, Option<&Name>)>,
+    components: Query<(
+        Option<&GlobalTransform>,
+        Option<&Aabb>,
+        Option<&Handle<Mesh>>,
+        Option<&Name>,
+    )>,
     gltfs: Res<Assets<Gltf>>,
     game_assets: Res<assets::GameAssets>,
     game_state: Res<game_state::GameState>,
@@ -79,7 +102,6 @@ pub fn run_hooks(
 
                 let mut cmd = cmds.entity(entity);
                 (hooked.hook)(&mut cmd, hook_data);
-
             }
         }
 
@@ -88,7 +110,7 @@ pub fn run_hooks(
             if let Some(on_complete) = maybe_on_complete {
                 (on_complete.on_complete)(&mut cmds, &gltfs, &game_assets, &game_state);
             }
-        } 
+        }
     }
 }
 

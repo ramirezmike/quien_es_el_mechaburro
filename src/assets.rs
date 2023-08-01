@@ -49,7 +49,7 @@ pub struct GameAssets {
 
     pub burro: Handle<Gltf>,
     pub burro_run: Handle<AnimationClip>,
-    pub burro_assets: Vec::<BurroAsset>,
+    pub burro_assets: Vec<BurroAsset>,
     pub mechaburro_texture: BurroAsset,
 
     pub heart_texture: asset_loading::GameTexture,

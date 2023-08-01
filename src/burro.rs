@@ -1,4 +1,4 @@
-use crate::{game_state, AppState, config, assets, audio, smoke, burro};
+use crate::{assets, audio, burro, config, game_state, smoke, AppState};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
 use rand::Rng;
@@ -6,19 +6,24 @@ use rand::Rng;
 pub struct BurroPlugin;
 impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update,
-                (handle_burros, handle_burro_death_events, handle_burro_hit)
+        app.add_systems(
+            Update,
+            (handle_burros, handle_burro_death_events, handle_burro_hit)
                 .chain()
                 .run_if(in_state(AppState::InGame)),
-            )
-            .add_systems(Update,
-                (handle_fallen_burros, handle_burro_flash_events)
-                .run_if(in_state(AppState::InGame)),
-            )
-            .add_systems(Update, squish_burros.run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))))
-            .add_event::<BurroFlashEvent>()
-            .add_event::<BurroHitEvent>()
-            .add_event::<BurroDeathEvent>();
+        )
+        .add_systems(
+            Update,
+            (handle_fallen_burros, handle_burro_flash_events).run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            squish_burros
+                .run_if(in_state(AppState::InGame).or_else(in_state(AppState::MechaPicker))),
+        )
+        .add_event::<BurroFlashEvent>()
+        .add_event::<BurroHitEvent>()
+        .add_event::<BurroDeathEvent>();
     }
 }
 
@@ -116,13 +121,10 @@ impl Burro {
 
 #[derive(Component)]
 pub struct BurroMeshMarker {
-    pub parent: Entity
+    pub parent: Entity,
 }
 
-fn squish_burros(
-    time: Res<Time>,
-    mut burros: Query<&mut Transform, With<burro::Burro>>,
-) {
+fn squish_burros(time: Res<Time>, mut burros: Query<&mut Transform, With<burro::Burro>>) {
     for mut transform in burros.iter_mut() {
         // make the burros all squishy like
         if transform.scale.x != 1.0 || transform.scale.y != 1.0 {
@@ -222,17 +224,17 @@ fn handle_burro_death_events(
     burros: Query<Entity, With<Burro>>,
     mut audio: audio::GameAudio,
     mut game_state: ResMut<game_state::GameState>,
-//    follow_texts: Query<(Entity, &follow_text::FollowText)>,
+    //    follow_texts: Query<(Entity, &follow_text::FollowText)>,
     game_assets: Res<assets::GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
         if burros.get(death_event.entity).is_ok() {
             commands.entity(death_event.entity).despawn_recursive();
-//          for (text_entity, text) in follow_texts.iter() {
-//              if text.following == death_event.entity {
-//                  commands.entity(text_entity).despawn_recursive();
-//              }
-//          }
+            //          for (text_entity, text) in follow_texts.iter() {
+            //              if text.following == death_event.entity {
+            //                  commands.entity(text_entity).despawn_recursive();
+            //              }
+            //          }
             if !game_state.dead_burros.contains(&death_event.id) {
                 game_state.dead_burros.push(death_event.id);
             }
@@ -275,10 +277,10 @@ fn handle_burro_flash_events(
             burro.is_visible = event.show;
             if let Some(material) = materials.get_mut(material_handle) {
                 if event.show {
-//                    material.alpha_mode = AlphaMode::Opaque;
+                    //                    material.alpha_mode = AlphaMode::Opaque;
                     material.color.set_a(1.0);
                 } else {
-//                    material.alpha_mode = AlphaMode::Blend;
+                    //                    material.alpha_mode = AlphaMode::Blend;
                     material.color.set_a(0.4);
                 }
             }

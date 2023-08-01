@@ -12,7 +12,10 @@ impl Plugin for GameCameraPlugin {
             //            .add_system(debug_camera.in_set(OnUpdate(AppState::InGame)))
             //          .add_system(check_for_follow_burros)
             //          .add_system(follow_following)
-            .add_systems(Update, update_camera.run_if(in_state(AppState::MechaPicker)))
+            .add_systems(
+                Update,
+                update_camera.run_if(in_state(AppState::MechaPicker)),
+            )
             .add_systems(Update, update_camera.run_if(in_state(AppState::InGame)));
     }
 }
@@ -225,7 +228,7 @@ fn get_primary_window_size(window: &Window) -> Vec2 {
 }
 
 pub fn spawn_camera_with_transform<T: Component>(
-    commands: &mut Commands, 
+    commands: &mut Commands,
     transform: Transform,
     cleanup_marker: T,
 ) {

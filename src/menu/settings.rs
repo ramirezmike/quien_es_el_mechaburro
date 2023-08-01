@@ -1,7 +1,10 @@
-use crate::{AppState, assets, ui, game_camera, asset_loading, input, input::InputCommandsExt, audio, cleanup, };
+use super::MenuOption;
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
-use super::MenuOption;
+use crate::{
+    asset_loading, assets, audio, cleanup, game_camera, input, input::InputCommandsExt, ui,
+    AppState,
+};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -9,9 +12,13 @@ pub struct SettingsMenuPlugin;
 impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Settings), setup)
-           .init_resource::<SettingsMenuState>()
-           .add_systems(Update, (highlight_selection, handle_input, update_values).run_if(in_state(AppState::Settings)))
-           .add_systems(OnExit(AppState::Settings), cleanup::<CleanupMarker>);
+            .init_resource::<SettingsMenuState>()
+            .add_systems(
+                Update,
+                (highlight_selection, handle_input, update_values)
+                    .run_if(in_state(AppState::Settings)),
+            )
+            .add_systems(OnExit(AppState::Settings), cleanup::<CleanupMarker>);
     }
 }
 
@@ -28,14 +35,12 @@ impl SettingsMenuState {
         match setting {
             Settings::NumberOfPlayers => format!("{}", self.number_of_players + 1),
             Settings::NumberOfBots => format!("{}", self.number_of_bots + 1),
-            Settings::UnfairAdvantage => {
-                match self.unfair_advantage {
-                    0 => "Mechaburrito".to_string(),
-                    1 => " Mechaburro ".to_string(),
-                    _ => "Mechagigante".to_string(),
-                }
+            Settings::UnfairAdvantage => match self.unfair_advantage {
+                0 => "Mechaburrito".to_string(),
+                1 => " Mechaburro ".to_string(),
+                _ => "Mechagigante".to_string(),
             },
-            setting => setting.get_label().to_string()
+            setting => setting.get_label().to_string(),
         }
     }
 
@@ -43,14 +48,14 @@ impl SettingsMenuState {
         match self.selected_setting {
             Settings::NumberOfPlayers => {
                 self.number_of_players = self.number_of_players.add_with_wrap(1, 8);
-            },
+            }
             Settings::NumberOfBots => {
                 self.number_of_bots = self.number_of_bots.add_with_wrap(1, 8);
-            },
+            }
             Settings::UnfairAdvantage => {
                 self.unfair_advantage = self.unfair_advantage.add_with_wrap(1, 3);
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 
@@ -58,14 +63,14 @@ impl SettingsMenuState {
         match self.selected_setting {
             Settings::NumberOfPlayers => {
                 self.number_of_players = self.number_of_players.sub_with_wrap(1, 8);
-            },
+            }
             Settings::NumberOfBots => {
                 self.number_of_bots = self.number_of_bots.sub_with_wrap(1, 8);
-            },
+            }
             Settings::UnfairAdvantage => {
                 self.unfair_advantage = self.unfair_advantage.sub_with_wrap(1, 3);
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 }
@@ -83,11 +88,12 @@ enum Settings {
 }
 
 impl MenuOption<4> for Settings {
-    const ITEM: [Settings; 4] = 
-            [Settings::NumberOfPlayers,
-            Settings::NumberOfBots,
-            Settings::UnfairAdvantage,
-            Settings::Vamos,];
+    const ITEM: [Settings; 4] = [
+        Settings::NumberOfPlayers,
+        Settings::NumberOfBots,
+        Settings::UnfairAdvantage,
+        Settings::Vamos,
+    ];
 
     fn get_label(&self) -> &str {
         match self {
@@ -107,8 +113,9 @@ pub struct SettingsMenuLoader;
 impl Command for SettingsMenuLoader {
     fn apply(self, world: &mut World) {
         let mut system_state: SystemState<(
-             asset_loading::AssetsHandler,
-             ResMut<assets::GameAssets>)> = SystemState::new(world);
+            asset_loading::AssetsHandler,
+            ResMut<assets::GameAssets>,
+        )> = SystemState::new(world);
         let (mut assets_handler, mut game_assets) = system_state.get_mut(world);
 
         assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
@@ -197,165 +204,190 @@ fn setup(
     game_camera::spawn_camera(&mut commands, CleanupMarker);
     commands.spawn_menu_input(CleanupMarker);
 
-    let root_node = commands.spawn((NodeBundle {
-        z_index: ZIndex::Global(-100),
-        style: Style { 
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::FlexStart,
-            ..default()
-        },
-        transform: Transform::from_xyz(0., 0., -1.),
-        ..default()
-    }, CleanupMarker)).id();
-
-    let title_text = commands.spawn(NodeBundle {
-        style: Style { 
-            width: Val::Percent(100.),
-            height: Val::Percent(20.),
-            display: Display::Flex,
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
-        ..default()
-    })
-    .with_children(|builder| {
-        builder.spawn(TextBundle {
-            text: Text::from_section(
-                "Game Settings",
-                TextStyle {
-                    font: game_assets.font.clone(),
-                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 1.2),
-                    color: Color::WHITE,
+    let root_node = commands
+        .spawn((
+            NodeBundle {
+                z_index: ZIndex::Global(-100),
+                style: Style {
+                    width: Val::Percent(100.),
+                    height: Val::Percent(100.),
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::FlexStart,
+                    ..default()
                 },
-            ),
-            ..default()
-        });
-    })
-    .id();
-
-    let settings = 
-    Settings::get()
-    .into_iter().map(|setting| {
-        match setting {
-            Settings::Vamos => {
-                commands.spawn((NodeBundle {
-                    style: Style {
-                        width: Val::Percent(20.),
-                        height: Val::Percent(15.),
-                        display: Display::Flex,
-                        padding: UiRect::all(Val::Percent(2.)),
-                        margin: UiRect {
-                            top: Val::Percent(15.),
-                            ..default()
-                        },
-                        align_items: AlignItems::Center,
-                        align_self: AlignSelf::Center,
-                        justify_content: JustifyContent::Center,
-                        border: UiRect::all(Val::Percent(1.0)),
-                        flex_direction: FlexDirection::Row,
-                        ..default()
-                    },
-                    border_color: BorderColor(Color::WHITE),
-                    ..default()
-                }, setting.clone()))
-                .with_children(|builder| {
-                    builder.spawn((TextBundle {
-                        text: Text::from_section(
-                            format!("{}", setting.get_label()),
-                            TextStyle {
-                                font: game_assets.score_font.clone(),
-                                font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
-                                color: Color::WHITE,
-                            },
-                        ),
-                        ..default()
-                    }, setting.clone()));
-                })
-                .id()
+                transform: Transform::from_xyz(0., 0., -1.),
+                ..default()
             },
-            _ => {
-                commands.spawn((NodeBundle {
-                    style: Style {
-                        width: Val::Percent(100.),
-                        height: Val::Percent(15.),
-                        display: Display::Flex,
-                        padding: UiRect::all(Val::Percent(2.)),
-                        align_items: AlignItems::Center,
-                        justify_content: JustifyContent::SpaceBetween,
-                        flex_direction: FlexDirection::Row,
+            CleanupMarker,
+        ))
+        .id();
+
+    let title_text = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(20.),
+                display: Display::Flex,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|builder| {
+            builder.spawn(TextBundle {
+                text: Text::from_section(
+                    "Game Settings",
+                    TextStyle {
+                        font: game_assets.font.clone(),
+                        font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 1.2),
+                        color: Color::WHITE,
+                    },
+                ),
+                ..default()
+            });
+        })
+        .id();
+
+    let settings = Settings::get()
+        .into_iter()
+        .map(|setting| match setting {
+            Settings::Vamos => commands
+                .spawn((
+                    NodeBundle {
+                        style: Style {
+                            width: Val::Percent(20.),
+                            height: Val::Percent(15.),
+                            display: Display::Flex,
+                            padding: UiRect::all(Val::Percent(2.)),
+                            margin: UiRect {
+                                top: Val::Percent(15.),
+                                ..default()
+                            },
+                            align_items: AlignItems::Center,
+                            align_self: AlignSelf::Center,
+                            justify_content: JustifyContent::Center,
+                            border: UiRect::all(Val::Percent(1.0)),
+                            flex_direction: FlexDirection::Row,
+                            ..default()
+                        },
+                        border_color: BorderColor(Color::WHITE),
                         ..default()
                     },
-                    ..default()
-                }, setting.clone()))
+                    setting.clone(),
+                ))
                 .with_children(|builder| {
-                    builder.spawn((TextBundle {
-                        text: Text::from_section(
-                            format!("{}:", setting.get_label()),
-                            TextStyle {
-                                font: game_assets.font.clone(),
-                                font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
-                                color: Color::WHITE,
-                            },
-                        ),
-                        ..default()
-                    }, setting.clone()));
-
-                    builder.spawn(NodeBundle {
+                    builder.spawn((
+                        TextBundle {
+                            text: Text::from_section(
+                                format!("{}", setting.get_label()),
+                                TextStyle {
+                                    font: game_assets.score_font.clone(),
+                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                    color: Color::WHITE,
+                                },
+                            ),
+                            ..default()
+                        },
+                        setting.clone(),
+                    ));
+                })
+                .id(),
+            _ => commands
+                .spawn((
+                    NodeBundle {
                         style: Style {
-                            height: Val::Percent(100.),
-                            width: Val::Percent(40.),
+                            width: Val::Percent(100.),
+                            height: Val::Percent(15.),
                             display: Display::Flex,
+                            padding: UiRect::all(Val::Percent(2.)),
                             align_items: AlignItems::Center,
-                            flex_direction: FlexDirection::Row,
                             justify_content: JustifyContent::SpaceBetween,
+                            flex_direction: FlexDirection::Row,
                             ..default()
                         },
                         ..default()
-                    })
-                    .with_children(|builder| {
-                        builder.spawn((TextBundle {
+                    },
+                    setting.clone(),
+                ))
+                .with_children(|builder| {
+                    builder.spawn((
+                        TextBundle {
                             text: Text::from_section(
-                                "<",
+                                format!("{}:", setting.get_label()),
                                 TextStyle {
-                                    font: game_assets.score_font.clone(),
+                                    font: game_assets.font.clone(),
                                     font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
                                     color: Color::WHITE,
                                 },
                             ),
                             ..default()
-                        }, setting.clone()));
-                        builder.spawn((TextBundle {
-                            text: Text::from_section(
-                                "5",
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
-                                    color: Color::WHITE,
-                                },
-                            ),
-                            ..default()
-                        }, setting.clone(), SettingDisplayMarker));
-                        builder.spawn((TextBundle {
-                            text: Text::from_section(
-                                ">",
-                                TextStyle {
-                                    font: game_assets.score_font.clone(),
-                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
-                                    color: Color::WHITE,
-                                },
-                            ),
-                            ..default()
-                        }, setting.clone()));
-                    });
-                }) 
-                .id()
-            }
-        }
-    }).collect::<Vec::<_>>();
+                        },
+                        setting.clone(),
+                    ));
 
+                    builder
+                        .spawn(NodeBundle {
+                            style: Style {
+                                height: Val::Percent(100.),
+                                width: Val::Percent(40.),
+                                display: Display::Flex,
+                                align_items: AlignItems::Center,
+                                flex_direction: FlexDirection::Row,
+                                justify_content: JustifyContent::SpaceBetween,
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .with_children(|builder| {
+                            builder.spawn((
+                                TextBundle {
+                                    text: Text::from_section(
+                                        "<",
+                                        TextStyle {
+                                            font: game_assets.score_font.clone(),
+                                            font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                            color: Color::WHITE,
+                                        },
+                                    ),
+                                    ..default()
+                                },
+                                setting.clone(),
+                            ));
+                            builder.spawn((
+                                TextBundle {
+                                    text: Text::from_section(
+                                        "5",
+                                        TextStyle {
+                                            font: game_assets.score_font.clone(),
+                                            font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                            color: Color::WHITE,
+                                        },
+                                    ),
+                                    ..default()
+                                },
+                                setting.clone(),
+                                SettingDisplayMarker,
+                            ));
+                            builder.spawn((
+                                TextBundle {
+                                    text: Text::from_section(
+                                        ">",
+                                        TextStyle {
+                                            font: game_assets.score_font.clone(),
+                                            font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                            color: Color::WHITE,
+                                        },
+                                    ),
+                                    ..default()
+                                },
+                                setting.clone(),
+                            ));
+                        });
+                })
+                .id(),
+        })
+        .collect::<Vec<_>>();
 
     commands.entity(root_node).add_child(title_text);
 
