@@ -29,7 +29,14 @@ pub mod command_ext {
             next_state.set(AppState::Loading);
 
             match self.0 {
-                AppState::Settings => settings::SettingsMenuLoader.apply(world),
+                AppState::Settings => {
+                    settings::SettingsMenuLoader.apply(world);
+
+                    // TODO: This is temporary to load burro burro_assets
+                    //  before the game_state initializes until the burro select 
+                    //  screen is working since it will load the burro_assets
+                    ingame::IngameLoader.apply(world)
+                },
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
                 AppState::Splash => splash::SplashLoader.apply(world),
                 AppState::TitleScreen => title_screen::TitleScreenLoader.apply(world),

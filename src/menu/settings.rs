@@ -3,7 +3,7 @@ use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::{
     asset_loading, assets, audio, cleanup, game_camera, input, input::InputCommandsExt, ui,
-    AppState,
+    AppState, game_state,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -164,6 +164,7 @@ fn handle_input(
     mut setting_state: ResMut<SettingsMenuState>,
     action_state: Query<&ActionState<input::MenuAction>>,
     game_assets: Res<assets::GameAssets>,
+    mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
 ) {
     let action_state = action_state.single();
@@ -191,6 +192,19 @@ fn handle_input(
     if action_state.just_pressed(input::MenuAction::Select) {
         if setting_state.selected_setting == Settings::Vamos {
             audio.play_sfx(&game_assets.sfx_1);
+
+            *game_state = game_state::GameState::initialize(
+                vec![game_state::BurroCharacter {
+                    player: 0,
+                    is_playing: true,
+                    has_picked: true,
+                    selected_burro: 0,
+                    action_cooldown: 0.0,
+                }],
+                setting_state.number_of_bots.try_into().unwrap(),
+                setting_state.unfair_advantage as f32,
+                &game_assets.burro_assets,
+            );
             commands.load_state(AppState::LoadInGame);
         }
     }
@@ -274,7 +288,7 @@ fn setup(
                         border_color: BorderColor(Color::WHITE),
                         ..default()
                     },
-                    setting.clone(),
+                    setting,
                 ))
                 .with_children(|builder| {
                     builder.spawn((
@@ -289,7 +303,7 @@ fn setup(
                             ),
                             ..default()
                         },
-                        setting.clone(),
+                        setting,
                     ));
                 })
                 .id(),
@@ -308,7 +322,7 @@ fn setup(
                         },
                         ..default()
                     },
-                    setting.clone(),
+                    setting,
                 ))
                 .with_children(|builder| {
                     builder.spawn((
@@ -323,7 +337,7 @@ fn setup(
                             ),
                             ..default()
                         },
-                        setting.clone(),
+                        setting,
                     ));
 
                     builder
@@ -352,7 +366,7 @@ fn setup(
                                     ),
                                     ..default()
                                 },
-                                setting.clone(),
+                                setting,
                             ));
                             builder.spawn((
                                 TextBundle {
@@ -366,7 +380,7 @@ fn setup(
                                     ),
                                     ..default()
                                 },
-                                setting.clone(),
+                                setting,
                                 SettingDisplayMarker,
                             ));
                             builder.spawn((
@@ -381,7 +395,7 @@ fn setup(
                                     ),
                                     ..default()
                                 },
-                                setting.clone(),
+                                setting,
                             ));
                         });
                 })

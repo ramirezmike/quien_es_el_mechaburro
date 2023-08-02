@@ -109,7 +109,7 @@ use loading::command_ext::*;
 fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
-    commands.load_state(AppState::TitleScreen);
+    commands.load_state(AppState::LoadInGame);
 }
 
 fn debug(

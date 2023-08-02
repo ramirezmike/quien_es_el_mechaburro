@@ -82,7 +82,8 @@ impl GameState {
         available_burros.retain(|x| !claimed_burros.contains(&x));
 
         // bots
-        for _ in 0..number_of_bots {
+        for i in 0..number_of_bots {
+            println!("bot {i} of {number_of_bots} with {}", available_burros.len());
             let index = rand::thread_rng().gen_range(0..available_burros.len());
 
             burros.push(BurroState {
