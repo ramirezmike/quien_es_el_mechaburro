@@ -6,13 +6,7 @@ use std::cmp::Ordering;
 pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (update_bot_ai, update_virtual_controllers)
-                .chain()
-                .run_if(in_state(AppState::InGame).or_else(in_state(AppState::ScoreDisplay))),
-        );
+    fn build(&self, _app: &mut App) {
     }
 }
 
@@ -71,7 +65,7 @@ impl BotBundle {
     }
 }
 
-fn update_bot_ai(
+pub fn update_bot_ai(
     time: Res<Time>,
     mut bots: Query<(Entity, &mut Bot, &burro::Burro, &Transform)>,
     other_burros: Query<(Entity, &Transform, &burro::Burro)>,
@@ -221,7 +215,7 @@ fn update_bot_ai(
     }
 }
 
-fn update_virtual_controllers(mut bots: Query<(Entity, &Bot, &mut ActionState<PlayerAction>)>) {
+pub fn update_virtual_controllers(mut bots: Query<(Entity, &Bot, &mut ActionState<PlayerAction>)>) {
     for (_, bot, mut action_state) in bots.iter_mut() {
         // release all buttons
         // this probably affects durations but for

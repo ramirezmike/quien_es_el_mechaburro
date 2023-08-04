@@ -80,9 +80,9 @@ fn update_camera(
 ) {
     // change input mapping for orbit and panning here
     let orbit_button = MouseButton::Right;
-    let orbit_key = KeyCode::LShift;
+    let orbit_key = KeyCode::ShiftLeft;
     let pan_button = MouseButton::Middle;
-    let pan_key = KeyCode::LAlt;
+    let pan_key = KeyCode::AltLeft;
     let window = windows.single();
 
     let mut pan = Vec2::ZERO;

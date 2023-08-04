@@ -24,7 +24,6 @@ mod input;
 mod loading;
 mod mecha_picker;
 mod menu;
-mod mesh;
 mod player;
 mod scene_hook;
 mod smoke;
@@ -76,7 +75,6 @@ fn main() {
         asset_loading::AssetLoadingPlugin,
         assets::AssetsPlugin,
         ToonShaderPlugin,
-        mesh::MeshPlugin,
         input::InputPlugin,
         scene_hook::HookPlugin,
         ui::text_size::TextSizePlugin,
@@ -109,7 +107,11 @@ use loading::command_ext::*;
 fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
+    #[cfg(feature = "debug")]
     commands.load_state(AppState::LoadInGame);
+
+    #[cfg(not(feature = "debug"))]
+    commands.load_state(AppState::TitleScreen);
 }
 
 fn debug(
