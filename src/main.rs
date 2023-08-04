@@ -53,6 +53,7 @@ fn main() {
     .insert_resource(config::GameConfiguration::default())
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins((
+        menu::character_select::CharacterSelectPlugin,
         menu::settings::SettingsMenuPlugin,
         menu::splash::SplashPlugin,
         menu::title_screen::TitlePlugin,
@@ -108,7 +109,7 @@ fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
     #[cfg(feature = "debug")]
-    commands.load_state(AppState::LoadInGame);
+    commands.load_state(AppState::CharacterSelect);
 
     #[cfg(not(feature = "debug"))]
     commands.load_state(AppState::TitleScreen);

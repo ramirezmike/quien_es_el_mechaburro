@@ -136,7 +136,6 @@ fn setup(
 ) {
     camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
 
-    // TODO: This is temporary, this will be done by menus
     #[cfg(feature = "debug")]
     {
         *game_state = game_state::GameState::initialize(

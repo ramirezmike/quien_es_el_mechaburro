@@ -29,7 +29,7 @@ pub mod command_ext {
             next_state.set(AppState::Loading);
 
             match self.0 {
-                AppState::Settings => {
+                AppState::Settings | AppState::CharacterSelect => {
                     settings::SettingsMenuLoader.apply(world);
 
                     // TODO: This is temporary to load burro burro_assets

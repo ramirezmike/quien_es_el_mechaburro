@@ -278,7 +278,7 @@ fn handle_input(
     if action_state.just_pressed(input::MenuAction::Select) {
         audio.play_sfx(&game_assets.sfx_1);
         match title_screen_state.selected_option {
-            TitleScreenOptions::Start => commands.load_state(AppState::Settings),
+            TitleScreenOptions::Start => commands.load_state(AppState::CharacterSelect),
             TitleScreenOptions::Quit => exit.send(AppExit),
         }
     }

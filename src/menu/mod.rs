@@ -1,3 +1,4 @@
+pub mod character_select;
 pub mod settings;
 pub mod splash;
 pub mod title_screen;
