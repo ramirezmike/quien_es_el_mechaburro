@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
+use bevy::ecs::bundle::Bundle;
 
 pub struct InputPlugin;
 
@@ -16,6 +17,7 @@ pub enum MenuAction {
     Left,
     Right,
     Select,
+    Back,
 }
 
 pub(crate) trait InputCommandsExt {
@@ -27,20 +29,34 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
         self.spawn((
             InputManagerBundle::<MenuAction> {
                 action_state: ActionState::default(),
-                input_map: InputMap::new([
-                    (KeyCode::Space, MenuAction::Select),
-                    (KeyCode::Return, MenuAction::Select),
-                    (KeyCode::Up, MenuAction::Up),
-                    (KeyCode::Down, MenuAction::Down),
-                    (KeyCode::Right, MenuAction::Right),
-                    (KeyCode::Left, MenuAction::Left),
-                    (KeyCode::W, MenuAction::Up),
-                    (KeyCode::S, MenuAction::Down),
-                    (KeyCode::A, MenuAction::Right),
-                    (KeyCode::D, MenuAction::Left),
-                ]),
+                input_map: create_menu_inputmap()
             },
             cleanup_marker,
         ));
     }
+}
+
+pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
+    InputManagerBundle::<MenuAction> {
+        action_state: ActionState::default(),
+        input_map: create_menu_inputmap() 
+                .set_gamepad(Gamepad { id: player })
+                .build()
+    }
+}
+
+fn create_menu_inputmap() -> InputMap::<MenuAction> {
+    InputMap::new([
+        (KeyCode::Space, MenuAction::Select),
+        (KeyCode::Return, MenuAction::Select),
+        (KeyCode::X, MenuAction::Back),
+        (KeyCode::Up, MenuAction::Up),
+        (KeyCode::Down, MenuAction::Down),
+        (KeyCode::Right, MenuAction::Right),
+        (KeyCode::Left, MenuAction::Left),
+        (KeyCode::W, MenuAction::Up),
+        (KeyCode::S, MenuAction::Down),
+        (KeyCode::A, MenuAction::Right),
+        (KeyCode::D, MenuAction::Left),
+    ])
 }

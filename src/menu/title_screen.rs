@@ -34,7 +34,7 @@ use bevy::{
 pub struct ScrollingImageMaterial {
     #[texture(0)]
     #[sampler(1)]
-    texture: Handle<Image>,
+    pub texture: Handle<Image>,
 }
 
 impl Material for ScrollingImageMaterial {

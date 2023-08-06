@@ -1,9 +1,13 @@
 use crate::{
-    game_camera, asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, ui, AppState, scene_hook,
+    assets, audio, input, game_camera, asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, ui, AppState, scene_hook,
 };
+use crate::input::InputCommandsExt;
+use crate::util::num_ext::*;
+use crate::loading::command_ext::*;
 use bevy_mod_outline::{
     AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
 };
+use bevy_toon_shader::ToonShaderMaterial;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
@@ -24,7 +28,18 @@ impl Plugin for CharacterSelectPlugin {
         app
             .add_systems(OnEnter(AppState::CharacterSelect), setup)
             .add_systems(Update, 
-                 (rotate_burros,).run_if(in_state(AppState::CharacterSelect))
+                 (rotate_burros, 
+                  (handle_input, 
+                   force_burro_uniqueness,
+                   ( 
+                       update_selections, 
+                       update_burro_visibility,
+                       update_burro_material,
+                       update_burro_outline,
+                       update_center_texts,
+                       update_selection_containers,
+                    )
+                   ).chain() ).run_if(in_state(AppState::CharacterSelect))
              )
             .add_systems(OnExit(AppState::CharacterSelect), cleanup::<CleanupMarker>);
     }
@@ -37,52 +52,361 @@ pub struct CleanupMarker;
 #[derive(Component)]
 pub struct BurroMeshMarker;
 
-#[derive(Component, Clone)]
-pub struct BurroName {
-    player: usize,
+#[derive(Component, Default)]
+struct PlayerSelectionState {
+    burro: usize,
+    outline_color: usize,
+    state: SelectionState,
 }
 
-#[derive(Component)]
-struct CameraImage {
-    id: usize,
-    image: Handle<Image>,
+#[derive(Default, PartialEq)]
+enum SelectionState {
+    #[default]
+    NotPlaying,
+    Burro,
+    OutlineColor,
+    Ready,
 }
 
-#[derive(Component)]
-struct RenderedImage {
-    id: usize,
+impl SelectionState {
+    fn has_selected_burro(&self) -> bool {
+        match self {
+            SelectionState::NotPlaying | SelectionState::Burro => false,
+            _ => true
+        }
+    }
 }
 
+const COLOR_COUNT: usize = 13;
+const OUTLINE_COLORS: [(Color, &str);COLOR_COUNT] = [
+   (Color::WHITE, "White"),
+   (Color::BLACK, "Black"),
+   (Color::AZURE, "Azure"),
+   (Color::BLUE, "Blue"),
+   (Color::CYAN, "Cyan"),
+   (Color::DARK_GREEN, "Sage"),
+   (Color::PINK, "Pink"),
+   (Color::RED, "Red"),
+   (Color::LIME_GREEN, "Green"),
+   (Color::OLIVE, "Olive"),
+   (Color::ORANGE, "Orange"),
+   (Color::PURPLE, "Purple"),
+   (Color::YELLOW, "Yellow"),
+];
 
 #[derive(Component)]
-pub enum GamePlayer {
+pub struct CenterTextMarker;
+
+#[derive(Component)]
+pub struct SelectionMarker;
+
+#[derive(Component)]
+pub struct SelectionContainerMarker;
+
+#[derive(Component, Copy, Clone, PartialEq, Debug)]
+pub enum PlayerMarker {
     One,
     Two,
     Three,
     Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
 }
 
-fn rotate_burros(
-    mut burros: Query<&mut Transform, With<BurroMeshMarker>>,
-//  mut cameras: Query<(&mut Camera, &mut Transform, &CameraImage)>,
-//  mut rendered_images: Query<(&mut UiImage, &RenderedImage)>,
-    time: Res<Time>
+const _: () = {
+    const PLAYER_MARKERS: [PlayerMarker;8] = [
+        PlayerMarker::One,
+        PlayerMarker::Two,
+        PlayerMarker::Three,
+        PlayerMarker::Four,
+        PlayerMarker::Five,
+        PlayerMarker::Six,
+        PlayerMarker::Seven,
+        PlayerMarker::Eight,
+    ];
+
+    impl PlayerMarker {
+        fn get(index: usize) -> Self {
+            PLAYER_MARKERS[index]
+        }
+    }
+};
+
+fn update_selection_containers(
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut selection_containers: Query<(&mut Visibility, &PlayerMarker), With<SelectionContainerMarker>>,
 ) {
-    for mut transform in &mut burros {
-        transform.rotate_y(time.delta_seconds());
+    for (player_state, player) in &players {
+        let (mut visibility, _) = selection_containers.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .last()
+                                         .unwrap();
+        *visibility = 
+        match player_state.state {
+            SelectionState::Burro | SelectionState::OutlineColor => Visibility::Visible, 
+            _ => Visibility::Hidden,
+        };
+    }
+}
+
+fn update_burro_material(
+    game_assets: Res<GameAssets>,
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut materials: Query<(&mut Handle<ToonShaderMaterial>, &PlayerMarker)>,
+) {
+    for (player_state, player) in &players {
+        if let Some((mut material, _)) = materials.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .last() {
+            *material = game_assets.burro_assets[player_state.burro]
+                .toon_texture
+                .clone();
+        }
+    }
+}
+
+fn update_burro_outline(
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut outlines: Query<(&mut OutlineVolume, &PlayerMarker)>,
+) {
+    for (player_state, player) in &players {
+        if let Some((mut outline, _)) = outlines.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .last() {
+            outline.colour = OUTLINE_COLORS[player_state.outline_color].0;
+        }
+    }
+}
+
+fn update_burro_visibility(
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut images: Query<(&mut Visibility, &PlayerMarker), With<UiImage>>,
+) {
+    for (player_state, player) in &players {
+        let (mut image_visibility, _) = images.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .last()
+                                         .unwrap();
+        match player_state.state {
+            SelectionState::NotPlaying => {
+                *image_visibility = Visibility::Hidden;
+            },
+            _ => {
+                *image_visibility = Visibility::Visible;
+            }
+        }
+    }
+}
+
+fn update_center_texts(
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut center_texts: Query<(&mut Text, &PlayerMarker), Without<SelectionMarker>>,
+) {
+    for (player_state, player) in &players {
+        let mut center_text = center_texts.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .map(|(t, _)| t)
+                                         .last()
+                                         .unwrap();
+        match player_state.state {
+            SelectionState::NotPlaying => {
+                center_text.sections[0].value = "Press Start!".to_string();
+            },
+            SelectionState::Ready => {
+                center_text.sections[0].value = "Ready!".to_string();
+            },
+            _ => {
+                center_text.sections[0].value = "".to_string();
+            }
+        }
+    }
+}
+
+fn update_selections(
+    game_assets: Res<GameAssets>,
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut selection_texts: Query<(&mut Text, &PlayerMarker), With<SelectionMarker>>,
+) {
+    for (player_state, player) in &players {
+        let mut selection_text = selection_texts.iter_mut()
+                                         .filter(|(_, p)| *p == player)
+                                         .map(|(t, _)| t)
+                                         .last()
+                                         .unwrap();
+        match player_state.state {
+            SelectionState::Burro => {
+                selection_text.sections[0].value = game_assets.burro_assets[player_state.burro].name.clone();
+                selection_text.sections[0].style.color = Color::WHITE;
+            },
+            SelectionState::OutlineColor => {
+                selection_text.sections[0].value = OUTLINE_COLORS[player_state.outline_color].1.to_string();
+                selection_text.sections[0].style.color = OUTLINE_COLORS[player_state.outline_color].0;
+            },
+            _ => ()
+        }
+    }
+}
+
+fn force_burro_uniqueness(
+    mut players: Query<&mut PlayerSelectionState>,
+    game_assets: Res<assets::GameAssets>,
+) {
+    let selected_burros = players.iter()
+                                .filter(|p| p.state.has_selected_burro())
+                                .map(|p| p.burro)
+                                .collect::<Vec::<_>>();
+    let number_of_burros = game_assets.burro_assets.len();
+
+    for mut player in &mut players {
+        if !player.state.has_selected_burro() {
+            while selected_burros.contains(&player.burro) {
+                player.burro = player.burro.add_with_wrap(1, number_of_burros);
+            }
+        }
+    }
+}
+
+fn handle_input(
+    mut commands: Commands,
+    mut players: Query<(&mut PlayerSelectionState, &PlayerMarker, &ActionState<input::MenuAction>)>,
+    game_assets: Res<assets::GameAssets>,
+    mut game_state: ResMut<game_state::GameState>,
+    mut audio: audio::GameAudio,
+    #[cfg(feature = "debug")]
+    mut selected_player: Local<usize>,
+    #[cfg(feature = "debug")]
+    keys: Res<Input<KeyCode>>,
+) {
+    #[cfg(feature = "debug")]
+    {
+        if keys.just_pressed(KeyCode::Key1) {
+            *selected_player = 0;
+        }
+        if keys.just_pressed(KeyCode::Key2) {
+            *selected_player = 1;
+        }
+        if keys.just_pressed(KeyCode::Key3) {
+            *selected_player = 2;
+        }
+        if keys.just_pressed(KeyCode::Key4) {
+            *selected_player = 3;
+        }
+        if keys.just_pressed(KeyCode::Key5) {
+            *selected_player = 4;
+        }
+        if keys.just_pressed(KeyCode::Key6) {
+            *selected_player = 5;
+        }
+        if keys.just_pressed(KeyCode::Key7) {
+            *selected_player = 6;
+        }
+        if keys.just_pressed(KeyCode::Key8) {
+            *selected_player = 7;
+        }
     }
 
-//  for (mut camera, mut transform, camera_image) in &mut cameras {
-//      transform.rotate_y(time.delta_seconds());
- //     camera.target = RenderTarget::Image(camera_image.image.clone());
- //     println!("Upddated target {}", camera_image.id);
- //     for (mut ui_image, rendered_image) in &mut rendered_images {
- //         if rendered_image.id == camera_image.id {
- //             println!("Upddated image {}", rendered_image.id);
- //             ui_image.texture = camera_image.image.clone();
- //         }
- //     }
-//    }
+    let mut play_audio = false;
+    let number_of_burros = game_assets.burro_assets.len();
+    let selected_burros = players.iter()
+                                .filter(|(p, _, _)| p.state.has_selected_burro())
+                                .map(|(p, _, _)| p.burro)
+                                .collect::<Vec::<_>>();
+    let (playing_count, ready_count) = 
+    players.iter()
+           .fold((0, 0), |mut acc, (p, _, _)| {
+               if p.state != SelectionState::NotPlaying {
+                   acc.0 += 1;
+                   if p.state == SelectionState::Ready {
+                       acc.1 += 1;
+                   }
+               }
+
+               acc
+           });
+
+    for (mut player_selection, player, action_state) in &mut players {
+        #[cfg(feature = "debug")]
+        {
+            if PlayerMarker::get(*selected_player) != *player {
+                continue;
+            }
+        }
+
+        match player_selection.state {
+            SelectionState::NotPlaying => {
+                if action_state.just_pressed(input::MenuAction::Select) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::Burro;
+                }
+
+                if action_state.just_pressed(input::MenuAction::Back) && playing_count == 0 {
+                    commands.load_state(AppState::TitleScreen);
+                    play_audio = true; 
+                }
+            },
+            SelectionState::Burro => {
+                if action_state.just_pressed(input::MenuAction::Select) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::OutlineColor;
+                }
+                if action_state.just_pressed(input::MenuAction::Back) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::NotPlaying;
+                }
+                if action_state.just_pressed(input::MenuAction::Right) {
+                    play_audio = true; 
+
+                    player_selection.burro = player_selection.burro.add_with_wrap(1, number_of_burros);
+                }
+                if action_state.just_pressed(input::MenuAction::Left) {
+                    play_audio = true; 
+
+                    // this is only needed when moving left because the force
+                    // unique system will move selections to the right
+                    loop {
+                        player_selection.burro = player_selection.burro.sub_with_wrap(1, number_of_burros);
+                        if !selected_burros.contains(&player_selection.burro) {
+                            break;
+                        }
+                    }
+                }
+            },
+            SelectionState::OutlineColor => {
+                if action_state.just_pressed(input::MenuAction::Select) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::Ready;
+                }
+                if action_state.just_pressed(input::MenuAction::Back) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::Burro;
+                }
+                if action_state.just_pressed(input::MenuAction::Right) {
+                    play_audio = true; 
+                    player_selection.outline_color = player_selection.outline_color.add_with_wrap(1, COLOR_COUNT);
+                }
+                if action_state.just_pressed(input::MenuAction::Left) {
+                    play_audio = true; 
+                    player_selection.outline_color = player_selection.outline_color.sub_with_wrap(1, COLOR_COUNT);
+                }
+            },
+            SelectionState::Ready => {
+                if action_state.just_pressed(input::MenuAction::Back) {
+                    play_audio = true; 
+                    player_selection.state = SelectionState::OutlineColor;
+                }
+                if action_state.just_pressed(input::MenuAction::Select) && ready_count == playing_count {
+                    play_audio = true; 
+                    commands.load_state(AppState::Settings);
+                }
+            },
+        }
+    }
+
+    if play_audio {
+        audio.play_sfx(&game_assets.sfx_1);
+    }
 }
 
 fn create_render_image(window_size: &Res<ui::text_size::WindowSize>) -> Image {
@@ -92,7 +416,6 @@ fn create_render_image(window_size: &Res<ui::text_size::WindowSize>) -> Image {
         ..default()
     };
 
-    // This is the texture that will be rendered to.
     let mut image = Image {
         texture_descriptor: TextureDescriptor {
             label: None,
@@ -126,11 +449,11 @@ fn setup(
     let burro_mesh_handle = game_assets.burro.clone();
     let first_pass_layer = RenderLayers::layer(1);
 
-    let mut image_handles: Vec::<Handle<Image>> = vec!();
+    let mut burro_image_handles: Vec::<Handle<Image>> = vec!();
     for i in 0..8 {
         let image = create_render_image(&window_size); 
         let image_handle = images.add(image);
-        image_handles.push(image_handle.clone());
+        burro_image_handles.push(image_handle.clone());
         let toon_material_textured = game_assets.burro_assets[i]
             .toon_texture
             .clone();
@@ -138,7 +461,11 @@ fn setup(
         let y_offset = 10.0;
 
         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
-            commands.spawn((BurroMeshMarker, scene_hook::HookedSceneBundle {
+            commands.spawn((
+                BurroMeshMarker, 
+                PlayerMarker::get(i),
+                CleanupMarker,
+                scene_hook::HookedSceneBundle {
                 scene: SceneBundle {
                     scene: gltf.scenes[0].clone(),
                     transform: Transform::from_xyz(0.0, i as f32 * y_offset, 0.0),
@@ -153,11 +480,12 @@ fn setup(
                                     outline: OutlineVolume {
                                         visible: true,
                                         width: 5.0,
-                                        colour: Color::WHITE,
+                                        colour: OUTLINE_COLORS[0].0,
                                     },
                                     ..default()
                                 },
                                 first_pass_layer,
+                                PlayerMarker::get(i),
                                 toon_material_textured.clone(),
                             ));
                         }
@@ -181,13 +509,10 @@ fn setup(
                     .looking_at(Vec3::new(0.0, i as f32 * y_offset, 0.0), Vec3::Y),
                 ..default()
             },
-            CameraImage {
-                id: i,
-                image: image_handle.clone()
-            }, 
             UiCameraConfig {
                 show_ui: false,
             },
+            CleanupMarker,
             first_pass_layer,
         ));
     }
@@ -197,15 +522,14 @@ fn setup(
         ..default()
     }, CleanupMarker));
 
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
-    commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
-        brightness: 0.50,
-    });
-
+    for i in 0..8 {
+        commands.spawn((
+            PlayerSelectionState::default(),
+            PlayerMarker::get(i),
+            CleanupMarker,
+            input::create_menu_input_for_player(i),
+        ));
+    }
 
     let root_node = 
     commands
@@ -264,7 +588,7 @@ fn setup(
                 ..default()
             },
             ..default()
-        }, CleanupMarker))
+        }, ))
     .with_children(|builder| {
         for row in 0..2 {
             builder.spawn(NodeBundle {
@@ -294,7 +618,6 @@ fn setup(
                         background_color: Color::DARK_GRAY.into(),
                         ..default()
                     }).with_children(|builder| {
-                        let image_handle = &image_handles[player_index as usize];
                         builder.spawn((ImageBundle {
                             style: Style {
                                 position_type: PositionType::Absolute,
@@ -302,11 +625,36 @@ fn setup(
                                 height: Val::Percent(100.0),
                                 ..default()
                             },
-                            image: image_handle.clone().into(),
+                            image: burro_image_handles[player_index].clone().into(),
+                            visibility: Visibility::Hidden,
                             ..default()
-                        }, RenderedImage {
-                            id: player_index as usize
-                        }));
+                        }, 
+                        PlayerMarker::get(player_index),));
+
+                        builder.spawn(NodeBundle {
+                            style: Style {
+                                width: Val::Percent(100.),
+                                height: Val::Percent(100.),
+                                position_type: PositionType::Absolute,
+                                display: Display::Flex,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            ..default()
+                        }).with_children(|builder| {
+                            builder.spawn((TextBundle {
+                                text: Text::from_section(
+                                    "",
+                                    TextStyle {
+                                        font: game_assets.score_font.clone(),
+                                        font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                ..default()
+                            }, CenterTextMarker, PlayerMarker::get(player_index)));
+                        });
 
                         builder.spawn(NodeBundle {
                             style: Style {
@@ -315,6 +663,7 @@ fn setup(
                                 margin: UiRect {
                                     ..default()
                                 },
+                                position_type: PositionType::Absolute,
                                 display: Display::Flex,
                                 align_items: AlignItems::FlexStart,
                                 justify_content: JustifyContent::FlexStart,
@@ -335,6 +684,59 @@ fn setup(
                                 ..default()
                             });
                         });
+
+                        builder.spawn((NodeBundle {
+                            style: Style {
+                                width: Val::Percent(100.),
+                                height: Val::Percent(100.),
+                                margin: UiRect {
+                                    bottom: Val::Percent(10.),
+                                    ..default()
+                                },
+                                display: Display::Flex,
+                                align_items: AlignItems::FlexEnd,
+                                justify_content: JustifyContent::SpaceBetween,
+                                ..default()
+                            },
+                            ..default()
+                        }, SelectionContainerMarker, PlayerMarker::get(player_index),))
+                        .with_children(|builder| {
+                            builder.spawn((TextBundle {
+                                text: Text::from_section(
+                                    "<",
+                                    TextStyle {
+                                        font: game_assets.score_font.clone(),
+                                        font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                ..default()
+                            },));
+
+                            builder.spawn((TextBundle {
+                                text: Text::from_section(
+                                    "",
+                                    TextStyle {
+                                        font: game_assets.score_font.clone(),
+                                        font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                ..default()
+                            }, SelectionMarker, PlayerMarker::get(player_index),));
+
+                            builder.spawn((TextBundle {
+                                text: Text::from_section(
+                                    ">",
+                                    TextStyle {
+                                        font: game_assets.score_font.clone(),
+                                        font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                ..default()
+                            },));
+                        });
                     });
                 }
             });
@@ -346,3 +748,13 @@ fn setup(
     commands.entity(root_node).add_child(title_text);
     commands.entity(root_node).add_child(selection_container);
 }
+
+fn rotate_burros(
+    mut burros: Query<&mut Transform, With<BurroMeshMarker>>,
+    time: Res<Time>
+) {
+    for mut transform in &mut burros {
+        transform.rotate_y(time.delta_seconds());
+    }
+}
+
