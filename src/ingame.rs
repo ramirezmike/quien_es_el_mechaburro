@@ -89,12 +89,12 @@ impl Command for IngameLoader {
                                             color: Color::default(),
                                             sun_dir: Vec3::new(0.0, 0.0, 0.0),
                                             sun_color: Color::default(),
-                                            camera_pos: Vec3::new(0.0, 1.0, -1.0),
+                                            camera_pos: Vec3::new(0.0, 0.5, 10.0),
                                             ambient_color: Color::default(),
                                         });
 
                                     game_assets.burro_assets.push(assets::BurroAsset {
-                                        name: name.into(),
+                                        name: name.replace("_", " ").to_uppercase().into(),
                                         texture,
                                         toon_texture: toon_material_textured,
                                     });

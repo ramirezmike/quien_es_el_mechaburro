@@ -1,5 +1,5 @@
 use crate::{
-    assets, audio, input, game_camera, asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, ui, AppState, scene_hook,
+    assets, audio, input, game_camera, asset_loading, assets::GameAssets, audio::GameAudio, cleanup, game_state, ui, AppState, scene_hook, menu,
 };
 use crate::input::InputCommandsExt;
 use crate::util::num_ext::*;
@@ -45,6 +45,9 @@ impl Plugin for CharacterSelectPlugin {
     }
 }
 
+const BORDER_COLOR: Color = Color::NONE;
+const SELECTION_BACKGROUND_COLOR: Color = Color::rgba(0., 0., 0., 0.5);
+const BACKGROUND_COLOR: Color = Color::NONE;
 
 #[derive(Component)]
 pub struct CleanupMarker;
@@ -77,22 +80,27 @@ impl SelectionState {
     }
 }
 
-const COLOR_COUNT: usize = 13;
-const OUTLINE_COLORS: [(Color, &str);COLOR_COUNT] = [
-   (Color::WHITE, "White"),
-   (Color::BLACK, "Black"),
-   (Color::AZURE, "Azure"),
-   (Color::BLUE, "Blue"),
-   (Color::CYAN, "Cyan"),
-   (Color::DARK_GREEN, "Sage"),
-   (Color::PINK, "Pink"),
-   (Color::RED, "Red"),
-   (Color::LIME_GREEN, "Green"),
-   (Color::OLIVE, "Olive"),
-   (Color::ORANGE, "Orange"),
-   (Color::PURPLE, "Purple"),
-   (Color::YELLOW, "Yellow"),
+const COLOR: f32 = 255.;
+const COLOR_COUNT: usize = 16;
+const OUTLINE_COLORS: [Color; COLOR_COUNT] = [
+   Color::rgb(38. / COLOR, 70. / COLOR, 83. / COLOR),
+   Color::rgb(42. / COLOR, 157. / COLOR, 143. / COLOR),
+   Color::rgb(233. / COLOR, 196. / COLOR, 106. / COLOR),
+   Color::rgb(244. / COLOR, 162. / COLOR, 97. / COLOR),
+   Color::rgb(231. / COLOR, 111. / COLOR, 81. / COLOR),
+   Color::rgb(112. / COLOR, 214. / COLOR, 255. / COLOR),
+   Color::rgb(255. / COLOR, 112. / COLOR, 166. / COLOR),
+   Color::rgb(233. / COLOR, 255. / COLOR, 112. / COLOR),
+   Color::rgb(59. / COLOR, 53. / COLOR, 97. / COLOR),
+   Color::rgb(145. / COLOR, 145. / COLOR, 233. / COLOR),
+   Color::rgb(194. / COLOR, 175. / COLOR, 240. / COLOR),
+   Color::rgb(89. / COLOR, 248. / COLOR, 232. / COLOR),
+   Color::rgb(219. / COLOR, 84. / COLOR, 97. / COLOR),
+   Color::rgb(240. / COLOR, 239. / COLOR, 235. / COLOR),
+   Color::rgb(98. / COLOR, 98. / COLOR, 95. / COLOR),
+   Color::rgb(62. / COLOR, 165. / COLOR, 106. / COLOR),
 ];
+
 
 #[derive(Component)]
 pub struct CenterTextMarker;
@@ -175,7 +183,7 @@ fn update_burro_outline(
         if let Some((mut outline, _)) = outlines.iter_mut()
                                          .filter(|(_, p)| *p == player)
                                          .last() {
-            outline.colour = OUTLINE_COLORS[player_state.outline_color].0;
+            outline.colour = OUTLINE_COLORS[player_state.outline_color];
         }
     }
 }
@@ -241,8 +249,8 @@ fn update_selections(
                 selection_text.sections[0].style.color = Color::WHITE;
             },
             SelectionState::OutlineColor => {
-                selection_text.sections[0].value = OUTLINE_COLORS[player_state.outline_color].1.to_string();
-                selection_text.sections[0].style.color = OUTLINE_COLORS[player_state.outline_color].0;
+                selection_text.sections[0].value = "COLOR".to_string();
+                selection_text.sections[0].style.color = OUTLINE_COLORS[player_state.outline_color];
             },
             _ => ()
         }
@@ -445,6 +453,8 @@ fn setup(
     assets_gltf: Res<Assets<Gltf>>,
     mut images: ResMut<Assets<Image>>,
     window_size: Res<ui::text_size::WindowSize>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut scrolling_image_materials: ResMut<Assets<menu::title_screen::ScrollingImageMaterial>>,
 ) {
     let burro_mesh_handle = game_assets.burro.clone();
     let first_pass_layer = RenderLayers::layer(1);
@@ -480,7 +490,7 @@ fn setup(
                                     outline: OutlineVolume {
                                         visible: true,
                                         width: 5.0,
-                                        colour: OUTLINE_COLORS[0].0,
+                                        colour: OUTLINE_COLORS[0],
                                     },
                                     ..default()
                                 },
@@ -517,8 +527,20 @@ fn setup(
         ));
     }
 
+    commands.spawn((
+        MaterialMeshBundle {
+            transform: Transform::from_xyz(0.0, -50.0, 0.0),
+            mesh: meshes.add(shape::Plane::from_size(50.0).into()),
+            material: scrolling_image_materials.add(menu::title_screen::ScrollingImageMaterial {
+                texture: game_assets.title_screen_background.image.clone(),
+            }),
+            ..default()
+        },
+        CleanupMarker,
+    ));
+
     commands.spawn((Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, -46.0, 0.0).looking_at(Vec3::new(0.0, -50.0, 0.0), -Vec3::Z),
         ..default()
     }, CleanupMarker));
 
@@ -542,7 +564,7 @@ fn setup(
                 justify_content: JustifyContent::FlexStart,
                 ..default()
             },
-            background_color: Color::NONE.into(),
+            background_color: BACKGROUND_COLOR.into(),
             ..default()
         }, CleanupMarker)).id();
 
@@ -598,9 +620,14 @@ fn setup(
                     display: Display::Flex,
                     justify_content: JustifyContent::SpaceEvenly,
                     flex_direction: FlexDirection::Row,
+                    margin: UiRect {
+                        top: Val::Percent(2.5),
+                        bottom: Val::Percent(2.5),
+                        ..default()
+                    },
                     ..default()
                 },
-                background_color: Color::DARK_GRAY.into(),
+                background_color: SELECTION_BACKGROUND_COLOR.into(),
                 ..default()
             })
             .with_children(|builder| {
@@ -611,11 +638,14 @@ fn setup(
                         style: Style {
                             width: Val::Percent(25.),
                             height: Val::Percent(100.),
-                            border: UiRect::all(Val::Percent(1.0)),
+                            margin: UiRect {
+                                left: Val::Percent(2.5),
+                                right: Val::Percent(2.5),
+                                ..default()
+                            },
                             ..default()
                         },
-                        border_color: BorderColor(Color::BLACK),
-                        background_color: Color::DARK_GRAY.into(),
+                        background_color: SELECTION_BACKGROUND_COLOR.into(),
                         ..default()
                     }).with_children(|builder| {
                         builder.spawn((ImageBundle {

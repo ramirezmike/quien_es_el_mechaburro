@@ -109,7 +109,10 @@ fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
     #[cfg(feature = "debug")]
-    commands.load_state(AppState::CharacterSelect);
+    {
+        commands.load_state(AppState::CharacterSelect);
+        clear_color.0 = Color::hex("FF0000").unwrap();
+    }
 
     #[cfg(not(feature = "debug"))]
     commands.load_state(AppState::TitleScreen);
