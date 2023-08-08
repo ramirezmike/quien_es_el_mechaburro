@@ -1,9 +1,9 @@
-use crate::{assets, bullet, burro, direction, ZeroSignum, bot};
+use crate::{assets, bot, bullet, burro, direction, ZeroSignum};
+use bevy::ecs::query::Has;
 use bevy::{prelude::*, reflect::TypePath};
 use bevy_rapier3d::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
-use bevy::ecs::query::Has;
 use std::f32::consts::TAU;
 //use leafwing_input_manager::axislike::DualAxisData;
 //use leafwing_input_manager::plugin::InputManagerSystem;
@@ -206,7 +206,9 @@ pub fn move_player(
     game_assets: Res<assets::GameAssets>,
     //    mut audio: audio::GameAudio,
 ) {
-    for (entity, mut controller, controller_output, mut transform, mut burro, movement, is_bot) in burros.iter_mut() {
+    for (entity, mut controller, controller_output, mut transform, mut burro, movement, is_bot) in
+        burros.iter_mut()
+    {
         let speed: f32 = burro.speed;
         let friction: f32 = burro.friction;
         let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);

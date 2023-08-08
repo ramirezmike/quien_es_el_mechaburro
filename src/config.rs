@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+pub const MAX_NUMBER_OF_PLAYERS: isize = 8;
+
 #[derive(Resource)]
 pub struct GameConfiguration {
     pub bullet_distance: f32,

@@ -7,7 +7,6 @@ use rand::thread_rng;
 pub struct MechaPickerPlugin;
 impl Plugin for MechaPickerPlugin {
     fn build(&self, app: &mut App) {
-
         #[cfg(feature = "debug")]
         app.add_systems(Update, skip_picking.run_if(in_state(AppState::MechaPicker)));
 
@@ -49,9 +48,7 @@ struct TextDisplayTimers {
     mecha_selection_cooldown: f32,
 }
 
-fn skip_picking(
-    mut next_state: ResMut<NextState<AppState>>,
-) {
+fn skip_picking(mut next_state: ResMut<NextState<AppState>>) {
     next_state.set(AppState::InGame);
 }
 

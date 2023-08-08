@@ -1,6 +1,6 @@
+use bevy::ecs::bundle::Bundle;
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
-use bevy::ecs::bundle::Bundle;
 
 pub struct InputPlugin;
 
@@ -29,7 +29,7 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
         self.spawn((
             InputManagerBundle::<MenuAction> {
                 action_state: ActionState::default(),
-                input_map: create_menu_inputmap()
+                input_map: create_menu_inputmap(),
             },
             cleanup_marker,
         ));
@@ -39,13 +39,13 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
 pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
     InputManagerBundle::<MenuAction> {
         action_state: ActionState::default(),
-        input_map: create_menu_inputmap() 
-                .set_gamepad(Gamepad { id: player })
-                .build()
+        input_map: create_menu_inputmap()
+            .set_gamepad(Gamepad { id: player })
+            .build(),
     }
 }
 
-fn create_menu_inputmap() -> InputMap::<MenuAction> {
+fn create_menu_inputmap() -> InputMap<MenuAction> {
     InputMap::new([
         (KeyCode::Space, MenuAction::Select),
         (KeyCode::Return, MenuAction::Select),

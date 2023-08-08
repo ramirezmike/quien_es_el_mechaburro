@@ -71,7 +71,10 @@ impl GameState {
 
         // bots
         for i in 0..number_of_bots {
-            println!("bot {i} of {number_of_bots} with {}", available_burros.len());
+            println!(
+                "bot {i} of {number_of_bots} with {}",
+                available_burros.len()
+            );
             let index = rand::thread_rng().gen_range(0..available_burros.len());
 
             burros.push(BurroState {

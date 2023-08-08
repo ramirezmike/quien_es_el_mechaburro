@@ -6,8 +6,7 @@ use std::cmp::Ordering;
 pub struct BotPlugin;
 
 impl Plugin for BotPlugin {
-    fn build(&self, _app: &mut App) {
-    }
+    fn build(&self, _app: &mut App) {}
 }
 
 #[derive(Component)]

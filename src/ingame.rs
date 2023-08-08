@@ -1,5 +1,6 @@
 use crate::{
-    asset_loading, assets, bot, burro, floor, game_camera, game_state, player, scene_hook, AppState, direction
+    asset_loading, assets, bot, burro, direction, floor, game_camera, game_state, player,
+    scene_hook, AppState,
 };
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
@@ -20,10 +21,12 @@ impl Plugin for InGamePlugin {
             .add_systems(OnEnter(AppState::LoadInGame), setup)
             .add_systems(
                 Update,
-                ((bot::update_bot_ai, bot::update_virtual_controllers).chain(),
-                 player::handle_input,
-                 player::move_player, 
-                 apply_deferred)
+                (
+                    (bot::update_bot_ai, bot::update_virtual_controllers).chain(),
+                    player::handle_input,
+                    player::move_player,
+                    apply_deferred,
+                )
                     .chain()
                     .run_if(in_state(AppState::InGame)),
             );
@@ -138,20 +141,20 @@ fn setup(
 
     #[cfg(feature = "debug")]
     {
-//      if game_state.burros.is_empty() {
-//          *game_state = game_state::GameState::initialize(
-//              vec![game_state::BurroCharacter {
-//                  player: 0,
-//                  is_playing: true,
-//                  has_picked: true,
-//                  selected_burro: 0,
-//                  action_cooldown: 0.0,
-//              }],
-//              1,
-//              1.0,
-//              &game_assets.burro_assets,
-//          );
-//      }
+        //      if game_state.burros.is_empty() {
+        //          *game_state = game_state::GameState::initialize(
+        //              vec![game_state::BurroCharacter {
+        //                  player: 0,
+        //                  is_playing: true,
+        //                  has_picked: true,
+        //                  selected_burro: 0,
+        //                  action_cooldown: 0.0,
+        //              }],
+        //              1,
+        //              1.0,
+        //              &game_assets.burro_assets,
+        //          );
+        //      }
     };
 
     game_state.current_level_over = false;

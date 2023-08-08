@@ -31,13 +31,13 @@ pub mod command_ext {
             match self.0 {
                 AppState::Settings | AppState::CharacterSelect => {
                     title_screen::TitleScreenLoader.apply(world);
-                    settings::SettingsMenuLoader.apply(world);
+                    settings::loader::SettingsMenuLoader.apply(world);
 
                     // TODO: This is temporary to load burro burro_assets
-                    //  before the game_state initializes until the burro select 
+                    //  before the game_state initializes until the burro select
                     //  screen is working since it will load the burro_assets
                     ingame::IngameLoader.apply(world)
-                },
+                }
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
                 AppState::Splash => splash::SplashLoader.apply(world),
                 AppState::TitleScreen => title_screen::TitleScreenLoader.apply(world),
