@@ -3,7 +3,7 @@ use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::{
     asset_loading, assets, audio, cleanup, game_camera, input, input::InputCommandsExt, ui,
-    AppState, game_state,
+    AppState, game_state, menu,
 };
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -22,6 +22,8 @@ impl Plugin for SettingsMenuPlugin {
     }
 }
 
+const MAX_NUMBER_OF_PLAYERS: isize = 8;
+
 #[derive(Default, Resource)]
 pub struct SettingsMenuState {
     selected_setting: Settings,
@@ -33,27 +35,34 @@ pub struct SettingsMenuState {
 impl SettingsMenuState {
     fn display(&self, setting: &Settings) -> String {
         match setting {
-            Settings::NumberOfPlayers => format!("{}", self.number_of_players + 1),
-            Settings::NumberOfBots => format!("{}", self.number_of_bots + 1),
-            Settings::UnfairAdvantage => match self.unfair_advantage {
+            Settings::NumberOfBots => format!("{}", self.number_of_bots),
+            Settings::UnfairAdvantage => 
+            {
+                println!("unfair advantage {}", self.unfair_advantage);
+                match self.unfair_advantage {
                 0 => "Mechaburrito".to_string(),
                 1 => " Mechaburro ".to_string(),
                 _ => "Mechagigante".to_string(),
-            },
+            }},
             setting => setting.get_label().to_string(),
         }
     }
 
+    fn max_bots(&self) -> isize {
+        MAX_NUMBER_OF_PLAYERS - self.number_of_players
+    }
+
+    fn min_bots(&self) -> isize {
+        if self.number_of_players == 1 { 1 } else { 0 }
+    }
+
     fn increment(&mut self) {
         match self.selected_setting {
-            Settings::NumberOfPlayers => {
-                self.number_of_players = self.number_of_players.add_with_wrap(1, 8);
-            }
             Settings::NumberOfBots => {
-                self.number_of_bots = self.number_of_bots.add_with_wrap(1, 8);
+                self.number_of_bots = self.number_of_bots.circular_increment(self.min_bots(), self.max_bots());
             }
             Settings::UnfairAdvantage => {
-                self.unfair_advantage = self.unfair_advantage.add_with_wrap(1, 3);
+                self.unfair_advantage = self.unfair_advantage.circular_increment(0, 2);
             }
             _ => (),
         }
@@ -61,14 +70,11 @@ impl SettingsMenuState {
 
     fn decrement(&mut self) {
         match self.selected_setting {
-            Settings::NumberOfPlayers => {
-                self.number_of_players = self.number_of_players.sub_with_wrap(1, 8);
-            }
             Settings::NumberOfBots => {
-                self.number_of_bots = self.number_of_bots.sub_with_wrap(1, 8);
+                self.number_of_bots = self.number_of_bots.circular_decrement(self.min_bots(), self.max_bots());
             }
             Settings::UnfairAdvantage => {
-                self.unfair_advantage = self.unfair_advantage.sub_with_wrap(1, 3);
+                self.unfair_advantage = self.unfair_advantage.circular_decrement(0, 2);
             }
             _ => (),
         }
@@ -80,16 +86,14 @@ struct SettingDisplayMarker;
 
 #[derive(Component, Copy, Clone, PartialEq, Default)]
 enum Settings {
-    NumberOfPlayers,
     #[default]
     NumberOfBots,
     UnfairAdvantage,
     Vamos,
 }
 
-impl MenuOption<4> for Settings {
-    const ITEM: [Settings; 4] = [
-        Settings::NumberOfPlayers,
+impl MenuOption<3> for Settings {
+    const ITEM: [Settings; 3] = [
         Settings::NumberOfBots,
         Settings::UnfairAdvantage,
         Settings::Vamos,
@@ -97,7 +101,6 @@ impl MenuOption<4> for Settings {
 
     fn get_label(&self) -> &str {
         match self {
-            Settings::NumberOfPlayers => "Number of Players",
             Settings::NumberOfBots => "Number of Bots",
             Settings::UnfairAdvantage => "Unfair Advantage",
             Settings::Vamos => "¡Vamos!",
@@ -164,6 +167,7 @@ fn handle_input(
     mut setting_state: ResMut<SettingsMenuState>,
     action_state: Query<&ActionState<input::MenuAction>>,
     game_assets: Res<assets::GameAssets>,
+    player_selection: Res<menu::character_select::PlayerSelection>,
     mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
 ) {
@@ -194,13 +198,7 @@ fn handle_input(
             audio.play_sfx(&game_assets.sfx_1);
 
             *game_state = game_state::GameState::initialize(
-                vec![game_state::BurroCharacter {
-                    player: 0,
-                    is_playing: true,
-                    has_picked: true,
-                    selected_burro: 0,
-                    action_cooldown: 0.0,
-                }],
+                player_selection.players.iter().map(|x| game_state::BurroState::from(*x)).collect::<Vec::<_>>(),
                 setting_state.number_of_bots.try_into().unwrap(),
                 setting_state.unfair_advantage as f32,
                 &game_assets.burro_assets,
@@ -214,7 +212,12 @@ fn setup(
     mut commands: Commands,
     game_assets: Res<assets::GameAssets>,
     text_scaler: ui::text_size::TextScaler,
+    mut setting_state: ResMut<SettingsMenuState>,
+    player_selection: Res<menu::character_select::PlayerSelection>,
 ) {
+    *setting_state = SettingsMenuState::default();
+    setting_state.number_of_players = player_selection.players.len() as isize;
+    setting_state.number_of_bots = setting_state.min_bots();
     game_camera::spawn_camera(&mut commands, CleanupMarker);
     commands.spawn_menu_input(CleanupMarker);
 

@@ -138,18 +138,20 @@ fn setup(
 
     #[cfg(feature = "debug")]
     {
-        *game_state = game_state::GameState::initialize(
-            vec![game_state::BurroCharacter {
-                player: 0,
-                is_playing: true,
-                has_picked: true,
-                selected_burro: 0,
-                action_cooldown: 0.0,
-            }],
-            1,
-            1.0,
-            &game_assets.burro_assets,
-        );
+//      if game_state.burros.is_empty() {
+//          *game_state = game_state::GameState::initialize(
+//              vec![game_state::BurroCharacter {
+//                  player: 0,
+//                  is_playing: true,
+//                  has_picked: true,
+//                  selected_burro: 0,
+//                  action_cooldown: 0.0,
+//              }],
+//              1,
+//              1.0,
+//              &game_assets.burro_assets,
+//          );
+//      }
     };
 
     game_state.current_level_over = false;
@@ -224,7 +226,6 @@ fn setup(
             },
             scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets, game_state| {
                 if let Ok(spawn_points) = on_complete_spawn_points.lock() {
-                    println!("SCENE ON COMPLETE STARTING");
                     for (i, burro_state) in game_state.burros.iter().enumerate() {
                         let point = spawn_points[i];
 
@@ -266,12 +267,13 @@ fn setup(
                                 },
                             ));
 
-                            if i == 0 {
-                                entity_commands.insert(player::PlayerBundle::new());
-                            } else {
+                            if burro_state.is_bot {
                                 entity_commands.insert(bot::BotBundle::new());
+                            } else {
+                                entity_commands.insert(player::PlayerBundle::new());
                             }
 
+                            let outline_color = burro_state.outline_color.clone();
                             entity_commands.with_children(|parent| {
                                 let parent_entity = parent.parent_entity();
                                 parent.spawn(scene_hook::HookedSceneBundle {
@@ -296,7 +298,7 @@ fn setup(
                                                         outline: OutlineVolume {
                                                             visible: true,
                                                             width: 5.0,
-                                                            colour: Color::WHITE,
+                                                            colour: outline_color,
                                                         },
                                                         ..default()
                                                     },

@@ -26,6 +26,7 @@ pub struct CharacterSelectPlugin;
 impl Plugin for CharacterSelectPlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_resource::<PlayerSelection>()
             .add_systems(OnEnter(AppState::CharacterSelect), setup)
             .add_systems(Update, 
                  (rotate_burros, 
@@ -55,14 +56,38 @@ pub struct CleanupMarker;
 #[derive(Component)]
 pub struct BurroMeshMarker;
 
-#[derive(Component, Default)]
-struct PlayerSelectionState {
+#[derive(Component, Copy, Clone, Default)]
+pub struct PlayerSelectionState {
     burro: usize,
     outline_color: usize,
     state: SelectionState,
 }
 
-#[derive(Default, PartialEq)]
+impl PlayerSelectionState  {
+    pub fn get_outline_color(&self) -> Color {
+        OUTLINE_COLORS[self.outline_color]
+    }
+}
+
+impl From<(PlayerSelectionState, PlayerMarker)> for game_state::BurroState {
+   fn from(item: (PlayerSelectionState, PlayerMarker)) -> Self {
+        game_state::BurroState {
+            player: item.1.0,
+            selected_burro: item.0.burro,
+            outline_color: item.0.get_outline_color(),
+            score: 0,
+            is_bot: false,
+            hearts: vec!(),
+        }
+    }
+}
+
+#[derive(Default, Resource)]
+pub struct PlayerSelection {
+    pub players: Vec::<(PlayerSelectionState, PlayerMarker)> 
+}
+
+#[derive(Default, PartialEq, Clone, Copy)]
 enum SelectionState {
     #[default]
     NotPlaying,
@@ -112,35 +137,7 @@ pub struct SelectionMarker;
 pub struct SelectionContainerMarker;
 
 #[derive(Component, Copy, Clone, PartialEq, Debug)]
-pub enum PlayerMarker {
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-}
-
-const _: () = {
-    const PLAYER_MARKERS: [PlayerMarker;8] = [
-        PlayerMarker::One,
-        PlayerMarker::Two,
-        PlayerMarker::Three,
-        PlayerMarker::Four,
-        PlayerMarker::Five,
-        PlayerMarker::Six,
-        PlayerMarker::Seven,
-        PlayerMarker::Eight,
-    ];
-
-    impl PlayerMarker {
-        fn get(index: usize) -> Self {
-            PLAYER_MARKERS[index]
-        }
-    }
-};
+pub struct PlayerMarker(pub usize);
 
 fn update_selection_containers(
     players: Query<(&PlayerSelectionState, &PlayerMarker)>,
@@ -265,12 +262,12 @@ fn force_burro_uniqueness(
                                 .filter(|p| p.state.has_selected_burro())
                                 .map(|p| p.burro)
                                 .collect::<Vec::<_>>();
-    let number_of_burros = game_assets.burro_assets.len();
+    let number_of_burros = game_assets.burro_assets.len() - 1;
 
     for mut player in &mut players {
         if !player.state.has_selected_burro() {
             while selected_burros.contains(&player.burro) {
-                player.burro = player.burro.add_with_wrap(1, number_of_burros);
+                player.burro = player.burro.circular_increment(0, number_of_burros);
             }
         }
     }
@@ -282,6 +279,8 @@ fn handle_input(
     game_assets: Res<assets::GameAssets>,
     mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
+    mut player_selection: ResMut<PlayerSelection>,
+
     #[cfg(feature = "debug")]
     mut selected_player: Local<usize>,
     #[cfg(feature = "debug")]
@@ -316,7 +315,8 @@ fn handle_input(
     }
 
     let mut play_audio = false;
-    let number_of_burros = game_assets.burro_assets.len();
+    let mut selection_completed = false;
+    let number_of_burros = game_assets.burro_assets.len() - 1;
     let selected_burros = players.iter()
                                 .filter(|(p, _, _)| p.state.has_selected_burro())
                                 .map(|(p, _, _)| p.burro)
@@ -337,7 +337,7 @@ fn handle_input(
     for (mut player_selection, player, action_state) in &mut players {
         #[cfg(feature = "debug")]
         {
-            if PlayerMarker::get(*selected_player) != *player {
+            if PlayerMarker(*selected_player) != *player {
                 continue;
             }
         }
@@ -366,7 +366,7 @@ fn handle_input(
                 if action_state.just_pressed(input::MenuAction::Right) {
                     play_audio = true; 
 
-                    player_selection.burro = player_selection.burro.add_with_wrap(1, number_of_burros);
+                    player_selection.burro = player_selection.burro.circular_increment(0, number_of_burros);
                 }
                 if action_state.just_pressed(input::MenuAction::Left) {
                     play_audio = true; 
@@ -374,7 +374,7 @@ fn handle_input(
                     // this is only needed when moving left because the force
                     // unique system will move selections to the right
                     loop {
-                        player_selection.burro = player_selection.burro.sub_with_wrap(1, number_of_burros);
+                        player_selection.burro = player_selection.burro.circular_decrement(0, number_of_burros);
                         if !selected_burros.contains(&player_selection.burro) {
                             break;
                         }
@@ -392,11 +392,11 @@ fn handle_input(
                 }
                 if action_state.just_pressed(input::MenuAction::Right) {
                     play_audio = true; 
-                    player_selection.outline_color = player_selection.outline_color.add_with_wrap(1, COLOR_COUNT);
+                    player_selection.outline_color = player_selection.outline_color.circular_increment(0, COLOR_COUNT - 1);
                 }
                 if action_state.just_pressed(input::MenuAction::Left) {
                     play_audio = true; 
-                    player_selection.outline_color = player_selection.outline_color.sub_with_wrap(1, COLOR_COUNT);
+                    player_selection.outline_color = player_selection.outline_color.circular_decrement(0, COLOR_COUNT - 1);
                 }
             },
             SelectionState::Ready => {
@@ -406,7 +406,7 @@ fn handle_input(
                 }
                 if action_state.just_pressed(input::MenuAction::Select) && ready_count == playing_count {
                     play_audio = true; 
-                    commands.load_state(AppState::Settings);
+                    selection_completed = true; 
                 }
             },
         }
@@ -414,6 +414,14 @@ fn handle_input(
 
     if play_audio {
         audio.play_sfx(&game_assets.sfx_1);
+    }
+
+    if selection_completed {
+        player_selection.players = players.iter()
+                                          .filter(|(p, _, _)| p.state == SelectionState::Ready)
+                                          .map(|(p, m, _)| (*p, *m))
+                                          .collect::<Vec::<_>>();
+        commands.load_state(AppState::Settings);
     }
 }
 
@@ -455,7 +463,9 @@ fn setup(
     window_size: Res<ui::text_size::WindowSize>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut scrolling_image_materials: ResMut<Assets<menu::title_screen::ScrollingImageMaterial>>,
+    mut player_selection: ResMut<PlayerSelection>,
 ) {
+    *player_selection = PlayerSelection::default();
     let burro_mesh_handle = game_assets.burro.clone();
     let first_pass_layer = RenderLayers::layer(1);
 
@@ -473,7 +483,7 @@ fn setup(
         if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
             commands.spawn((
                 BurroMeshMarker, 
-                PlayerMarker::get(i),
+                PlayerMarker(i),
                 CleanupMarker,
                 scene_hook::HookedSceneBundle {
                 scene: SceneBundle {
@@ -495,7 +505,7 @@ fn setup(
                                     ..default()
                                 },
                                 first_pass_layer,
-                                PlayerMarker::get(i),
+                                PlayerMarker(i),
                                 toon_material_textured.clone(),
                             ));
                         }
@@ -547,7 +557,7 @@ fn setup(
     for i in 0..8 {
         commands.spawn((
             PlayerSelectionState::default(),
-            PlayerMarker::get(i),
+            PlayerMarker(i),
             CleanupMarker,
             input::create_menu_input_for_player(i),
         ));
@@ -659,7 +669,7 @@ fn setup(
                             visibility: Visibility::Hidden,
                             ..default()
                         }, 
-                        PlayerMarker::get(player_index),));
+                        PlayerMarker(player_index),));
 
                         builder.spawn(NodeBundle {
                             style: Style {
@@ -683,7 +693,7 @@ fn setup(
                                     },
                                 ),
                                 ..default()
-                            }, CenterTextMarker, PlayerMarker::get(player_index)));
+                            }, CenterTextMarker, PlayerMarker(player_index)));
                         });
 
                         builder.spawn(NodeBundle {
@@ -719,6 +729,7 @@ fn setup(
                             style: Style {
                                 width: Val::Percent(100.),
                                 height: Val::Percent(100.),
+                                padding: UiRect::all(Val::Percent(5.)),
                                 margin: UiRect {
                                     bottom: Val::Percent(10.),
                                     ..default()
@@ -729,7 +740,7 @@ fn setup(
                                 ..default()
                             },
                             ..default()
-                        }, SelectionContainerMarker, PlayerMarker::get(player_index),))
+                        }, SelectionContainerMarker, PlayerMarker(player_index),))
                         .with_children(|builder| {
                             builder.spawn((TextBundle {
                                 text: Text::from_section(
@@ -753,7 +764,7 @@ fn setup(
                                     },
                                 ),
                                 ..default()
-                            }, SelectionMarker, PlayerMarker::get(player_index),));
+                            }, SelectionMarker, PlayerMarker(player_index),));
 
                             builder.spawn((TextBundle {
                                 text: Text::from_section(

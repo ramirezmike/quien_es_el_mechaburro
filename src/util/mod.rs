@@ -1,50 +1,31 @@
 pub mod num_ext {
-    pub trait RangedWrap<Rhs = Self> {
-        type Output;
-
-        fn sub_with_wrap(self, value: Rhs, max: Rhs) -> Self::Output;
-        fn add_with_wrap(self, value: Rhs, max: Rhs) -> Self::Output;
+    pub trait RangedWrap {
+        fn circular_increment(self, lower_bound: Self, upper_bound: Self) -> Self;
+        fn circular_decrement(self, lower_bound: Self, upper_bound: Self) -> Self;
     }
 
     impl RangedWrap for usize {
-        type Output = Self;
-
-        fn sub_with_wrap(self, value: Self, max: Self) -> Self::Output {
-            if value > self {
-                max - (value - self)
-            } else {
-                self - value
-            }
+        fn circular_increment(self, lower_bound: Self, upper_bound: Self) -> Self {
+            let range = upper_bound - lower_bound + 1;
+            ((self - lower_bound + 1) % range) + lower_bound
         }
 
-        fn add_with_wrap(self, value: Self, max: Self) -> Self::Output {
-            let result = self + value;
-            if result < max {
-                result
-            } else {
-                0
-            }
+        fn circular_decrement(self, lower_bound: Self, upper_bound: Self) -> Self {
+            let range = upper_bound - lower_bound + 1;
+            ((self - lower_bound + range - 1) % range) + lower_bound
         }
     }
-    impl RangedWrap for isize {
-        type Output = Self;
 
-        fn sub_with_wrap(self, value: Self, max: Self) -> Self::Output {
-            let result = self - value;
-            if result < 0 {
-                max - 1
-            } else {
-                result
-            }
+    // TODO: combine these
+    impl RangedWrap for isize {
+        fn circular_increment(self, lower_bound: Self, upper_bound: Self) -> Self {
+            let range = upper_bound - lower_bound + 1;
+            ((self - lower_bound + 1) % range) + lower_bound
         }
 
-        fn add_with_wrap(self, value: Self, max: Self) -> Self::Output {
-            let result = self + value;
-            if result < max {
-                result
-            } else {
-                0
-            }
+        fn circular_decrement(self, lower_bound: Self, upper_bound: Self) -> Self {
+            let range = upper_bound - lower_bound + 1;
+            ((self - lower_bound + range - 1) % range) + lower_bound
         }
     }
 }
