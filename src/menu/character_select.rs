@@ -3,7 +3,7 @@ use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::{
     asset_loading, assets, assets::GameAssets, audio, audio::GameAudio, cleanup, game_camera,
-    game_state, input, menu, scene_hook, ui, AppState,
+    game_state, input, menu, scene_hook, shaders, ui, AppState,
 };
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
@@ -27,6 +27,7 @@ pub struct CharacterSelectPlugin;
 impl Plugin for CharacterSelectPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PlayerSelection>()
+            .add_plugins((OutlinePlugin, AutoGenerateOutlineNormalsPlugin))
             .add_systems(OnEnter(AppState::CharacterSelect), setup)
             .add_systems(
                 Update,
@@ -40,6 +41,7 @@ impl Plugin for CharacterSelectPlugin {
                             update_burro_visibility,
                             update_burro_material,
                             update_burro_outline,
+                            update_selected_burro_texts,
                             update_center_texts,
                             update_selection_containers,
                         ),
@@ -52,7 +54,7 @@ impl Plugin for CharacterSelectPlugin {
     }
 }
 
-const BORDER_COLOR: Color = Color::NONE;
+const BORDER_COLOR: Color = Color::WHITE;
 const SELECTION_BACKGROUND_COLOR: Color = Color::rgba(0., 0., 0., 0.5);
 const BACKGROUND_COLOR: Color = Color::NONE;
 
@@ -112,14 +114,22 @@ impl SelectionState {
 }
 
 const COLOR: f32 = 255.;
-const COLOR_COUNT: usize = 16;
+const COLOR_COUNT: usize = 24;
 const OUTLINE_COLORS: [Color; COLOR_COUNT] = [
+    Color::rgb(112. / COLOR, 214. / COLOR, 255. / COLOR),
+    Color::rgb(255. / COLOR, 251. / COLOR, 204. / COLOR),
+    Color::rgb(90. / COLOR, 232. / COLOR, 110. / COLOR),
+    Color::rgb(145. / COLOR, 90. / COLOR, 232. / COLOR),
+    Color::rgb(255. / COLOR, 246. / COLOR, 87. / COLOR),
+    Color::rgb(179. / COLOR, 114. / COLOR, 43. / COLOR),
+    Color::rgb(255. / COLOR, 187. / COLOR, 112. / COLOR),
+    Color::rgb(99. / COLOR, 255. / COLOR, 214. / COLOR),
+    Color::rgb(243. / COLOR, 138. / COLOR, 255. / COLOR),
     Color::rgb(38. / COLOR, 70. / COLOR, 83. / COLOR),
     Color::rgb(42. / COLOR, 157. / COLOR, 143. / COLOR),
     Color::rgb(233. / COLOR, 196. / COLOR, 106. / COLOR),
     Color::rgb(244. / COLOR, 162. / COLOR, 97. / COLOR),
     Color::rgb(231. / COLOR, 111. / COLOR, 81. / COLOR),
-    Color::rgb(112. / COLOR, 214. / COLOR, 255. / COLOR),
     Color::rgb(255. / COLOR, 112. / COLOR, 166. / COLOR),
     Color::rgb(233. / COLOR, 255. / COLOR, 112. / COLOR),
     Color::rgb(59. / COLOR, 53. / COLOR, 97. / COLOR),
@@ -140,6 +150,9 @@ pub struct SelectionMarker;
 
 #[derive(Component)]
 pub struct SelectionContainerMarker;
+
+#[derive(Component)]
+pub struct SelectedBurroMarker;
 
 #[derive(Component, Copy, Clone, PartialEq, Debug)]
 pub struct PlayerMarker(pub usize);
@@ -210,9 +223,32 @@ fn update_burro_visibility(
     }
 }
 
+fn update_selected_burro_texts(
+    game_assets: Res<GameAssets>,
+    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    mut selected_burro_texts: Query<(&mut Text, &PlayerMarker), With<SelectedBurroMarker>>,
+) {
+    for (player_state, player) in &players {
+        let mut text = selected_burro_texts
+            .iter_mut()
+            .filter(|(_, p)| *p == player)
+            .map(|(t, _)| t)
+            .last()
+            .unwrap();
+        match player_state.state {
+            SelectionState::NotPlaying | SelectionState::Burro => {
+                text.sections[0].value = "".to_string();
+            }
+            _ => {
+                text.sections[0].value = game_assets.burro_assets[player_state.burro].name.clone();
+            }
+        }
+    }
+}
+
 fn update_center_texts(
     players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut center_texts: Query<(&mut Text, &PlayerMarker), Without<SelectionMarker>>,
+    mut center_texts: Query<(&mut Text, &PlayerMarker), With<CenterTextMarker>>,
 ) {
     for (player_state, player) in &players {
         let mut center_text = center_texts
@@ -254,7 +290,7 @@ fn update_selections(
                 selection_text.sections[0].style.color = Color::WHITE;
             }
             SelectionState::OutlineColor => {
-                selection_text.sections[0].value = "COLOR".to_string();
+                selection_text.sections[0].value = "OUTLINE\nCOLOR".to_string();
                 selection_text.sections[0].style.color = OUTLINE_COLORS[player_state.outline_color];
             }
             _ => (),
@@ -483,7 +519,7 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     window_size: Res<ui::text_size::WindowSize>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut scrolling_image_materials: ResMut<Assets<menu::title_screen::ScrollingImageMaterial>>,
+    mut shader_materials: shaders::ShaderMaterials,
     mut player_selection: ResMut<PlayerSelection>,
 ) {
     *player_selection = PlayerSelection::default();
@@ -559,9 +595,11 @@ fn setup(
         MaterialMeshBundle {
             transform: Transform::from_xyz(0.0, -50.0, 0.0),
             mesh: meshes.add(shape::Plane::from_size(50.0).into()),
-            material: scrolling_image_materials.add(menu::title_screen::ScrollingImageMaterial {
-                texture: game_assets.title_screen_background.image.clone(),
-            }),
+            material: shader_materials
+                .scrolling_images
+                .add(shaders::ScrollingImageMaterial {
+                    texture: game_assets.title_screen_background.image.clone(),
+                }),
             ..default()
         },
         CleanupMarker,
@@ -662,7 +700,6 @@ fn setup(
                             },
                             ..default()
                         },
-                        background_color: SELECTION_BACKGROUND_COLOR.into(),
                         ..default()
                     })
                     .with_children(|builder| {
@@ -679,8 +716,10 @@ fn setup(
                                             right: Val::Percent(2.5),
                                             ..default()
                                         },
+                                        border: UiRect::all(Val::Percent(0.2)),
                                         ..default()
                                     },
+                                    border_color: BORDER_COLOR.into(),
                                     background_color: SELECTION_BACKGROUND_COLOR.into(),
                                     ..default()
                                 })
@@ -738,6 +777,7 @@ fn setup(
                                                 width: Val::Percent(100.),
                                                 height: Val::Percent(10.),
                                                 margin: UiRect { ..default() },
+                                                padding: UiRect::all(Val::Percent(5.)),
                                                 position_type: PositionType::Absolute,
                                                 display: Display::Flex,
                                                 align_items: AlignItems::FlexStart,
@@ -759,6 +799,40 @@ fn setup(
                                                 ),
                                                 ..default()
                                             });
+                                        });
+
+                                    builder
+                                        .spawn(NodeBundle {
+                                            style: Style {
+                                                width: Val::Percent(100.),
+                                                height: Val::Percent(10.),
+                                                margin: UiRect { ..default() },
+                                                padding: UiRect::all(Val::Percent(5.)),
+                                                position_type: PositionType::Absolute,
+                                                display: Display::Flex,
+                                                align_items: AlignItems::FlexStart,
+                                                justify_content: JustifyContent::Center,
+                                                ..default()
+                                            },
+                                            ..default()
+                                        })
+                                        .with_children(|builder| {
+                                            builder.spawn((
+                                                TextBundle {
+                                                    text: Text::from_section(
+                                                        "",
+                                                        TextStyle {
+                                                            font: game_assets.score_font.clone(),
+                                                            font_size: text_scaler
+                                                                .scale(ui::DEFAULT_FONT_SIZE),
+                                                            color: Color::WHITE,
+                                                        },
+                                                    ),
+                                                    ..default()
+                                                },
+                                                PlayerMarker(player_index),
+                                                SelectedBurroMarker,
+                                            ));
                                         });
 
                                     builder
@@ -806,7 +880,8 @@ fn setup(
                                                                 .scale(ui::DEFAULT_FONT_SIZE),
                                                             color: Color::WHITE,
                                                         },
-                                                    ),
+                                                    )
+                                                    .with_alignment(TextAlignment::Center),
                                                     ..default()
                                                 },
                                                 SelectionMarker,

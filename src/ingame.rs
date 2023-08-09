@@ -17,8 +17,7 @@ use std::sync::{Arc, Mutex};
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((OutlinePlugin, AutoGenerateOutlineNormalsPlugin))
-            .add_systems(OnEnter(AppState::LoadInGame), setup)
+        app.add_systems(OnEnter(AppState::LoadInGame), setup)
             .add_systems(
                 Update,
                 (

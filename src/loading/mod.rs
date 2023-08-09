@@ -30,7 +30,7 @@ pub mod command_ext {
 
             match self.0 {
                 AppState::Settings | AppState::CharacterSelect => {
-                    title_screen::TitleScreenLoader.apply(world);
+                    title_screen::loader::TitleScreenLoader.apply(world);
                     settings::loader::SettingsMenuLoader.apply(world);
 
                     // TODO: This is temporary to load burro burro_assets
@@ -40,7 +40,7 @@ pub mod command_ext {
                 }
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
                 AppState::Splash => splash::SplashLoader.apply(world),
-                AppState::TitleScreen => title_screen::TitleScreenLoader.apply(world),
+                AppState::TitleScreen => title_screen::loader::TitleScreenLoader.apply(world),
                 _ => (),
             }
         }

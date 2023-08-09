@@ -26,6 +26,7 @@ mod mecha_picker;
 mod menu;
 mod player;
 mod scene_hook;
+mod shaders;
 mod smoke;
 mod ui;
 mod util;
@@ -53,6 +54,7 @@ fn main() {
     .insert_resource(config::GameConfiguration::default())
     .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
     .add_plugins((
+        shaders::ShaderPlugin,
         menu::character_select::CharacterSelectPlugin,
         menu::settings::SettingsMenuPlugin,
         menu::splash::SplashPlugin,

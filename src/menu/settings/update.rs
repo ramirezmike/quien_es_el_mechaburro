@@ -75,7 +75,9 @@ pub fn handle_input(
         setting_state.increment();
     }
 
-    if action_state.just_pressed(input::MenuAction::Select) && setting_state.selected_setting == Settings::Vamos {
+    if action_state.just_pressed(input::MenuAction::Select)
+        && setting_state.selected_setting == Settings::Vamos
+    {
         audio.play_sfx(&game_assets.sfx_1);
 
         *game_state = game_state::GameState::initialize(

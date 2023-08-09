@@ -236,6 +236,7 @@ pub fn spawn_camera_with_transform<T: Component>(
 
     commands.spawn((
         Camera3dBundle {
+            camera: Camera { ..default() },
             transform,
             ..default()
         },
