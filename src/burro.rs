@@ -121,7 +121,7 @@ impl Burro {
 
 #[derive(Component)]
 pub struct BurroMeshMarker {
-    pub parent: Entity,
+    pub parent: Option<Entity>,
 }
 
 fn squish_burros(time: Res<Time>, mut burros: Query<&mut Transform, With<burro::Burro>>) {

@@ -8,4 +8,5 @@ pub const FOLLOW_FONT_SIZE: f32 = 40.0;
 pub const BUTTON_LABEL_FONT_SIZE: f32 = 40.0;
 pub const SCORE_FONT_SIZE: f32 = 84.0;
 
+pub mod render_to_texture;
 pub mod text_size;

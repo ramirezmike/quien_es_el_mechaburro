@@ -14,10 +14,13 @@ use std::f32::consts::TAU;
 use std::fs;
 use std::sync::{Arc, Mutex};
 
+mod ui;
+
 pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::LoadInGame), setup)
+            .add_plugins(ui::InGameUIPlugin)
             .add_systems(
                 Update,
                 (
@@ -47,6 +50,8 @@ impl Command for IngameLoader {
         assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
         assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
         assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
+        assets_handler.add_material(&mut game_assets.avatar_bottom, "textures/bottom_avatar.png", true);
+        assets_handler.add_material(&mut game_assets.avatar_top, "textures/top_avatar.png", true);
         assets_handler.add_animation(
             &mut game_assets.burro_run,
             "models/burro_new.glb#Animation0",
@@ -62,6 +67,7 @@ impl Command for IngameLoader {
             camera_pos: Vec3::new(0.0, 1.0, -1.0),
             ambient_color: Color::default(),
         });
+        assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
         game_assets.mechaburro_texture = assets::BurroAsset {
             name: "Mechaburro".into(),
             texture: mechaburro_texture,
@@ -140,20 +146,31 @@ fn setup(
 
     #[cfg(feature = "debug")]
     {
-        //      if game_state.burros.is_empty() {
-        //          *game_state = game_state::GameState::initialize(
-        //              vec![game_state::BurroCharacter {
-        //                  player: 0,
-        //                  is_playing: true,
-        //                  has_picked: true,
-        //                  selected_burro: 0,
-        //                  action_cooldown: 0.0,
-        //              }],
-        //              1,
-        //              1.0,
-        //              &game_assets.burro_assets,
-        //          );
-        //      }
+        if game_state.burros.is_empty() {
+            *game_state = game_state::GameState::initialize(
+                vec![
+                    game_state::BurroState {
+                        player: 0,
+                        selected_burro: 0,
+                        outline_color: Color::WHITE,
+                        score: 0,
+                        is_bot: false,
+                        hearts: vec![],
+                    },
+                    game_state::BurroState {
+                        player: 0,
+                        selected_burro: 0,
+                        outline_color: Color::WHITE,
+                        score: 0,
+                        is_bot: false,
+                        hearts: vec![],
+                    },
+                ],
+                0,
+                1.0,
+                &game_assets.burro_assets,
+            );
+        }
     };
 
     game_state.current_level_over = false;
@@ -305,7 +322,7 @@ fn setup(
                                                         ..default()
                                                     },
                                                     burro::BurroMeshMarker {
-                                                        parent: parent_entity,
+                                                        parent: Some(parent_entity),
                                                     },
                                                     toon_material_textured.clone(),
                                                 ));

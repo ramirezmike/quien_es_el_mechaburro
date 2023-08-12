@@ -1,24 +1,14 @@
-use crate::input::InputCommandsExt;
+// TODO: Refactor this into separate files
+
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::{
-    asset_loading, assets, assets::GameAssets, audio, audio::GameAudio, cleanup, game_camera,
-    game_state, input, menu, scene_hook, shaders, ui, AppState,
+    assets, assets::GameAssets, audio, burro, cleanup,
+    game_state, input, shaders, ui, AppState,
 };
-use bevy::{
-    core_pipeline::clear_color::ClearColorConfig,
-    gltf::Gltf,
-    prelude::*,
-    render::{
-        camera::RenderTarget,
-        render_resource::{
-            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-        },
-        view::RenderLayers,
-    },
-};
+use bevy:: prelude::*;
 use bevy_mod_outline::{
-    AutoGenerateOutlineNormalsPlugin, OutlineBundle, OutlinePlugin, OutlineVolume,
+    AutoGenerateOutlineNormalsPlugin, OutlinePlugin, OutlineVolume,
 };
 use bevy_toon_shader::ToonShaderMaterial;
 use leafwing_input_manager::prelude::*;
@@ -58,11 +48,8 @@ const BORDER_COLOR: Color = Color::WHITE;
 const SELECTION_BACKGROUND_COLOR: Color = Color::rgba(0., 0., 0., 0.5);
 const BACKGROUND_COLOR: Color = Color::NONE;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct CleanupMarker;
-
-#[derive(Component)]
-pub struct BurroMeshMarker;
 
 #[derive(Component, Copy, Clone, Default)]
 pub struct PlayerSelectionState {
@@ -77,8 +64,8 @@ impl PlayerSelectionState {
     }
 }
 
-impl From<(PlayerSelectionState, PlayerMarker)> for game_state::BurroState {
-    fn from(item: (PlayerSelectionState, PlayerMarker)) -> Self {
+impl From<(PlayerSelectionState, game_state::PlayerMarker)> for game_state::BurroState {
+    fn from(item: (PlayerSelectionState, game_state::PlayerMarker)) -> Self {
         game_state::BurroState {
             player: item.1 .0,
             selected_burro: item.0.burro,
@@ -92,7 +79,7 @@ impl From<(PlayerSelectionState, PlayerMarker)> for game_state::BurroState {
 
 #[derive(Default, Resource)]
 pub struct PlayerSelection {
-    pub players: Vec<(PlayerSelectionState, PlayerMarker)>,
+    pub players: Vec<(PlayerSelectionState, game_state::PlayerMarker)>,
 }
 
 #[derive(Default, PartialEq, Clone, Copy)]
@@ -154,13 +141,10 @@ pub struct SelectionContainerMarker;
 #[derive(Component)]
 pub struct SelectedBurroMarker;
 
-#[derive(Component, Copy, Clone, PartialEq, Debug)]
-pub struct PlayerMarker(pub usize);
-
 fn update_selection_containers(
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
     mut selection_containers: Query<
-        (&mut Visibility, &PlayerMarker),
+        (&mut Visibility, &game_state::PlayerMarker),
         With<SelectionContainerMarker>,
     >,
 ) {
@@ -179,8 +163,8 @@ fn update_selection_containers(
 
 fn update_burro_material(
     game_assets: Res<GameAssets>,
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut materials: Query<(&mut Handle<ToonShaderMaterial>, &PlayerMarker)>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut materials: Query<(&mut Handle<ToonShaderMaterial>, &game_state::PlayerMarker)>,
 ) {
     for (player_state, player) in &players {
         if let Some((mut material, _)) = materials.iter_mut().filter(|(_, p)| *p == player).last() {
@@ -192,8 +176,8 @@ fn update_burro_material(
 }
 
 fn update_burro_outline(
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut outlines: Query<(&mut OutlineVolume, &PlayerMarker)>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut outlines: Query<(&mut OutlineVolume, &game_state::PlayerMarker)>,
 ) {
     for (player_state, player) in &players {
         if let Some((mut outline, _)) = outlines.iter_mut().filter(|(_, p)| *p == player).last() {
@@ -203,8 +187,8 @@ fn update_burro_outline(
 }
 
 fn update_burro_visibility(
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut images: Query<(&mut Visibility, &PlayerMarker), With<UiImage>>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut images: Query<(&mut Visibility, &game_state::PlayerMarker), With<UiImage>>,
 ) {
     for (player_state, player) in &players {
         let (mut image_visibility, _) = images
@@ -225,8 +209,11 @@ fn update_burro_visibility(
 
 fn update_selected_burro_texts(
     game_assets: Res<GameAssets>,
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut selected_burro_texts: Query<(&mut Text, &PlayerMarker), With<SelectedBurroMarker>>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut selected_burro_texts: Query<
+        (&mut Text, &game_state::PlayerMarker),
+        With<SelectedBurroMarker>,
+    >,
 ) {
     for (player_state, player) in &players {
         let mut text = selected_burro_texts
@@ -247,8 +234,8 @@ fn update_selected_burro_texts(
 }
 
 fn update_center_texts(
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut center_texts: Query<(&mut Text, &PlayerMarker), With<CenterTextMarker>>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut center_texts: Query<(&mut Text, &game_state::PlayerMarker), With<CenterTextMarker>>,
 ) {
     for (player_state, player) in &players {
         let mut center_text = center_texts
@@ -273,8 +260,8 @@ fn update_center_texts(
 
 fn update_selections(
     game_assets: Res<GameAssets>,
-    players: Query<(&PlayerSelectionState, &PlayerMarker)>,
-    mut selection_texts: Query<(&mut Text, &PlayerMarker), With<SelectionMarker>>,
+    players: Query<(&PlayerSelectionState, &game_state::PlayerMarker)>,
+    mut selection_texts: Query<(&mut Text, &game_state::PlayerMarker), With<SelectionMarker>>,
 ) {
     for (player_state, player) in &players {
         let mut selection_text = selection_texts
@@ -322,7 +309,7 @@ fn handle_input(
     mut commands: Commands,
     mut players: Query<(
         &mut PlayerSelectionState,
-        &PlayerMarker,
+        &game_state::PlayerMarker,
         &ActionState<input::MenuAction>,
     )>,
     game_assets: Res<assets::GameAssets>,
@@ -383,7 +370,7 @@ fn handle_input(
     for (mut player_selection, player, action_state) in &mut players {
         #[cfg(feature = "debug")]
         {
-            if PlayerMarker(*selected_player) != *player {
+            if game_state::PlayerMarker(*selected_player) != *player {
                 continue;
             }
         }
@@ -482,40 +469,10 @@ fn handle_input(
     }
 }
 
-fn create_render_image(window_size: &Res<ui::text_size::WindowSize>) -> Image {
-    let size = Extent3d {
-        width: (window_size.width / 4.0) as u32,
-        height: (window_size.width / 4.0) as u32,
-        ..default()
-    };
-
-    let mut image = Image {
-        texture_descriptor: TextureDescriptor {
-            label: None,
-            size,
-            dimension: TextureDimension::D2,
-            format: TextureFormat::Bgra8UnormSrgb,
-            mip_level_count: 1,
-            sample_count: 1,
-            usage: TextureUsages::TEXTURE_BINDING
-                | TextureUsages::COPY_DST
-                | TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        },
-        ..default()
-    };
-
-    // fill image.data with zeroes
-    image.resize(size);
-
-    image
-}
-
 fn setup(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     text_scaler: ui::text_size::TextScaler,
-    assets_gltf: Res<Assets<Gltf>>,
     mut images: ResMut<Assets<Image>>,
     window_size: Res<ui::text_size::WindowSize>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -523,72 +480,28 @@ fn setup(
     mut player_selection: ResMut<PlayerSelection>,
 ) {
     *player_selection = PlayerSelection::default();
-    let burro_mesh_handle = game_assets.burro.clone();
-    let first_pass_layer = RenderLayers::layer(1);
 
     let mut burro_image_handles: Vec<Handle<Image>> = vec![];
     for i in 0..8 {
-        let image = create_render_image(&window_size);
+        let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
         burro_image_handles.push(image_handle.clone());
-        let toon_material_textured = game_assets.burro_assets[i].toon_texture.clone();
-
         let y_offset = 10.0;
+        let burro_transform = Transform::from_xyz(0.0, i as f32 * y_offset, 0.0);
+        let camera_transform = Transform::from_xyz(0.0, i as f32 * y_offset, 8.0)
+                .looking_at(Vec3::new(0.0, i as f32 * y_offset, 0.0), Vec3::Y);
 
-        if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
-            commands.spawn((
-                BurroMeshMarker,
-                PlayerMarker(i),
-                CleanupMarker,
-                scene_hook::HookedSceneBundle {
-                    scene: SceneBundle {
-                        scene: gltf.scenes[0].clone(),
-                        transform: Transform::from_xyz(0.0, i as f32 * y_offset, 0.0),
-                        ..default()
-                    },
-                    hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
-                        if let Some(name) = hook_data.name {
-                            let name = name.as_str();
-                            if name.contains("Cube") {
-                                cmds.insert((
-                                    OutlineBundle {
-                                        outline: OutlineVolume {
-                                            visible: true,
-                                            width: 5.0,
-                                            colour: OUTLINE_COLORS[0],
-                                        },
-                                        ..default()
-                                    },
-                                    first_pass_layer,
-                                    PlayerMarker(i),
-                                    toon_material_textured.clone(),
-                                ));
-                            }
-                        }
-                    }),
-                },
-            ));
-        }
-
-        commands.spawn((
-            Camera3dBundle {
-                camera_3d: Camera3d {
-                    clear_color: ClearColorConfig::Custom(Color::NONE),
-                    ..default()
-                },
-                camera: Camera {
-                    order: -1,
-                    target: RenderTarget::Image(image_handle.clone()),
-                    ..default()
-                },
-                transform: Transform::from_translation(Vec3::new(0.0, i as f32 * y_offset, 8.0))
-                    .looking_at(Vec3::new(0.0, i as f32 * y_offset, 0.0), Vec3::Y),
-                ..default()
-            },
-            UiCameraConfig { show_ui: false },
-            CleanupMarker,
-            first_pass_layer,
-        ));
+        commands.add(ui::render_to_texture::BurroImage {
+            player: i,
+            burro_transform,
+            camera_transform,
+            outline_color: OUTLINE_COLORS[0],
+            outline_size: 5.0,
+            clear_color: Color::NONE,
+            render_layer_id: 1,
+            cleanup_marker: CleanupMarker,
+            image_handle: image_handle.clone(),
+        });
     }
 
     commands.spawn((
@@ -617,7 +530,7 @@ fn setup(
     for i in 0..8 {
         commands.spawn((
             PlayerSelectionState::default(),
-            PlayerMarker(i),
+            game_state::PlayerMarker(i),
             CleanupMarker,
             input::create_menu_input_for_player(i),
         ));
@@ -736,7 +649,7 @@ fn setup(
                                             visibility: Visibility::Hidden,
                                             ..default()
                                         },
-                                        PlayerMarker(player_index),
+                                        game_state::PlayerMarker(player_index),
                                     ));
 
                                     builder
@@ -767,7 +680,7 @@ fn setup(
                                                     ..default()
                                                 },
                                                 CenterTextMarker,
-                                                PlayerMarker(player_index),
+                                                game_state::PlayerMarker(player_index),
                                             ));
                                         });
 
@@ -830,7 +743,7 @@ fn setup(
                                                     ),
                                                     ..default()
                                                 },
-                                                PlayerMarker(player_index),
+                                                game_state::PlayerMarker(player_index),
                                                 SelectedBurroMarker,
                                             ));
                                         });
@@ -854,7 +767,7 @@ fn setup(
                                                 ..default()
                                             },
                                             SelectionContainerMarker,
-                                            PlayerMarker(player_index),
+                                            game_state::PlayerMarker(player_index),
                                         ))
                                         .with_children(|builder| {
                                             builder.spawn((TextBundle {
@@ -885,7 +798,7 @@ fn setup(
                                                     ..default()
                                                 },
                                                 SelectionMarker,
-                                                PlayerMarker(player_index),
+                                                game_state::PlayerMarker(player_index),
                                             ));
 
                                             builder.spawn((TextBundle {
@@ -912,7 +825,7 @@ fn setup(
     commands.entity(root_node).add_child(selection_container);
 }
 
-fn rotate_burros(mut burros: Query<&mut Transform, With<BurroMeshMarker>>, time: Res<Time>) {
+fn rotate_burros(mut burros: Query<&mut Transform, With<burro::BurroMeshMarker>>, time: Res<Time>) {
     for mut transform in &mut burros {
         transform.rotate_y(time.delta_seconds());
     }

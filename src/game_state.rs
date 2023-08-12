@@ -110,3 +110,6 @@ pub struct BurroState {
     pub is_bot: bool,
     pub hearts: Vec<Entity>,
 }
+
+#[derive(Component, Copy, Clone, PartialEq, Debug)]
+pub struct PlayerMarker(pub usize);

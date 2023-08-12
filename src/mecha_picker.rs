@@ -105,7 +105,7 @@ fn animate_mecha_selection(
         if let Ok((entity, mut transform, mut burro)) = burros.get_mut(selected_burro_entity) {
             let (mut toon_material, _) = burro_meshes
                 .iter_mut()
-                .filter(|(_, m)| m.parent == entity)
+                .filter(|(_, m)| m.parent.unwrap() == entity)
                 .last()
                 .unwrap();
             match text_display_timers.mecha_selection_stage {

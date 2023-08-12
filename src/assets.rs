@@ -51,6 +51,8 @@ pub struct GameAssets {
     pub burro_run: Handle<AnimationClip>,
     pub burro_assets: Vec<BurroAsset>,
     pub mechaburro_texture: BurroAsset,
+    pub avatar_bottom: asset_loading::GameTexture,
+    pub avatar_top: asset_loading::GameTexture,
 
     pub heart_texture: asset_loading::GameTexture,
     pub pinata_logo_texture: asset_loading::GameTexture,
