@@ -493,6 +493,7 @@ fn setup(
 
         commands.add(ui::render_to_texture::BurroImage {
             player: i,
+            selected_burro: i,
             burro_transform,
             camera_transform,
             outline_color: OUTLINE_COLORS[0],

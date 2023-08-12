@@ -64,6 +64,7 @@ fn setup(
 
         commands.add(ui::render_to_texture::BurroImage {
             player: burro.player,
+            selected_burro: burro.selected_burro,
             burro_transform: Transform::from_xyz(0.0, burro.player as f32 * y_offset, 0.0),
             camera_transform: Transform::from_xyz(1.7, 0.9 + burro.player as f32 * y_offset, 1.9)
                 .with_rotation(Quat::from_rotation_y(0.6)),
