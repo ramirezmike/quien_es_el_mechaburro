@@ -216,13 +216,15 @@ pub fn move_player(
         burro.velocity *= friction.powf(time.delta_seconds());
         //        burro.velocity += (Vec3::X * speed) * time.delta_seconds();
 
-        match movement.movement {
-            Movement::Normal(direction) => {
-                let acceleration = Vec3::from(direction).zero_signum();
-                if !controller_output.grounded {
-                    //                        acceleration.z *= 0.5;
+        if !burro.is_down {
+            match movement.movement {
+                Movement::Normal(direction) => {
+                    let acceleration = Vec3::from(direction).zero_signum();
+                    if !controller_output.grounded {
+                        //                        acceleration.z *= 0.5;
+                    }
+                    burro.velocity += (acceleration * speed) * time.delta_seconds();
                 }
-                burro.velocity += (acceleration * speed) * time.delta_seconds();
             }
         }
 

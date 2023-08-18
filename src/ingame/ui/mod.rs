@@ -28,7 +28,7 @@ fn update_hearts(
         if let Ok((burro, burro_player)) = burros.get(hit.entity) {
             for (mut visibility, heart, heart_player) in &mut hearts {
                 if burro_player == heart_player {
-                    *visibility = if heart.0 < burro.health - 1 {
+                    *visibility = if heart.0 < burro.health.saturating_sub(1) {
                         Visibility::Visible
                     } else {
                         Visibility::Hidden
