@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, burro, ui, cleanup, game_state, ui::text_size, AppState};
+use crate::{assets::GameAssets, burro, ui, cleanup, hit, game_state, ui::text_size, AppState};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -16,37 +16,27 @@ impl Plugin for InGameUIPlugin {
 
 #[derive(Component, Clone)]
 struct CleanupMarker;
+#[derive(Component, Clone)]
+struct HeartImageMarker(usize);
 
 fn update_hearts(
-    game_state: Res<game_state::GameState>,
-    burros: Query<&burro::Burro>,
-    mut hearts: Query<&mut Visibility, With<UiImage>>,
+    burros: Query<(&burro::Burro, &game_state::PlayerMarker)>,
+    mut hearts: Query<(&mut Visibility, &HeartImageMarker, &game_state::PlayerMarker)>,
+    mut burro_hit_event_reader: EventReader<burro::BurroHitEvent>,
 ) {
-    //  game_state.burros.iter().for_each(|burro_state| {
-    //      let burro = burros
-    //          .iter()
-    //          .filter(|b| b.burro_skin == burro_state.skin)
-    //          .last();
-
-    //      if let Some(burro) = burro {
-    //          burro_state
-    //              .hearts
-    //              .iter()
-    //              .enumerate()
-    //              .for_each(|(i, entity)| {
-    //                  if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
-    //                      heart_visibility.is_visible = i < burro.health;
-    //                  }
-    //              });
-    //      } else {
-    //          // burro must be dead already
-    //          burro_state.hearts.iter().for_each(|entity| {
-    //              if let Ok(mut heart_visibility) = hearts.get_mut(*entity) {
-    //                  heart_visibility.is_visible = false;
-    //              }
-    //          });
-    //      }
-    //  });
+    for hit in burro_hit_event_reader.iter() {
+        if let Ok((burro, burro_player)) = burros.get(hit.entity) {
+            for (mut visibility, heart, heart_player) in &mut hearts {
+                if burro_player == heart_player {
+                    *visibility = if heart.0 < burro.health - 1 {
+                        Visibility::Visible
+                    } else {
+                        Visibility::Hidden
+                    };
+                }
+            }
+        }
+    }
 }
 
 fn setup(
@@ -187,8 +177,8 @@ fn setup(
                                                 },
                                                 ..default()
                                             }).with_children(|builder| {
-                                                for _ in 0..3 {
-                                                    builder.spawn(ImageBundle {
+                                                for i in 0..3 {
+                                                    builder.spawn((ImageBundle {
                                                         style: Style {
                                                             width: Val::Auto,
                                                             height: Val::Percent(100.0),
@@ -201,7 +191,9 @@ fn setup(
                                                             .into(),
                                                         z_index: ZIndex::Global(10),
                                                         ..default()
-                                                    });
+                                                    }, 
+                                                    HeartImageMarker(i),
+                                                    game_state::PlayerMarker(burro.player)));
                                                 }
                                             });
                                         });

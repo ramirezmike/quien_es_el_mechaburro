@@ -231,6 +231,7 @@ fn setup(
                                 Visibility::Visible,
                                 CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
                                 burro::Burro::new(burro_state.selected_burro),
+                                game_state::PlayerMarker(burro_state.player),
                                 player::BurroMovement::default(),
                                 TransformBundle {
                                     local: {
