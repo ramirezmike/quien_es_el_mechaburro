@@ -19,7 +19,7 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = "0.11.0"
+bevy = { version = "0.11.2", features = ["dynamic_linking"] }
 bevy_kira_audio = { version = "0.16.0", features = ["wav"]}
 bevy_toon_shader = "0.2.0"
 bevy_mod_outline = { git = "https://github.com/ramirezmike/bevy_mod_outline", branch = "master" }

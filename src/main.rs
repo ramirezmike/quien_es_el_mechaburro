@@ -31,6 +31,9 @@ mod smoke;
 mod ui;
 mod util;
 
+#[cfg(feature = "fps")]
+mod debug;
+
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins).add_state::<AppState>();
@@ -45,7 +48,9 @@ fn main() {
     app.add_plugins((
         LogDiagnosticsPlugin::default(),
         FrameTimeDiagnosticsPlugin::default(),
+        debug::DebugPlugin,
     ));
+
 
     app.insert_resource(bevy_egui::EguiSettings {
         scale_factor: 1.8,
