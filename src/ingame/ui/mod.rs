@@ -1,5 +1,6 @@
 use crate::{assets::GameAssets, burro, ui, cleanup, game_state, ui::text_size, AppState};
 use bevy::prelude::*;
+use std::collections::HashMap;
 
 pub struct InGameUIPlugin;
 impl Plugin for InGameUIPlugin {
@@ -55,18 +56,18 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     window_size: Res<ui::text_size::WindowSize>,
 ) {
-    let mut burro_image_handles: Vec<Handle<Image>> = vec![];
-    for burro in game_state.burros.iter() {
+    let mut burro_image_handles: HashMap::<usize, Handle<Image>> = HashMap::<usize, Handle<Image>>::default();
+    for (i, burro) in game_state.burros.iter().enumerate() {
         let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
-        burro_image_handles.push(image_handle.clone());
+        burro_image_handles.insert(burro.selected_burro, image_handle.clone());
         let y_offset = 10.0;
 
         commands.add(ui::render_to_texture::BurroImage {
             player: burro.player,
             selected_burro: burro.selected_burro,
-            burro_transform: Transform::from_xyz(0.0, burro.player as f32 * y_offset, 0.0),
-            camera_transform: Transform::from_xyz(1.7, 0.9 + burro.player as f32 * y_offset, 1.9)
+            burro_transform: Transform::from_xyz(0.0, i as f32 * y_offset, 0.0),
+            camera_transform: Transform::from_xyz(1.7, 0.9 + i as f32 * y_offset, 1.9)
                 .with_rotation(Quat::from_rotation_y(0.6)),
             outline_color: burro.outline_color,
             outline_size: 30.0,
@@ -163,7 +164,7 @@ fn setup(
                                                     height: Val::Percent(75.0),
                                                     ..default()
                                                 },
-                                                image: burro_image_handles[burro.player].clone().into(),
+                                                image: burro_image_handles[&burro.selected_burro].clone().into(),
                                                 z_index: ZIndex::Global(4),
                                                 ..default()
                                             },

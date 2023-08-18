@@ -49,7 +49,7 @@ pub fn handle_input(
     mut setting_state: ResMut<SettingsMenuState>,
     action_state: Query<&ActionState<input::MenuAction>>,
     game_assets: Res<assets::GameAssets>,
-    player_selection: Res<menu::character_select::PlayerSelection>,
+    player_selection: Res<menu::character_select::state::PlayerSelection>,
     mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
 ) {

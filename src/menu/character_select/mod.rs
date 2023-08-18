@@ -13,6 +13,14 @@ use bevy_mod_outline::{
 use bevy_toon_shader::ToonShaderMaterial;
 use leafwing_input_manager::prelude::*;
 
+pub mod loader;
+pub mod state;
+mod update_ui;
+
+use self::{
+    state::{ PlayerSelection, PlayerSelectionState, SelectionState }
+};
+
 pub struct CharacterSelectPlugin;
 impl Plugin for CharacterSelectPlugin {
     fn build(&self, app: &mut App) {
@@ -50,55 +58,6 @@ const BACKGROUND_COLOR: Color = Color::NONE;
 
 #[derive(Component, Clone)]
 pub struct CleanupMarker;
-
-#[derive(Component, Copy, Clone, Default)]
-pub struct PlayerSelectionState {
-    burro: usize,
-    outline_color: usize,
-    state: SelectionState,
-}
-
-impl PlayerSelectionState {
-    pub fn get_outline_color(&self) -> Color {
-        OUTLINE_COLORS[self.outline_color]
-    }
-}
-
-impl From<(PlayerSelectionState, game_state::PlayerMarker)> for game_state::BurroState {
-    fn from(item: (PlayerSelectionState, game_state::PlayerMarker)) -> Self {
-        game_state::BurroState {
-            player: item.1 .0,
-            selected_burro: item.0.burro,
-            outline_color: item.0.get_outline_color(),
-            score: 0,
-            is_bot: false,
-            hearts: vec![],
-        }
-    }
-}
-
-#[derive(Default, Resource)]
-pub struct PlayerSelection {
-    pub players: Vec<(PlayerSelectionState, game_state::PlayerMarker)>,
-}
-
-#[derive(Default, PartialEq, Clone, Copy)]
-enum SelectionState {
-    #[default]
-    NotPlaying,
-    Burro,
-    OutlineColor,
-    Ready,
-}
-
-impl SelectionState {
-    fn has_selected_burro(&self) -> bool {
-        match self {
-            SelectionState::NotPlaying | SelectionState::Burro => false,
-            _ => true,
-        }
-    }
-}
 
 const COLOR: f32 = 255.;
 const COLOR_COUNT: usize = 24;

@@ -9,7 +9,7 @@ pub fn setup(
     game_assets: Res<assets::GameAssets>,
     text_scaler: ui::text_size::TextScaler,
     mut setting_state: ResMut<SettingsMenuState>,
-    player_selection: Res<menu::character_select::PlayerSelection>,
+    player_selection: Res<menu::character_select::state::PlayerSelection>,
 ) {
     *setting_state = SettingsMenuState::default();
     setting_state.number_of_players = player_selection.players.len() as isize;

@@ -1,4 +1,4 @@
-use crate::{assets, AppState};
+use crate::{assets, AppState, config};
 use bevy::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
@@ -71,14 +71,10 @@ impl GameState {
 
         // bots
         for i in 0..number_of_bots {
-            println!(
-                "bot {i} of {number_of_bots} with {}",
-                available_burros.len()
-            );
             let index = rand::thread_rng().gen_range(0..available_burros.len());
 
             burros.push(BurroState {
-                player: 99, // should only be referenced for human players
+                player: config::MAX_NUMBER_OF_PLAYERS as usize + i,
                 selected_burro: available_burros.remove(index),
                 outline_color: Color::BLACK,
                 score: 0,
