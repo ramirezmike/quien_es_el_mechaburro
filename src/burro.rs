@@ -1,4 +1,4 @@
-use crate::{assets, audio, burro, config, game_state, smoke, AppState};
+use crate::{assets, audio, burro, config, game_state, smoke, AppState, IngameState};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
 use rand::Rng;
@@ -37,7 +37,7 @@ pub struct BurroHitEvent {
 #[derive(Event)]
 pub struct BurroDeathEvent {
     pub entity: Entity,
-    pub id: usize,
+    pub selected_burro: usize,
 }
 
 #[derive(Event)]
@@ -48,7 +48,7 @@ pub struct BurroFlashEvent {
 
 #[derive(Component)]
 pub struct Burro {
-    pub id: usize,
+    pub selected_burro: usize,
     pub max_health: usize,
     pub health: usize,
     pub bullet_speed: f32,
@@ -67,13 +67,13 @@ pub struct Burro {
 }
 
 impl Burro {
-    pub fn new(id: usize) -> Self {
+    pub fn new(selected_burro: usize) -> Self {
         let mut rng = rand::thread_rng();
 
         Burro {
-            id,
+            selected_burro,
             max_health: 3,
-            health: 3,
+            health: 0,
             bullet_speed: 12.0,
             bullet_time_alive: 1.0,
             fire_cooldown: 0.0,
@@ -184,7 +184,7 @@ fn handle_burros(
         if burro.health == 0 {
             burro_death_event_writer.send(BurroDeathEvent {
                 entity,
-                id: burro.id,
+                selected_burro: burro.selected_burro,
             });
             continue;
         }
@@ -221,6 +221,7 @@ fn handle_burros(
 fn handle_burro_death_events(
     mut commands: Commands,
     mut burro_death_event_reader: EventReader<BurroDeathEvent>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
     burros: Query<Entity, With<Burro>>,
     mut audio: audio::GameAudio,
     mut game_state: ResMut<game_state::GameState>,
@@ -228,6 +229,7 @@ fn handle_burro_death_events(
     game_assets: Res<assets::GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
+        let number_of_burros = burros.iter().len();
         if burros.get(death_event.entity).is_ok() {
             commands.entity(death_event.entity).despawn_recursive();
             //          for (text_entity, text) in follow_texts.iter() {
@@ -235,11 +237,16 @@ fn handle_burro_death_events(
             //                  commands.entity(text_entity).despawn_recursive();
             //              }
             //          }
-            if !game_state.dead_burros.contains(&death_event.id) {
-                game_state.dead_burros.push(death_event.id);
+            if !game_state.dead_burros.contains(&death_event.selected_burro) {
+                game_state.dead_burros.push(death_event.selected_burro);
             }
 
             audio.play_sfx(&game_assets.eliminated_sfx);
+
+            let number_of_dead_burros = game_state.dead_burros.iter().len();
+            if number_of_dead_burros >= number_of_burros - 1 {
+                next_ingame_state.set(IngameState::ScoreDisplay);
+            }
         }
     }
 }

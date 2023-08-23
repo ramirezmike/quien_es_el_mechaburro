@@ -36,7 +36,9 @@ mod debug;
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins).add_state::<AppState>();
+    app.add_plugins(DefaultPlugins)
+       .add_state::<AppState>()
+       .add_state::<IngameState>();
 
     #[cfg(feature = "inspect")]
     app.add_plugins(WorldInspectorPlugin::new());
@@ -46,7 +48,7 @@ fn main() {
 
     #[cfg(feature = "fps")]
     app.add_plugins((
-        LogDiagnosticsPlugin::default(),
+//      LogDiagnosticsPlugin::default(),
         FrameTimeDiagnosticsPlugin::default(),
         debug::DebugPlugin,
     ));
@@ -111,13 +113,21 @@ pub enum AppState {
     Splash,
 }
 
+#[derive(Default, Debug, Copy, Clone, Eq, PartialEq, Hash, States)]
+pub enum IngameState {
+    InGame,
+    ScoreDisplay,
+    #[default]
+    Disabled,
+}
+
 use loading::command_ext::*;
 fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
     clear_color.0 = Color::hex("000000").unwrap();
 
     #[cfg(feature = "debug")]
     {
-        commands.load_state(AppState::CharacterSelect);
+        commands.load_state(AppState::LoadInGame);
     }
 
     #[cfg(not(feature = "debug"))]

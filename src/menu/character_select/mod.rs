@@ -649,7 +649,6 @@ fn setup(
                                             style: Style {
                                                 width: Val::Percent(100.),
                                                 height: Val::Percent(10.),
-                                                margin: UiRect { ..default() },
                                                 padding: UiRect::all(Val::Percent(5.)),
                                                 position_type: PositionType::Absolute,
                                                 display: Display::Flex,

@@ -113,16 +113,8 @@ fn setup(
                         is_bot: false,
                         hearts: vec![],
                     },
-                    game_state::BurroState {
-                        player: 0,
-                        selected_burro: 0,
-                        outline_color: Color::WHITE,
-                        score: 0,
-                        is_bot: false,
-                        hearts: vec![],
-                    },
                 ],
-                0,
+                7,
                 1.0,
                 &game_assets.burro_assets,
             );
@@ -309,8 +301,6 @@ fn setup(
                 2.465743,
             )),
             directional_light: DirectionalLight {
-                // Configure the projection to better fit the scene
-                //            illuminance: 10000.0,
                 illuminance: 100000.0,
                 shadows_enabled: true,
                 ..Default::default()

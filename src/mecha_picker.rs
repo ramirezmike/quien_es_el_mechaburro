@@ -1,4 +1,4 @@
-use crate::{assets, bullet, burro, cleanup, game_camera, game_state, ui, AppState};
+use crate::{assets, bullet, burro, cleanup, game_camera, game_state, ui, AppState, IngameState};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
 use rand::seq::SliceRandom;
@@ -33,7 +33,7 @@ struct CleanupMarker;
 
 #[derive(Event)]
 struct PickMechaEvent {
-    burro_id: usize,
+    selected_burro: usize,
 }
 
 #[derive(Default, Resource)]
@@ -48,8 +48,9 @@ struct TextDisplayTimers {
     mecha_selection_cooldown: f32,
 }
 
-fn skip_picking(mut next_state: ResMut<NextState<AppState>>) {
+fn skip_picking(mut next_state: ResMut<NextState<AppState>>, mut next_ingame_state: ResMut<NextState<IngameState>>,) {
     next_state.set(AppState::InGame);
+    next_ingame_state.set(IngameState::InGame);
 }
 
 #[derive(PartialEq, Debug)]
@@ -71,6 +72,7 @@ impl Default for MechaSelectionStage {
 fn animate_mecha_selection(
     mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
     mut text_display_timers: ResMut<TextDisplayTimers>,
     game_assets: Res<assets::GameAssets>,
     time: Res<Time>,
@@ -141,6 +143,7 @@ fn animate_mecha_selection(
                 }
                 MechaSelectionStage::StartRound => {
                     next_state.set(AppState::InGame);
+                    next_ingame_state.set(IngameState::InGame);
                 }
             }
         }
@@ -227,7 +230,7 @@ fn handle_mecha_pick_event(
 ) {
     for event in pick_mecha_event_reader.iter() {
         for (entity, burro) in burros.iter() {
-            if burro.id == event.burro_id {
+            if burro.selected_burro == event.selected_burro {
                 text_display_timers.selected_burro = Some(entity);
                 break;
             }
@@ -273,7 +276,7 @@ fn pick_mecha(
             .collect::<Vec<_>>();
         if let Some(choice) = actual_choices.choose(&mut rng) {
             pick_mecha_event_writer.send(PickMechaEvent {
-                burro_id: choice.selected_burro,
+                selected_burro: choice.selected_burro,
             });
             text_display_timers.mecha_display_cooldown = 3.0;
             text_display_timers.has_picked = true;

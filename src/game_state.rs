@@ -1,42 +1,11 @@
 use crate::{assets, AppState, config};
 use bevy::prelude::*;
 use rand::Rng;
-use std::collections::HashMap;
 
 pub struct GameStatePlugin;
 impl Plugin for GameStatePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(GameState::default())
-            .add_event::<ScoreAddEvent>()
-            .add_systems(
-                Update,
-                handle_score_add_event.run_if(in_state(AppState::ScoreDisplay)),
-            );
-    }
-}
-
-#[derive(Event)]
-pub struct ScoreAddEvent;
-
-fn handle_score_add_event(
-    mut score_add_event_reader: EventReader<ScoreAddEvent>,
-    mut game_state: ResMut<GameState>,
-) {
-    if score_add_event_reader.iter().count() > 0 {
-        let burro_points: HashMap<usize, usize> = game_state
-            .dead_burros
-            .iter()
-            .enumerate()
-            .map(|(i, b)| (*b, i))
-            .collect();
-        let max_score = game_state.dead_burros.len();
-
-        for burro in game_state.burros.iter_mut() {
-            let new_score = burro_points
-                .get(&burro.selected_burro)
-                .unwrap_or(&max_score);
-            burro.score += new_score;
-        }
+        app.insert_resource(GameState::default());
     }
 }
 
@@ -97,7 +66,7 @@ impl GameState {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BurroState {
     pub player: usize,
     pub selected_burro: usize,

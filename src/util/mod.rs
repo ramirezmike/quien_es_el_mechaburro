@@ -28,4 +28,14 @@ pub mod num_ext {
             ((self - lower_bound + range - 1) % range) + lower_bound
         }
     }
+
+    pub trait Lerp {
+        fn lerp(self, end: Self, t: f32) -> Self;
+    }
+
+    impl Lerp for f32 {
+        fn lerp(self, end: Self, t: f32) -> Self {
+            self + (end - self) * t
+        }
+    }
 }

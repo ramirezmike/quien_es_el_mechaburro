@@ -1,5 +1,4 @@
-//use crate::{inspect, player};
-use crate::AppState;
+use crate::{IngameState, AppState, burro};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::window::Window;
@@ -9,9 +8,11 @@ pub struct GameCameraPlugin;
 impl Plugin for GameCameraPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CameraSettings::default())
-            //            .add_system(debug_camera.in_set(OnUpdate(AppState::InGame)))
-            //          .add_system(check_for_follow_burros)
-            //          .add_system(follow_following)
+            .add_systems(
+                Update,
+                (check_for_follow_burros, follow_following)
+                .run_if(in_state(IngameState::ScoreDisplay))
+            )
             .add_systems(
                 Update,
                 update_camera.run_if(in_state(AppState::MechaPicker)),
@@ -67,7 +68,7 @@ impl CameraSettings {
     }
 }
 
-#[cfg(feature = "debug")]
+#[cfg(feature = "camera")]
 fn update_camera(
     mut cameras: Query<(&mut PanOrbitCamera, &mut Transform, &Projection)>,
     //  camera_settings: ResMut<CameraSettings>,
@@ -169,7 +170,7 @@ fn update_camera(
     }
 }
 
-#[cfg(not(feature = "debug"))]
+#[cfg(not(feature = "camera"))]
 fn update_camera(
     mut cameras: Query<&mut Transform, With<PanOrbitCamera>>,
     camera_settings: ResMut<CameraSettings>,
@@ -223,6 +224,44 @@ fn update_camera(
     }
 }
 
+fn follow_following(
+    transforms: Query<&Transform>,
+    mut camera_settings: ResMut<CameraSettings>,
+    cameras: Query<&Transform, With<PanOrbitCamera>>,
+) {
+    if let Some(follow_entity) = camera_settings.follow {
+        if let Ok(transform) = transforms.get(follow_entity) {
+            for camera in cameras.iter() {
+                camera_settings.set_camera(
+                    2.0,
+                    transform.translation,
+                    0.4,
+                    true,
+                    transform.translation.distance(camera.translation),
+                    5.0,
+                );
+            }
+        } else {
+            camera_settings.follow = None;
+        }
+    }
+}
+
+fn check_for_follow_burros(
+    mut camera_settings: ResMut<CameraSettings>,
+    burros: Query<Entity, With<burro::Burro>>,
+) {
+    if let Some(follow_entity) = camera_settings.follow {
+        if burros.get(follow_entity).is_ok() {
+            return; // we're following a player that still exists so we're ok
+        }
+    }
+
+    if let Some(e) = burros.iter().last() {
+        camera_settings.follow = Some(e);
+    } 
+}
+
 fn get_primary_window_size(window: &Window) -> Vec2 {
     Vec2::new(window.width(), window.height())
 }
@@ -252,10 +291,10 @@ pub fn spawn_camera_with_transform<T: Component>(
 }
 
 pub fn spawn_camera<T: Component>(commands: &mut Commands, cleanup_marker: T) {
-    #[cfg(not(feature = "debug"))]
+    #[cfg(not(feature = "camera"))]
     let translation = Vec3::new(-4.0, 1.0, 0.0);
 
-    #[cfg(feature = "debug")]
+    #[cfg(feature = "camera")]
     let translation = Vec3::new(-30.0, 20.0, 0.0);
 
     let transform = Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y);

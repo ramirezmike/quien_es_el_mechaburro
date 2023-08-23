@@ -1,16 +1,17 @@
-use crate::{assets::GameAssets, burro, ui, cleanup, hit, game_state, ui::text_size, AppState};
+use crate::{assets::GameAssets, burro, ui, cleanup, hit, game_state, ui::text_size, IngameState };
 use bevy::prelude::*;
 use std::collections::HashMap;
+
+mod score_display;
 
 pub struct InGameUIPlugin;
 impl Plugin for InGameUIPlugin {
     fn build(&self, app: &mut App) {
-        app //.add_system_set(SystemSet::on_enter(AppState::Debug).with_system(setup))
-            //          .add_system_set(
-            //              SystemSet::on_enter(AppState::ScoreDisplay).with_system(cleanup::<CleanupMarker>),
-            //          )
-            .add_systems(OnEnter(AppState::InGame), setup)
-            .add_systems(Update, (update_hearts,).run_if(in_state(AppState::InGame)));
+        app 
+            .add_plugins(score_display::ScoreDisplayPlugin)
+            .add_systems(OnEnter(IngameState::InGame), setup)
+            .add_systems(Update, (update_hearts,).run_if(in_state(IngameState::InGame)))
+            .add_systems(OnExit(IngameState::InGame), cleanup::<CleanupMarker>);
     }
 }
 
