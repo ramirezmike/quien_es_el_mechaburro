@@ -1,9 +1,11 @@
 use crate::{
-    IngameState, assets, game_state, ui,
+    IngameState, assets, game_state, ui, input,
 };
 use crate::util::num_ext::*;
+use crate::input::InputCommandsExt;
 use bevy::prelude::*;
-use std::{fmt, collections::HashMap};
+use std::{fmt, collections::HashMap, time::Duration};
+use leafwing_input_manager::prelude::*;
 
 pub struct ScoreDisplayPlugin;
 impl Plugin for ScoreDisplayPlugin {
@@ -112,9 +114,25 @@ fn update_script(
     mut score_display_state: ResMut<ScoreDisplayState>,
     mut score_add_event_writer: EventWriter<ScoreAddEvent>,
     mut images: Query<(&mut Style, &mut BurroImage, &game_state::PlayerMarker)>,
-    mut game_state: ResMut<game_state::GameState>,
+    game_state: Res<game_state::GameState>,
+    positioner: Res<Positioner>,
+    action_state: Query<&ActionState<input::MenuAction>>,
     time: Res<Time>,
 ) {
+    let action_state = action_state.single();
+    let continue_pressed = action_state.just_pressed(input::MenuAction::Start);
+
+    // TODO: set something up here so that player 1 has to press start instead?
+    if continue_pressed {
+        score_display_state.current_timer.set_elapsed(Duration::from_secs(999));
+        for (mut style, mut image, _) in &mut images {
+            let target = positioner.get_left_for_position(image.target_slot);
+            style.left = Val::Percent(target);
+            image.current_left = target;
+            image.movement_time = 999.0;
+        }
+    }
+
     if !score_display_state.current_timer.tick(time.delta()).finished() {
         return;
     }
@@ -158,8 +176,11 @@ fn update_script(
             score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
             score_display_state.script_step = Script::Wait;
         }
-
-        _ => ()
+        Script::Wait => {
+            if continue_pressed {
+                println!("NEXT LEVEL");
+            }
+        }
     }
 }
 
@@ -212,6 +233,7 @@ fn setup(
     text_scaler: ui::text_size::TextScaler,
 ) {
     *score_display_state = ScoreDisplayState::default();
+    commands.spawn_menu_input(CleanupMarker);
 //    score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
 
     let mut burro_image_handles: HashMap::<usize, Handle<Image>> = HashMap::<usize, Handle<Image>>::default();

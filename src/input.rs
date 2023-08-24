@@ -16,6 +16,7 @@ pub enum MenuAction {
     Down,
     Left,
     Right,
+    Start,
     Select,
     Back,
 }
@@ -49,6 +50,7 @@ fn create_menu_inputmap() -> InputMap<MenuAction> {
     InputMap::new([
         (KeyCode::Space, MenuAction::Select),
         (KeyCode::Return, MenuAction::Select),
+        (KeyCode::Return, MenuAction::Start),
         (KeyCode::X, MenuAction::Back),
         (KeyCode::Up, MenuAction::Up),
         (KeyCode::Down, MenuAction::Down),
