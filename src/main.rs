@@ -37,8 +37,8 @@ mod debug;
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins)
-       .add_state::<AppState>()
-       .add_state::<IngameState>();
+        .add_state::<AppState>()
+        .add_state::<IngameState>();
 
     #[cfg(feature = "inspect")]
     app.add_plugins(WorldInspectorPlugin::new());
@@ -48,11 +48,10 @@ fn main() {
 
     #[cfg(feature = "fps")]
     app.add_plugins((
-//      LogDiagnosticsPlugin::default(),
+        //      LogDiagnosticsPlugin::default(),
         FrameTimeDiagnosticsPlugin::default(),
         debug::DebugPlugin,
     ));
-
 
     app.insert_resource(bevy_egui::EguiSettings {
         scale_factor: 1.8,

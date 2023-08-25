@@ -2,7 +2,7 @@ pub mod command_ext {
     use crate::{
         asset_loading::QueueState,
         ingame,
-        menu::{settings, splash, title_screen, character_select},
+        menu::{character_select, settings, splash, title_screen},
         AppState,
     };
     use bevy::ecs::system::{Command, SystemState};
@@ -40,7 +40,9 @@ pub mod command_ext {
 
             match self.0 {
                 AppState::Settings => settings::loader::SettingsMenuLoader.apply(world),
-                AppState::CharacterSelect => character_select::loader::CharacterSelectLoader.apply(world),
+                AppState::CharacterSelect => {
+                    character_select::loader::CharacterSelectLoader.apply(world)
+                }
                 AppState::LoadInGame => ingame::IngameLoader.apply(world),
                 AppState::Splash => splash::SplashLoader.apply(world),
                 AppState::TitleScreen => title_screen::loader::TitleScreenLoader.apply(world),

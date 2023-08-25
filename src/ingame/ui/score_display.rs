@@ -1,19 +1,26 @@
-use crate::{
-    IngameState, assets, game_state, ui, input, AppState, cleanup, config,
-};
+use crate::input::InputCommandsExt;
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
-use crate::input::InputCommandsExt;
+use crate::{assets, cleanup, config, game_state, input, ui, AppState, IngameState};
 use bevy::prelude::*;
-use std::{fmt, collections::HashMap, time::Duration};
 use leafwing_input_manager::prelude::*;
+use std::{collections::HashMap, fmt, time::Duration};
 
 pub struct ScoreDisplayPlugin;
 impl Plugin for ScoreDisplayPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(IngameState::ScoreDisplay), setup)
             .add_systems(OnExit(IngameState::ScoreDisplay), cleanup::<CleanupMarker>)
-            .add_systems(Update, (handle_score_add_event, move_items_to_slots, update_script, update_score_displays).run_if(in_state(IngameState::ScoreDisplay)))
+            .add_systems(
+                Update,
+                (
+                    handle_score_add_event,
+                    move_items_to_slots,
+                    update_script,
+                    update_score_displays,
+                )
+                    .run_if(in_state(IngameState::ScoreDisplay)),
+            )
             .init_resource::<Positioner>()
             .add_event::<ScoreAddEvent>()
             .init_resource::<ScoreDisplayState>();
@@ -47,13 +54,13 @@ impl fmt::Display for Ranking {
             4 => "5th",
             5 => "6th",
             6 => "7th",
-            _ => "8th"
+            _ => "8th",
         };
         write!(f, "{}", text)
     }
 }
 
-#[derive(Resource, Default, )]
+#[derive(Resource, Default)]
 struct ScoreDisplayState {
     script_step: Script,
     current_timer: Timer,
@@ -80,14 +87,16 @@ impl Positioner {
     fn get_left_for_position(&self, position: isize) -> f32 {
         let position = position as f32;
         let number_of_elements = self.number_of_elements as f32;
-        let buffer = (100. - (number_of_elements * self.percent_width_of_element)) / (number_of_elements + 1.);
+        let buffer = (100. - (number_of_elements * self.percent_width_of_element))
+            / (number_of_elements + 1.);
 
         (buffer * (position + 1.)) + (self.percent_width_of_element * position)
     }
 }
 
 #[derive(Component, Default)]
-struct BurroImage { // TODO: Rename this
+struct BurroImage {
+    // TODO: Rename this
     current_left: f32,
     movement_time: f32,
     target_slot: isize,
@@ -96,7 +105,7 @@ struct BurroImage { // TODO: Rename this
 fn move_items_to_slots(
     mut images: Query<(&mut Style, &mut BurroImage)>,
     positioner: Res<Positioner>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     let travel_time = 1.0;
     for (mut style, mut image) in &mut images {
@@ -128,7 +137,9 @@ fn update_script(
 
     // TODO: set something up here so that player 1 has to press start instead?
     if continue_pressed {
-        score_display_state.current_timer.set_elapsed(Duration::from_secs(999));
+        score_display_state
+            .current_timer
+            .set_elapsed(Duration::from_secs(999));
         for (mut style, mut image, _) in &mut images {
             let target = positioner.get_left_for_position(image.target_slot);
             style.left = Val::Percent(target);
@@ -137,37 +148,43 @@ fn update_script(
         }
     }
 
-    if !score_display_state.current_timer.tick(time.delta()).finished() {
+    if !score_display_state
+        .current_timer
+        .tick(time.delta())
+        .finished()
+    {
         return;
     }
 
     match score_display_state.script_step {
         Script::Initial => {
-            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
+            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
             score_display_state.script_step = Script::MoveToLevelResults;
-        },
+        }
         Script::MoveToLevelResults => {
-            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
+            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
             score_display_state.script_step = Script::AddScore;
-        },
+        }
         Script::AddScore => {
-            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
+            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
             score_display_state.script_step = Script::MoveOffScreen;
             score_add_event_writer.send(ScoreAddEvent);
-        },
+        }
         Script::MoveOffScreen => {
             for (_, mut image, _) in &mut images {
                 image.movement_time = 0.0;
                 image.target_slot = -8;
             }
-            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
+            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
             score_display_state.script_step = Script::MoveToCurrentRanking;
         }
         Script::MoveToCurrentRanking => {
             let mut burros = game_state.burros.clone();
             burros.sort_by_key(|x| x.score);
             burros.reverse();
-            let ranking: HashMap::<usize, usize> = burros.iter().enumerate()
+            let ranking: HashMap<usize, usize> = burros
+                .iter()
+                .enumerate()
                 .map(|(i, x)| (x.selected_burro, i))
                 .collect();
 
@@ -177,7 +194,7 @@ fn update_script(
                 image.movement_time = 0.0 - (0.1 * ranking[&player.0] as f32);
                 image.target_slot = ranking[&player.0] as isize;
             }
-            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once); 
+            score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
             score_display_state.script_step = Script::Wait;
         }
         Script::Wait => {
@@ -249,9 +266,10 @@ fn setup(
 ) {
     *score_display_state = ScoreDisplayState::default();
     commands.spawn_menu_input(CleanupMarker);
-//    score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
+    //    score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
 
-    let mut burro_image_handles: HashMap::<usize, Handle<Image>> = HashMap::<usize, Handle<Image>>::default();
+    let mut burro_image_handles: HashMap<usize, Handle<Image>> =
+        HashMap::<usize, Handle<Image>>::default();
     for (i, burro) in game_state.burros.iter().enumerate() {
         let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
@@ -299,163 +317,167 @@ fn setup(
         .id();
 
     let score_container = commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(40.0),
-                    display: Display::Flex,
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::SpaceEvenly,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                background_color: SCORE_BACKGROUND_COLOR.into(),
+        .spawn((NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(40.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceEvenly,
+                align_items: AlignItems::Center,
                 ..default()
             },
-        ))
-        
-    .id();
+            background_color: SCORE_BACKGROUND_COLOR.into(),
+            ..default()
+        },))
+        .id();
 
     for (i, burro) in game_state.burros.iter().enumerate() {
-        let position = game_state.dead_burros.iter().position(|x| *x == burro.selected_burro).unwrap_or(i) as isize;
+        let position = game_state
+            .dead_burros
+            .iter()
+            .position(|x| *x == burro.selected_burro)
+            .unwrap_or(i) as isize;
 
         let image = commands
-        .spawn((
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    width: Val::Percent(element_width),
-                    height: Val::Percent(70.0),
-                    border: UiRect::all(Val::Percent(0.5)),
-                    left: Val::Percent(OFFSCREEN_LEFT_PERCENTAGE),
-                    ..default()
-                },
-                border_color: BORDER_COLOR.into(),
-                background_color: DEBUG_COLOR.into(),
-                ..default()
-            },
-            game_state::PlayerMarker(burro.selected_burro),
-            BurroImage {
-                target_slot: position,
-                current_left: OFFSCREEN_LEFT_PERCENTAGE,
-                movement_time: 0.0 - (0.1 * i as f32),
-            },
-        ))
-        .with_children(|builder| {
-            builder
-                .spawn(NodeBundle {
+            .spawn((
+                NodeBundle {
                     style: Style {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
-                        position_type: PositionType::Relative,
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Column,
-                        align_items: AlignItems::FlexStart,
-                        justify_content: JustifyContent::FlexStart,
+                        position_type: PositionType::Absolute,
+                        width: Val::Percent(element_width),
+                        height: Val::Percent(70.0),
+                        border: UiRect::all(Val::Percent(0.5)),
+                        left: Val::Percent(OFFSCREEN_LEFT_PERCENTAGE),
                         ..default()
                     },
+                    border_color: BORDER_COLOR.into(),
+                    background_color: DEBUG_COLOR.into(),
                     ..default()
-                })
-                .with_children(|builder| {
-                    builder
-                        .spawn(NodeBundle {
-                            style: Style {
-                                position_type: PositionType::Relative,
-                                width: Val::Percent(100.0),
-                                height: Val::Percent(60.0),
-                                border: UiRect {
-                                    bottom: Val::Percent(2.0),
-                                    ..default()
-                                },
-                                ..default()
-                            },
-                            border_color: BORDER_COLOR.into(),
-                            background_color: Color::rgba(0.2, 0.2, 0.2, 0.5).into(),
+                },
+                game_state::PlayerMarker(burro.selected_burro),
+                BurroImage {
+                    target_slot: position,
+                    current_left: OFFSCREEN_LEFT_PERCENTAGE,
+                    movement_time: 0.0 - (0.1 * i as f32),
+                },
+            ))
+            .with_children(|builder| {
+                builder
+                    .spawn(NodeBundle {
+                        style: Style {
+                            width: Val::Percent(100.0),
+                            height: Val::Percent(100.0),
+                            position_type: PositionType::Relative,
+                            display: Display::Flex,
+                            flex_direction: FlexDirection::Column,
+                            align_items: AlignItems::FlexStart,
+                            justify_content: JustifyContent::FlexStart,
                             ..default()
-                        })
-                        .with_children(|builder| {
-                            builder.spawn((
-                                ImageBundle {
-                                    style: Style {
-//                                      position_type: PositionType::Relative,
-                                        width: Val::Percent(100.0),
-//                                      height: Val::Percent(60.0),
+                        },
+                        ..default()
+                    })
+                    .with_children(|builder| {
+                        builder
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    position_type: PositionType::Relative,
+                                    width: Val::Percent(100.0),
+                                    height: Val::Percent(60.0),
+                                    border: UiRect {
+                                        bottom: Val::Percent(2.0),
                                         ..default()
                                     },
-                                    image: burro_image_handles[&burro.selected_burro].clone().into(),
-                                    z_index: ZIndex::Global(4),
                                     ..default()
                                 },
-                                game_state::PlayerMarker(burro.selected_burro),
-                            ));
-                        });
-
-                    builder
-                        .spawn(NodeBundle {
-                            style: Style {
-                                width: Val::Percent(100.),
-                                height: Val::Percent(10.),
-                                padding: UiRect::all(Val::Percent(5.)),
-                                position_type: PositionType::Relative,
-                                display: Display::Flex,
-                                flex_direction: FlexDirection::Column,
-                                justify_content: JustifyContent::FlexStart,
+                                border_color: BORDER_COLOR.into(),
+                                background_color: Color::rgba(0.2, 0.2, 0.2, 0.5).into(),
                                 ..default()
-                            },
-                            ..default()
-                        })
-                        .with_children(|builder| {
-                            let text = if burro.is_bot {
-                                "BOT".to_string()
-                            } else {
-                                format!("P{}", burro.player + 1)
-                            };
-                            builder.spawn(TextBundle {
-                                text: Text::from_section(
-                                    text,
-                                    TextStyle {
-                                        font: game_assets.score_font.clone(),
-                                        font_size: text_scaler
-                                            .scale(ui::DEFAULT_FONT_SIZE * 0.5),
-                                        color: Color::WHITE,
+                            })
+                            .with_children(|builder| {
+                                builder.spawn((
+                                    ImageBundle {
+                                        style: Style {
+                                            //                                      position_type: PositionType::Relative,
+                                            width: Val::Percent(100.0),
+                                            //                                      height: Val::Percent(60.0),
+                                            ..default()
+                                        },
+                                        image: burro_image_handles[&burro.selected_burro]
+                                            .clone()
+                                            .into(),
+                                        z_index: ZIndex::Global(4),
+                                        ..default()
                                     },
-                                ),
-                                ..default()
+                                    game_state::PlayerMarker(burro.selected_burro),
+                                ));
                             });
 
-                            let text_style = TextStyle {
-                                font: game_assets.score_font.clone(),
-                                font_size: text_scaler
-                                    .scale(ui::DEFAULT_FONT_SIZE * 0.5),
-                                color: Color::WHITE,
-                            };
-                            builder.spawn((TextBundle {
-                                    text: Text::from_sections([
-                                      TextSection::new("0", text_style.clone()),
-                                      TextSection::new(" pts", text_style.clone()),
-                                    ]),
+                        builder
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    width: Val::Percent(100.),
+                                    height: Val::Percent(10.),
+                                    padding: UiRect::all(Val::Percent(5.)),
+                                    position_type: PositionType::Relative,
+                                    display: Display::Flex,
+                                    flex_direction: FlexDirection::Column,
+                                    justify_content: JustifyContent::FlexStart,
                                     ..default()
                                 },
-                                game_state::PlayerMarker(burro.selected_burro),
-                                PointsDisplayMarker,
-                            ));
-
-                            let ranking = Ranking(position as usize);
-                            builder.spawn((TextBundle {
+                                ..default()
+                            })
+                            .with_children(|builder| {
+                                let text = if burro.is_bot {
+                                    "BOT".to_string()
+                                } else {
+                                    format!("P{}", burro.player + 1)
+                                };
+                                builder.spawn(TextBundle {
                                     text: Text::from_section(
-                                        format!("{}", ranking),
-                                        text_style.clone()
+                                        text,
+                                        TextStyle {
+                                            font: game_assets.score_font.clone(),
+                                            font_size: text_scaler
+                                                .scale(ui::DEFAULT_FONT_SIZE * 0.5),
+                                            color: Color::WHITE,
+                                        },
                                     ),
                                     ..default()
-                                },
-                                game_state::PlayerMarker(burro.selected_burro),
-                                ranking,
-                            ));
-                        });
-                });
+                                });
+
+                                let text_style = TextStyle {
+                                    font: game_assets.score_font.clone(),
+                                    font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 0.5),
+                                    color: Color::WHITE,
+                                };
+                                builder.spawn((
+                                    TextBundle {
+                                        text: Text::from_sections([
+                                            TextSection::new("0", text_style.clone()),
+                                            TextSection::new(" pts", text_style.clone()),
+                                        ]),
+                                        ..default()
+                                    },
+                                    game_state::PlayerMarker(burro.selected_burro),
+                                    PointsDisplayMarker,
+                                ));
+
+                                let ranking = Ranking(position as usize);
+                                builder.spawn((
+                                    TextBundle {
+                                        text: Text::from_section(
+                                            format!("{}", ranking),
+                                            text_style.clone(),
+                                        ),
+                                        ..default()
+                                    },
+                                    game_state::PlayerMarker(burro.selected_burro),
+                                    ranking,
+                                ));
+                            });
+                    });
             })
-        .id();
+            .id();
 
         commands.entity(score_container).add_child(image);
     }

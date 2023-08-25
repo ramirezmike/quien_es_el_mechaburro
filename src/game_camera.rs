@@ -1,4 +1,4 @@
-use crate::{IngameState, AppState, burro};
+use crate::{burro, AppState, IngameState};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::window::Window;
@@ -11,7 +11,7 @@ impl Plugin for GameCameraPlugin {
             .add_systems(
                 Update,
                 (check_for_follow_burros, follow_following)
-                .run_if(in_state(IngameState::ScoreDisplay))
+                    .run_if(in_state(IngameState::ScoreDisplay)),
             )
             .add_systems(
                 Update,
@@ -259,7 +259,7 @@ fn check_for_follow_burros(
 
     if let Some(e) = burros.iter().last() {
         camera_settings.follow = Some(e);
-    } 
+    }
 }
 
 fn get_primary_window_size(window: &Window) -> Vec2 {

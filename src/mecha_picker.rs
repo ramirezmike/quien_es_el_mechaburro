@@ -48,7 +48,10 @@ struct TextDisplayTimers {
     mecha_selection_cooldown: f32,
 }
 
-fn skip_picking(mut next_state: ResMut<NextState<AppState>>, mut next_ingame_state: ResMut<NextState<IngameState>>,) {
+fn skip_picking(
+    mut next_state: ResMut<NextState<AppState>>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
+) {
     next_state.set(AppState::InGame);
     next_ingame_state.set(IngameState::InGame);
 }

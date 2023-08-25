@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, burro, ui, cleanup, hit, game_state, ui::text_size, IngameState };
+use crate::{assets::GameAssets, burro, cleanup, game_state, hit, ui, ui::text_size, IngameState};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -7,10 +7,12 @@ mod score_display;
 pub struct InGameUIPlugin;
 impl Plugin for InGameUIPlugin {
     fn build(&self, app: &mut App) {
-        app 
-            .add_plugins(score_display::ScoreDisplayPlugin)
+        app.add_plugins(score_display::ScoreDisplayPlugin)
             .add_systems(OnEnter(IngameState::InGame), setup)
-            .add_systems(Update, (update_hearts,).run_if(in_state(IngameState::InGame)))
+            .add_systems(
+                Update,
+                (update_hearts,).run_if(in_state(IngameState::InGame)),
+            )
             .add_systems(OnExit(IngameState::InGame), cleanup::<CleanupMarker>);
     }
 }
@@ -22,7 +24,11 @@ struct HeartImageMarker(usize);
 
 fn update_hearts(
     burros: Query<(&burro::Burro, &game_state::PlayerMarker)>,
-    mut hearts: Query<(&mut Visibility, &HeartImageMarker, &game_state::PlayerMarker)>,
+    mut hearts: Query<(
+        &mut Visibility,
+        &HeartImageMarker,
+        &game_state::PlayerMarker,
+    )>,
     mut burro_hit_event_reader: EventReader<burro::BurroHitEvent>,
 ) {
     for hit in burro_hit_event_reader.iter() {
@@ -47,7 +53,8 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     window_size: Res<ui::text_size::WindowSize>,
 ) {
-    let mut burro_image_handles: HashMap::<usize, Handle<Image>> = HashMap::<usize, Handle<Image>>::default();
+    let mut burro_image_handles: HashMap<usize, Handle<Image>> =
+        HashMap::<usize, Handle<Image>>::default();
     for (i, burro) in game_state.burros.iter().enumerate() {
         let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
@@ -155,7 +162,9 @@ fn setup(
                                                     height: Val::Percent(75.0),
                                                     ..default()
                                                 },
-                                                image: burro_image_handles[&burro.selected_burro].clone().into(),
+                                                image: burro_image_handles[&burro.selected_burro]
+                                                    .clone()
+                                                    .into(),
                                                 z_index: ZIndex::Global(4),
                                                 ..default()
                                             },
@@ -177,29 +186,32 @@ fn setup(
                                                     ..default()
                                                 },
                                                 ..default()
-                                            }).with_children(|builder| {
+                                            })
+                                            .with_children(|builder| {
                                                 for i in 0..3 {
-                                                    builder.spawn((ImageBundle {
-                                                        style: Style {
-                                                            width: Val::Auto,
-                                                            height: Val::Percent(100.0),
+                                                    builder.spawn((
+                                                        ImageBundle {
+                                                            style: Style {
+                                                                width: Val::Auto,
+                                                                height: Val::Percent(100.0),
+                                                                ..default()
+                                                            },
+                                                            image: game_assets
+                                                                .heart_texture
+                                                                .image
+                                                                .clone()
+                                                                .into(),
+                                                            z_index: ZIndex::Global(10),
                                                             ..default()
                                                         },
-                                                        image: game_assets
-                                                            .heart_texture
-                                                            .image
-                                                            .clone()
-                                                            .into(),
-                                                        z_index: ZIndex::Global(10),
-                                                        ..default()
-                                                    }, 
-                                                    HeartImageMarker(i),
-                                                    game_state::PlayerMarker(burro.player)));
+                                                        HeartImageMarker(i),
+                                                        game_state::PlayerMarker(burro.player),
+                                                    ));
                                                 }
                                             });
-                                        });
                                     });
-                            }
-                        });
+                            });
+                    }
+                });
         });
 }

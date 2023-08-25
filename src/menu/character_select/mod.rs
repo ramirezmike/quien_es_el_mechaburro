@@ -3,13 +3,10 @@
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::{
-    assets, assets::GameAssets, audio, burro, cleanup,
-    game_state, input, shaders, ui, AppState,
+    assets, assets::GameAssets, audio, burro, cleanup, game_state, input, shaders, ui, AppState,
 };
-use bevy:: prelude::*;
-use bevy_mod_outline::{
-    AutoGenerateOutlineNormalsPlugin, OutlinePlugin, OutlineVolume,
-};
+use bevy::prelude::*;
+use bevy_mod_outline::{AutoGenerateOutlineNormalsPlugin, OutlinePlugin, OutlineVolume};
 use bevy_toon_shader::ToonShaderMaterial;
 use leafwing_input_manager::prelude::*;
 
@@ -17,9 +14,7 @@ pub mod loader;
 pub mod state;
 mod update_ui;
 
-use self::{
-    state::{ PlayerSelection, PlayerSelectionState, SelectionState }
-};
+use self::state::{PlayerSelection, PlayerSelectionState, SelectionState};
 
 pub struct CharacterSelectPlugin;
 impl Plugin for CharacterSelectPlugin {
@@ -448,7 +443,7 @@ fn setup(
         let y_offset = 10.0;
         let burro_transform = Transform::from_xyz(0.0, i as f32 * y_offset, 0.0);
         let camera_transform = Transform::from_xyz(0.0, i as f32 * y_offset, 8.0)
-                .looking_at(Vec3::new(0.0, i as f32 * y_offset, 0.0), Vec3::Y);
+            .looking_at(Vec3::new(0.0, i as f32 * y_offset, 0.0), Vec3::Y);
 
         commands.add(ui::render_to_texture::BurroImage {
             player: i,

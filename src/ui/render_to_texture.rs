@@ -38,7 +38,9 @@ impl<T: Component + Clone> Command for BurroImage<T> {
         )> = SystemState::new(world);
         let (_, _, game_assets, assets_gltf) = system_state.get_mut(world);
 
-        let toon_material_textured = game_assets.burro_assets[self.selected_burro].toon_texture.clone();
+        let toon_material_textured = game_assets.burro_assets[self.selected_burro]
+            .toon_texture
+            .clone();
         let burro_mesh_handle = game_assets.burro.clone();
         let render_layer = RenderLayers::layer(self.render_layer_id);
 

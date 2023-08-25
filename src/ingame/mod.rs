@@ -1,12 +1,12 @@
-use crate::{
-    asset_loading, assets, bot, burro, direction, floor, game_camera, game_state, player,
-    scene_hook, AppState, cleanup,
-};
 use crate::loading::command_ext::*;
+use crate::{
+    asset_loading, assets, bot, burro, cleanup, direction, floor, game_camera, game_state, player,
+    scene_hook, AppState,
+};
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
-use bevy_mod_outline::{ OutlineBundle, OutlineVolume };
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::f32::consts::TAU;
@@ -49,7 +49,11 @@ impl Command for IngameLoader {
         assets_handler.add_font(&mut game_assets.font, "fonts/MexicanTequila.ttf");
         assets_handler.add_font(&mut game_assets.score_font, "fonts/monogram.ttf");
         assets_handler.add_glb(&mut game_assets.burro, "models/burro_new.glb");
-        assets_handler.add_material(&mut game_assets.avatar_bottom, "textures/bottom_avatar.png", true);
+        assets_handler.add_material(
+            &mut game_assets.avatar_bottom,
+            "textures/bottom_avatar.png",
+            true,
+        );
         assets_handler.add_material(&mut game_assets.avatar_top, "textures/top_avatar.png", true);
         assets_handler.add_animation(
             &mut game_assets.burro_run,
@@ -106,16 +110,14 @@ fn setup(
     {
         if game_state.burros.is_empty() {
             *game_state = game_state::GameState::initialize(
-                vec![
-                    game_state::BurroState {
-                        player: 0,
-                        selected_burro: 0,
-                        outline_color: Color::WHITE,
-                        score: 0,
-                        is_bot: false,
-                        hearts: vec![],
-                    },
-                ],
+                vec![game_state::BurroState {
+                    player: 0,
+                    selected_burro: 0,
+                    outline_color: Color::WHITE,
+                    score: 0,
+                    is_bot: false,
+                    hearts: vec![],
+                }],
                 7,
                 1.0,
                 &game_assets.burro_assets,
