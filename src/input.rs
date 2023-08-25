@@ -30,7 +30,7 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
         self.spawn((
             InputManagerBundle::<MenuAction> {
                 action_state: ActionState::default(),
-                input_map: create_menu_inputmap(),
+                input_map: InputMap::new(KEYBOARD_INPUTS).insert_multiple(GAMEPAD_INPUTS).build(),
             },
             cleanup_marker,
         ));
@@ -38,27 +38,40 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
 }
 
 pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
+    let mut input_map = InputMap::new(GAMEPAD_INPUTS);
+    if player == 0 || cfg!(feature = "debug") {
+        input_map.insert_multiple(KEYBOARD_INPUTS);
+    }
     InputManagerBundle::<MenuAction> {
         action_state: ActionState::default(),
-        input_map: create_menu_inputmap()
+        input_map: input_map
             .set_gamepad(Gamepad { id: player })
             .build(),
     }
 }
 
-fn create_menu_inputmap() -> InputMap<MenuAction> {
-    InputMap::new([
-        (KeyCode::Space, MenuAction::Select),
-        (KeyCode::Return, MenuAction::Select),
-        (KeyCode::Return, MenuAction::Start),
-        (KeyCode::X, MenuAction::Back),
-        (KeyCode::Up, MenuAction::Up),
-        (KeyCode::Down, MenuAction::Down),
-        (KeyCode::Right, MenuAction::Right),
-        (KeyCode::Left, MenuAction::Left),
-        (KeyCode::W, MenuAction::Up),
-        (KeyCode::S, MenuAction::Down),
-        (KeyCode::A, MenuAction::Right),
-        (KeyCode::D, MenuAction::Left),
-    ])
-}
+const KEYBOARD_INPUTS: [(KeyCode, MenuAction); 12] = [
+    (KeyCode::Space, MenuAction::Select),
+    (KeyCode::Return, MenuAction::Select),
+    (KeyCode::Return, MenuAction::Start),
+    (KeyCode::X, MenuAction::Back),
+    (KeyCode::Up, MenuAction::Up),
+    (KeyCode::Down, MenuAction::Down),
+    (KeyCode::Right, MenuAction::Right),
+    (KeyCode::Left, MenuAction::Left),
+    (KeyCode::W, MenuAction::Up),
+    (KeyCode::S, MenuAction::Down),
+    (KeyCode::A, MenuAction::Right),
+    (KeyCode::D, MenuAction::Left),
+];
+
+const GAMEPAD_INPUTS: [(GamepadButtonType, MenuAction); 7] = [
+    (GamepadButtonType::DPadUp, MenuAction::Up),
+    (GamepadButtonType::DPadDown, MenuAction::Down),
+    (GamepadButtonType::DPadRight, MenuAction::Right),
+    (GamepadButtonType::DPadLeft, MenuAction::Left),
+
+    (GamepadButtonType::South, MenuAction::Select),
+    (GamepadButtonType::East, MenuAction::Back),
+    (GamepadButtonType::Start, MenuAction::Start),
+];
