@@ -1,7 +1,8 @@
 use crate::{
     asset_loading, assets, bot, burro, direction, floor, game_camera, game_state, player,
-    scene_hook, AppState,
+    scene_hook, AppState, cleanup,
 };
+use crate::loading::command_ext::*;
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -17,6 +18,7 @@ pub struct InGamePlugin;
 impl Plugin for InGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::LoadInGame), setup)
+            .add_systems(OnExit(AppState::InGame), cleanup::<CleanupMarker>)
             .add_plugins(ui::InGameUIPlugin)
             .add_systems(
                 Update,
@@ -150,7 +152,7 @@ fn setup(
                 hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
                     if let Some(name) = hook_data.name {
                         let name = name.as_str();
-                        println!("{}", name);
+
                         if name.contains("Cube") {
                             if let Some(mesh) = hook_data.mesh {
                                 cmds.insert(
@@ -172,7 +174,6 @@ fn setup(
                         }
 
                         if name.contains("spawn_point") {
-                            println!("LOADING SPAWN POINTS");
                             if let (Some(global_transform), Some(aabb)) =
                                 (hook_data.global_transform, hook_data.aabb)
                             {
@@ -284,6 +285,7 @@ fn setup(
                     }
                 }
             }),
+            CleanupMarker,
         ));
     }
 
@@ -308,6 +310,7 @@ fn setup(
             ..Default::default()
         },
         ToonShaderSun,
+        CleanupMarker,
     ));
 
     next_state.set(AppState::MechaPicker);

@@ -272,7 +272,7 @@ fn pick_mecha(
         let actual_choices = game_state
             .burros
             .iter()
-            .filter(|b| b.is_bot || game_state.current_level > 0)
+            .filter(|b| b.is_bot)
             .collect::<Vec<_>>();
         if let Some(choice) = actual_choices.choose(&mut rng) {
             pick_mecha_event_writer.send(PickMechaEvent {

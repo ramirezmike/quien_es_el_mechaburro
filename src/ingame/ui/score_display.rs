@@ -1,6 +1,7 @@
 use crate::{
-    IngameState, assets, game_state, ui, input,
+    IngameState, assets, game_state, ui, input, AppState, cleanup, config,
 };
+use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
 use crate::input::InputCommandsExt;
 use bevy::prelude::*;
@@ -11,6 +12,7 @@ pub struct ScoreDisplayPlugin;
 impl Plugin for ScoreDisplayPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(IngameState::ScoreDisplay), setup)
+            .add_systems(OnExit(IngameState::ScoreDisplay), cleanup::<CleanupMarker>)
             .add_systems(Update, (handle_score_add_event, move_items_to_slots, update_script, update_score_displays).run_if(in_state(IngameState::ScoreDisplay)))
             .init_resource::<Positioner>()
             .add_event::<ScoreAddEvent>()
@@ -111,10 +113,12 @@ fn move_items_to_slots(
 }
 
 fn update_script(
+    mut commands: Commands,
     mut score_display_state: ResMut<ScoreDisplayState>,
     mut score_add_event_writer: EventWriter<ScoreAddEvent>,
     mut images: Query<(&mut Style, &mut BurroImage, &game_state::PlayerMarker)>,
-    game_state: Res<game_state::GameState>,
+    mut game_state: ResMut<game_state::GameState>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
     positioner: Res<Positioner>,
     action_state: Query<&ActionState<input::MenuAction>>,
     time: Res<Time>,
@@ -178,7 +182,18 @@ fn update_script(
         }
         Script::Wait => {
             if continue_pressed {
-                println!("NEXT LEVEL");
+                game_state.current_level += 1;
+
+                if game_state.current_level >= config::NUMBER_OF_LEVELS {
+                    #[cfg(feature = "debug")]
+                    {
+                        game_state.current_level = 0;
+                    }
+                    commands.load_state(AppState::Splash);
+                    next_ingame_state.set(IngameState::Disabled);
+                } else {
+                    commands.load_state(AppState::LoadInGame);
+                }
             }
         }
     }

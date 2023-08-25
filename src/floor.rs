@@ -39,7 +39,7 @@ impl FloorManager {
         if let Some(floor) = self.floors.choose(&mut rng) {
             let x: f32 = rng.gen_range(floor.min.x..floor.max.x);
             let z: f32 = rng.gen_range(floor.min.z..floor.max.z);
-            println!("Random spot {} {}", x, z);
+
             Some(Vec2::new(x, z))
         } else {
             None
