@@ -1,4 +1,5 @@
 use crate::{assets::GameAssets, audio, burro, cleanup, config, hit, AppState};
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 use bevy::prelude::*;
 
 pub struct BulletPlugin;
@@ -62,7 +63,7 @@ fn handle_bullet_events(
             .spawn(match bullet.bullet_type {
                 BulletType::Candy => PbrBundle {
                     mesh: game_assets.candy.mesh.clone(),
-                    material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+                    material: materials.add(Color::rgb(0.5, 0.5, 0.3).into()),
                     transform: Transform::from_xyz(
                         bullet.position.x + bullet.direction.x,
                         bullet.position.y + 0.5,
@@ -88,6 +89,29 @@ fn handle_bullet_events(
                     ..Default::default()
                 },
             })
+            .with_children(|builder| {
+                builder.spawn(PointLightBundle {
+                    point_light: PointLight {
+                        intensity: 1600.0,
+                        color: if bullet.bullet_type == BulletType::Candy { Color::YELLOW } else { Color::RED },
+                        shadows_enabled: false,
+                        ..default()
+                    },
+                    ..default()
+                });
+            })
+            .insert(OutlineBundle {
+                outline: OutlineVolume {
+                    visible: true,
+                    width: 2.5,
+                    colour: if bullet.bullet_type == BulletType::Laser {
+                        Color::RED
+                    } else {
+                        Color::BLACK
+                    },
+                },
+                ..default()
+            },)
             .insert(Bullet {
                 source: bullet.source,
                 time_to_live: if bullet.bullet_type == BulletType::Laser {
