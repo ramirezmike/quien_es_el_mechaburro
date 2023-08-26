@@ -6,7 +6,7 @@ use crate::{
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
-use bevy_mod_outline::{OutlineBundle, OutlineVolume};
+use bevy_mod_outline::{OutlineBundle, OutlineVolume, SetOutlineDepth};
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::f32::consts::TAU;
@@ -166,6 +166,16 @@ fn setup(
                         }
 
                         if name.contains("floor") {
+                            cmds.insert((OutlineBundle {
+                                outline: OutlineVolume {
+                                    visible: true,
+                                    width: 2.5,
+                                    colour: Color::BLACK,
+                                },
+                                ..default()
+                            }, 
+                            SetOutlineDepth::Real,
+                            ));
                             if let (Some(global_transform), Some(aabb)) =
                                 (hook_data.global_transform, hook_data.aabb)
                             {

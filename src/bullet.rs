@@ -90,22 +90,25 @@ fn handle_bullet_events(
                 },
             })
             .with_children(|builder| {
-                builder.spawn(PointLightBundle {
-                    point_light: PointLight {
-                        intensity: 1600.0,
-                        color: if bullet.bullet_type == BulletType::Candy { Color::YELLOW } else { Color::RED },
-                        shadows_enabled: false,
+                if bullet.bullet_type == BulletType::Laser {
+                    builder.spawn(PointLightBundle {
+                        point_light: PointLight {
+                            intensity: 1600.0,
+                            color: Color::RED,
+                            shadows_enabled: false,
+                            ..default()
+                        },
                         ..default()
-                    },
-                    ..default()
-                });
+                    });
+                }
             })
             .insert(OutlineBundle {
                 outline: OutlineVolume {
                     visible: true,
                     width: 2.5,
                     colour: if bullet.bullet_type == BulletType::Laser {
-                        Color::RED
+                        Color::BLACK // maybe this is better?
+                        //Color::RED
                     } else {
                         Color::BLACK
                     },

@@ -126,7 +126,7 @@ fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
 
     #[cfg(feature = "debug")]
     {
-        commands.load_state(AppState::CharacterSelect);
+        commands.load_state(AppState::LoadInGame);
     }
 
     #[cfg(not(feature = "debug"))]

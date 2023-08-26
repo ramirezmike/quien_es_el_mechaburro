@@ -17,6 +17,8 @@ impl Plugin for ScoreDisplayPlugin {
                     handle_score_add_event,
                     move_items_to_slots,
                     update_script,
+                    update_top_text,
+                    update_bottom_text,
                     update_score_displays,
                 )
                     .run_if(in_state(IngameState::ScoreDisplay)),
@@ -40,6 +42,10 @@ struct CleanupMarker;
 struct PointsDisplayMarker;
 #[derive(Component)]
 struct Ranking(usize);
+#[derive(Component)]
+struct TopTextMarker;
+#[derive(Component)]
+struct BottomTextMarker;
 
 #[derive(Event)]
 pub struct ScoreAddEvent;
@@ -118,6 +124,39 @@ fn move_items_to_slots(
             style.left = Val::Percent(target);
             image.current_left = target;
         }
+    }
+}
+
+fn update_top_text(
+    score_display_state: Res<ScoreDisplayState>,
+    mut texts: Query<&mut Text, With<TopTextMarker>>,
+) {
+    match score_display_state.script_step {
+        Script::MoveToCurrentRanking => {
+            for mut text in &mut texts {
+                text.sections[0].value = "".to_string();
+            }
+        },
+        Script::Wait => {
+            for mut text in &mut texts {
+                text.sections[0].value = "Current Ranking".to_string();
+            }
+        },
+        _ => ()
+    }
+}
+
+fn update_bottom_text(
+    score_display_state: Res<ScoreDisplayState>,
+    mut texts: Query<&mut Visibility, With<BottomTextMarker>>,
+) {
+    match score_display_state.script_step {
+        Script::Wait => {
+            for mut visibility in &mut texts {
+                *visibility = Visibility::Visible;
+            }
+        },
+        _ => ()
     }
 }
 
@@ -266,7 +305,6 @@ fn setup(
 ) {
     *score_display_state = ScoreDisplayState::default();
     commands.spawn_menu_input(CleanupMarker);
-    //    score_display_state.current_timer = Timer::from_seconds(1.0, TimerMode::Once);
 
     let mut burro_image_handles: HashMap<usize, Handle<Image>> =
         HashMap::<usize, Handle<Image>>::default();
@@ -315,6 +353,65 @@ fn setup(
             },
             CleanupMarker,
         ))
+        .id();
+
+    let top_text_container = commands
+        .spawn((NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(20.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::FlexEnd,
+                ..default()
+            },
+            ..default()
+        },))
+        .with_children(|builder| {
+            builder.spawn((TextBundle {
+                text: Text::from_section(
+                    "Round Results",
+                    TextStyle {
+                        font: game_assets.font.clone(),
+                        font_size: text_scaler
+                            .scale(ui::DEFAULT_FONT_SIZE),
+                        color: Color::BLACK,
+                    },
+                ),
+                ..default()
+            }, TopTextMarker));
+        })
+        .id();
+
+    let bottom_text_container = commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(20.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceEvenly,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            visibility: Visibility::Hidden,
+            ..default()
+        })
+        .with_children(|builder| {
+            builder.spawn((TextBundle {
+                text: Text::from_section(
+                    "Press Start to Continue",
+                    TextStyle {
+                        font: game_assets.font.clone(),
+                        font_size: text_scaler
+                            .scale(ui::DEFAULT_FONT_SIZE * 0.5),
+                        color: Color::BLACK,
+                    },
+                ),
+                ..default()
+            }, BottomTextMarker));
+        })
         .id();
 
     let score_container = commands
@@ -484,5 +581,7 @@ fn setup(
         commands.entity(score_container).add_child(image);
     }
 
+    commands.entity(root_node).add_child(top_text_container);
     commands.entity(root_node).add_child(score_container);
+    commands.entity(root_node).add_child(bottom_text_container);
 }
