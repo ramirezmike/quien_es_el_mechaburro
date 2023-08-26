@@ -4,13 +4,15 @@ use std::collections::HashMap;
 
 mod score_display;
 
+const UI_UPDATE: f32 = 0.5;
 pub struct InGameUIPlugin;
 impl Plugin for InGameUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(score_display::ScoreDisplayPlugin)
             .add_systems(OnEnter(IngameState::InGame), setup)
+            .insert_resource(FixedTime::new_from_secs(UI_UPDATE))
             .add_systems(
-                Update,
+                FixedUpdate,
                 (update_hearts,).run_if(in_state(IngameState::InGame)),
             )
             .add_systems(OnExit(IngameState::InGame), cleanup::<CleanupMarker>);
@@ -29,18 +31,15 @@ fn update_hearts(
         &HeartImageMarker,
         &game_state::PlayerMarker,
     )>,
-    mut burro_hit_event_reader: EventReader<burro::BurroHitEvent>,
 ) {
-    for hit in burro_hit_event_reader.iter() {
-        if let Ok((burro, burro_player)) = burros.get(hit.entity) {
-            for (mut visibility, heart, heart_player) in &mut hearts {
-                if burro_player == heart_player {
-                    *visibility = if heart.0 < burro.health.saturating_sub(1) {
-                        Visibility::Visible
-                    } else {
-                        Visibility::Hidden
-                    };
-                }
+    for (burro, burro_player) in &burros {
+        for (mut visibility, heart, heart_player) in &mut hearts {
+            if burro_player == heart_player {
+                *visibility = if heart.0 < burro.health {
+                    Visibility::Visible
+                } else {
+                    Visibility::Hidden
+                };
             }
         }
     }
@@ -59,13 +58,14 @@ fn setup(
         let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
         burro_image_handles.insert(burro.selected_burro, image_handle.clone());
+        let y_base = -100.0;
         let y_offset = 10.0;
 
         commands.add(ui::render_to_texture::BurroImage {
             player: burro.player,
             selected_burro: burro.selected_burro,
-            burro_transform: Transform::from_xyz(0.0, i as f32 * y_offset, 0.0),
-            camera_transform: Transform::from_xyz(1.7, 0.9 + i as f32 * y_offset, 1.9)
+            burro_transform: Transform::from_xyz(0.0, y_base + i as f32 * y_offset, 0.0),
+            camera_transform: Transform::from_xyz(1.7, y_base + 0.9 + i as f32 * y_offset, 1.9)
                 .with_rotation(Quat::from_rotation_y(0.6)),
             outline_color: burro.outline_color,
             outline_size: 30.0,

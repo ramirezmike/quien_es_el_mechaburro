@@ -228,6 +228,7 @@ fn setup(
                                 burro::Burro::new(burro_state.selected_burro),
                                 game_state::PlayerMarker(burro_state.player),
                                 player::BurroMovement::default(),
+                                CleanupMarker,
                                 TransformBundle {
                                     local: {
                                         let mut t = Transform::from_xyz(point.x, 0.5, point.z);

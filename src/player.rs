@@ -170,8 +170,7 @@ pub fn handle_input(
                 time_to_live: 3.0, //burro.bullet_time_alive,
                 position: transform.translation,
                 direction: fire.unwrap(),
-                bullet_type: if false {
-                    //burro.is_mechaburro {
+                bullet_type: if burro.is_mechaburro {
                     bullet::BulletType::Laser
                 } else {
                     bullet::BulletType::Candy

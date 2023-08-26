@@ -1,4 +1,4 @@
-use crate::{assets, audio, burro, config, game_state, smoke, AppState, IngameState};
+use crate::{assets, audio, config, game_state, smoke, AppState, IngameState};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
 use rand::Rng;
@@ -73,7 +73,7 @@ impl Burro {
         Burro {
             selected_burro,
             max_health: 3,
-            health: 0,
+            health: 3,
             bullet_speed: 12.0,
             bullet_time_alive: 1.0,
             fire_cooldown: 0.0,
@@ -124,7 +124,7 @@ pub struct BurroMeshMarker {
     pub parent: Option<Entity>,
 }
 
-fn squish_burros(time: Res<Time>, mut burros: Query<&mut Transform, With<burro::Burro>>) {
+fn squish_burros(time: Res<Time>, mut burros: Query<&mut Transform, With<Burro>>) {
     for mut transform in burros.iter_mut() {
         // make the burros all squishy like
         if transform.scale.x != 1.0 || transform.scale.y != 1.0 {

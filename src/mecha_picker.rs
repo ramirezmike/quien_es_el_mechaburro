@@ -272,12 +272,7 @@ fn pick_mecha(
     let mut rng = thread_rng();
     if text_display_timers.overall_name_selection_cooldown < 0.0 {
         // select mechaburro
-        let actual_choices = game_state
-            .burros
-            .iter()
-            .filter(|b| b.is_bot)
-            .collect::<Vec<_>>();
-        if let Some(choice) = actual_choices.choose(&mut rng) {
+        if let Some(choice) = game_state.burros.choose(&mut rng) {
             pick_mecha_event_writer.send(PickMechaEvent {
                 selected_burro: choice.selected_burro,
             });

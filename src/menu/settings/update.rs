@@ -80,6 +80,7 @@ pub fn handle_input(
     {
         audio.play_sfx(&game_assets.sfx_1);
 
+        const MIN_DIFFICULTY: f32 = 0.5;
         *game_state = game_state::GameState::initialize(
             player_selection
                 .players
@@ -87,7 +88,7 @@ pub fn handle_input(
                 .map(|x| game_state::BurroState::from(*x))
                 .collect::<Vec<_>>(),
             setting_state.number_of_bots.try_into().unwrap(),
-            setting_state.unfair_advantage as f32,
+            setting_state.unfair_advantage as f32 + MIN_DIFFICULTY,
             &game_assets.burro_assets,
         );
         commands.load_state(AppState::LoadInGame);

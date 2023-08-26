@@ -201,13 +201,13 @@ fn update_script(
             if continue_pressed {
                 game_state.current_level += 1;
 
+                next_ingame_state.set(IngameState::Disabled);
                 if game_state.current_level >= config::NUMBER_OF_LEVELS {
                     #[cfg(feature = "debug")]
                     {
                         game_state.current_level = 0;
                     }
                     commands.load_state(AppState::Splash);
-                    next_ingame_state.set(IngameState::Disabled);
                 } else {
                     commands.load_state(AppState::LoadInGame);
                 }
@@ -230,7 +230,7 @@ fn handle_score_add_event(
             .enumerate()
             .map(|(i, b)| (*b, i + 1))
             .collect();
-        let max_score = game_state.dead_burros.len();
+        let max_score = game_state.dead_burros.len() + 1;
 
         for burro in game_state.burros.iter_mut() {
             let new_score = burro_points
@@ -274,13 +274,14 @@ fn setup(
         let image = ui::render_to_texture::create_render_image(&window_size);
         let image_handle = images.add(image);
         burro_image_handles.insert(burro.selected_burro, image_handle.clone());
+        let y_base = -100.0;
         let y_offset = 10.0;
 
         commands.add(ui::render_to_texture::BurroImage {
             player: burro.player,
             selected_burro: burro.selected_burro,
-            burro_transform: Transform::from_xyz(0.0, i as f32 * y_offset, 0.0),
-            camera_transform: Transform::from_xyz(1.7, 0.9 + i as f32 * y_offset, 1.9)
+            burro_transform: Transform::from_xyz(0.0, y_base + i as f32 * y_offset, 0.0),
+            camera_transform: Transform::from_xyz(1.7, y_base + 0.9 + i as f32 * y_offset, 1.9)
                 .with_rotation(Quat::from_rotation_y(0.6)),
             outline_color: burro.outline_color,
             outline_size: 30.0,
@@ -337,7 +338,8 @@ fn setup(
             .dead_burros
             .iter()
             .position(|x| *x == burro.selected_burro)
-            .unwrap_or(i) as isize;
+            .map(|x| x as isize + 1)
+            .unwrap_or(0);
 
         let image = commands
             .spawn((
