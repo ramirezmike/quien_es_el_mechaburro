@@ -161,7 +161,5 @@ fn check_assets_ready(mut assets_handler: AssetsHandler) {
         assets_handler
             .next_state
             .set(assets_handler.queued_state.state);
-    } else {
-        println!("not ready");
-    }
+    } 
 }

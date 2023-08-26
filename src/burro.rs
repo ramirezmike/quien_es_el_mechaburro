@@ -229,7 +229,7 @@ fn handle_burro_death_events(
     game_assets: Res<assets::GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
-        let number_of_burros = burros.iter().len();
+        let number_of_burros = game_state.burros.iter().len();
         if burros.get(death_event.entity).is_ok() {
             commands.entity(death_event.entity).despawn_recursive();
             //          for (text_entity, text) in follow_texts.iter() {
