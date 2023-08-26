@@ -1,6 +1,7 @@
 use crate::{assets, bullet, burro, cleanup, game_camera, game_state, ui, AppState, IngameState};
 use bevy::prelude::*;
 use bevy_toon_shader::ToonShaderMaterial;
+use bevy_mod_outline::OutlineVolume;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
@@ -80,7 +81,7 @@ fn animate_mecha_selection(
     game_assets: Res<assets::GameAssets>,
     time: Res<Time>,
     mut burros: Query<(Entity, &mut Transform, &mut burro::Burro)>,
-    mut burro_meshes: Query<(&mut Handle<ToonShaderMaterial>, &burro::BurroMeshMarker)>,
+    mut burro_meshes: Query<(&mut Handle<ToonShaderMaterial>, &mut OutlineVolume, &burro::BurroMeshMarker)>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
     top_texts: Query<Entity, With<TopTextMarker>>,
@@ -108,9 +109,9 @@ fn animate_mecha_selection(
         }
 
         if let Ok((entity, mut transform, mut burro)) = burros.get_mut(selected_burro_entity) {
-            let (mut toon_material, _) = burro_meshes
+            let (mut toon_material, mut outline_volume, _) = burro_meshes
                 .iter_mut()
-                .filter(|(_, m)| m.parent.unwrap() == entity)
+                .filter(|(_, _, m)| m.parent.unwrap() == entity)
                 .last()
                 .unwrap();
             match text_display_timers.mecha_selection_stage {
@@ -123,6 +124,8 @@ fn animate_mecha_selection(
                 }
                 MechaSelectionStage::ChangingBurro => {
                     *toon_material = game_assets.mechaburro_texture.toon_texture.clone();
+                    outline_volume.colour = Color::RED;
+
                     burro.is_mechaburro = true;
                     for entity in name_texts.iter() {
                         commands.entity(entity).despawn_recursive();

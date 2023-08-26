@@ -32,15 +32,21 @@ fn update_hearts(
         &game_state::PlayerMarker,
     )>,
 ) {
-    for (burro, burro_player) in &burros {
-        for (mut visibility, heart, heart_player) in &mut hearts {
+    for (mut visibility, heart, heart_player) in &mut hearts {
+        let mut has_burro = false;
+        for (burro, burro_player) in &burros {
             if burro_player == heart_player {
+                has_burro = true;
                 *visibility = if heart.0 < burro.health {
                     Visibility::Visible
                 } else {
                     Visibility::Hidden
                 };
             }
+        }
+
+        if !has_burro {
+            *visibility = Visibility::Hidden;
         }
     }
 }
