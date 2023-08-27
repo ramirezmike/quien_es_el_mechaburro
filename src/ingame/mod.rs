@@ -284,6 +284,7 @@ fn setup(
                                                         },
                                                         ..default()
                                                     },
+                                                    SetOutlineDepth::Real,
                                                     burro::BurroMeshMarker {
                                                         parent: Some(parent_entity),
                                                     },

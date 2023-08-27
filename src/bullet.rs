@@ -98,6 +98,7 @@ fn handle_bullet_events(
                             shadows_enabled: false,
                             ..default()
                         },
+                        transform: Transform::from_xyz(0., -0.5, 0.),
                         ..default()
                     });
                 }
