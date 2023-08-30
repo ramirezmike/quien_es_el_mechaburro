@@ -1,5 +1,5 @@
 use crate::loading::command_ext::*;
-use crate::{asset_loading, assets, cleanup, game_camera, ui, ui::text_size, AppState};
+use crate::{asset_loading, assets, cleanup, game_camera, ui, ui::text_size, AppState, IngameState};
 use bevy::prelude::*;
 
 pub struct SplashPlugin;
@@ -49,9 +49,11 @@ fn setup(
     game_assets: Res<assets::GameAssets>,
     text_scaler: text_size::TextScaler,
     mut splash_tracker: ResMut<SplashTracker>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
 ) {
     splash_tracker.time = 0.0;
 
+    next_ingame_state.set(IngameState::Disabled);
     game_camera::spawn_camera(&mut commands, CleanupMarker);
 
     commands

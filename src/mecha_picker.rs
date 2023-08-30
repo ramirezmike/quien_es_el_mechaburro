@@ -132,7 +132,6 @@ fn animate_mecha_selection(
                     }
                 }
                 MechaSelectionStage::LaserShot => {
-                    println!("Sending bullet");
                     bullet_event_writer.send(bullet::BulletEvent {
                         source: selected_burro_entity,
                         speed: burro.bullet_speed,

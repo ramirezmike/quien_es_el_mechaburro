@@ -1,8 +1,9 @@
 use crate::loading::command_ext::*;
 use crate::{
     asset_loading, assets, bot, burro, cleanup, direction, floor, game_camera, game_state, player,
-    scene_hook, AppState,
+    scene_hook, AppState, config, IngameState,
 };
+use crate::ui::follow_text::FollowTextCommandsExt;
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
@@ -11,6 +12,7 @@ use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
 use std::f32::consts::TAU;
 use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 
 mod ui;
 
@@ -23,7 +25,9 @@ impl Plugin for InGamePlugin {
             .add_systems(
                 Update,
                 (
-                    (bot::update_bot_ai, bot::update_virtual_controllers).chain(),
+                    (bot::update_bot_ai, bot::update_virtual_controllers)
+                        .chain()
+                        .run_if(|g: Res<game_state::GameState>| !g.is_game_over()),
                     player::handle_input,
                     player::move_player,
                     apply_deferred,
@@ -87,10 +91,17 @@ impl Command for IngameLoader {
             "models/laser.gltf#Mesh0/Primitive0",
         );
 
-        assets_handler.add_glb(
-            &mut game_assets.level,
-            &format!("models/level_{:02}.glb", game_state.current_level),
-        );
+        if game_state.is_game_over() {
+            assets_handler.add_glb(
+                &mut game_assets.stage,
+                "models/stage.glb"
+            );
+        } else {
+            assets_handler.add_glb(
+                &mut game_assets.level,
+                &format!("models/level_{:02}.glb", game_state.current_level),
+            );
+        }
     }
 }
 
@@ -103,9 +114,8 @@ fn setup(
     mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
     mut game_state: ResMut<game_state::GameState>,
     mut next_state: ResMut<NextState<AppState>>,
+    mut next_ingame_state: ResMut<NextState<IngameState>>,
 ) {
-    camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
-
     #[cfg(feature = "debug")]
     {
         if game_state.burros.is_empty() {
@@ -125,7 +135,8 @@ fn setup(
         }
     };
 
-    game_state.current_level_over = false;
+    let is_winner_display = game_state.is_game_over();
+
     game_state.on_new_level();
 
     // SETTING LEVEL BACKGROUND
@@ -142,9 +153,13 @@ fn setup(
 
     let hook_spawn_points = Arc::new(Mutex::new(vec![]));
     let on_complete_spawn_points = Arc::clone(&hook_spawn_points);
+    let winner_spawn_points: HashMap::<usize, Vec3> = HashMap::new();
+    let winner_hook_spawn_points = Arc::new(Mutex::new(winner_spawn_points));
+    let on_complete_winner_spawn_points = Arc::clone(&winner_hook_spawn_points);
     let burro_mesh_handle = game_assets.burro.clone();
 
-    if let Some(gltf) = assets_gltf.get(&game_assets.level) {
+    let level_to_load = if is_winner_display { &game_assets.stage } else { &game_assets.level };
+    if let Some(gltf) = assets_gltf.get(level_to_load) {
         commands.spawn((
             scene_hook::HookedSceneBundle {
                 scene: SceneBundle {
@@ -191,8 +206,17 @@ fn setup(
                             {
                                 let matrix = global_transform.compute_matrix();
                                 let translation = matrix.transform_point3(aabb.center.into());
-                                if let Ok(mut spawn_points) = hook_spawn_points.lock() {
-                                    spawn_points.push(translation);
+
+                                if is_winner_display {
+                                    if let Ok(mut spawn_points) = winner_hook_spawn_points.lock() {
+                                        if let Some(index) = name.chars().last().and_then(|x| x.to_digit(10)) {
+                                            spawn_points.insert(index as usize, translation);
+                                        } 
+                                    }
+                                } else {
+                                    if let Ok(mut spawn_points) = hook_spawn_points.lock() {
+                                        spawn_points.push(translation);
+                                    }
                                 }
                                 cmds.insert(Visibility::Hidden);
                             }
@@ -205,99 +229,205 @@ fn setup(
                 }),
             },
             scene_hook::SceneOnComplete::new(move |cmds, assets_gltf, game_assets, game_state| {
-                if let Ok(spawn_points) = on_complete_spawn_points.lock() {
-                    for (i, burro_state) in game_state.burros.iter().enumerate() {
-                        let point = spawn_points[i];
+                // TODO: the spawning of burros should be moved into a separate function
+                // and the logic here should be using is_winner_display to determine which
+                // burros and which spawn points to use
+                if !is_winner_display  {
+                    if let Ok(spawn_points) = on_complete_spawn_points.lock() {
+                        for (i, burro_state) in game_state.burros.iter().enumerate() {
+                            let point = spawn_points[i];
 
-                        let toon_material_textured = game_assets.burro_assets
-                            [burro_state.selected_burro]
-                            .toon_texture
-                            .clone();
+                            let toon_material_textured = game_assets.burro_assets
+                                [burro_state.selected_burro]
+                                .toon_texture
+                                .clone();
 
-                        if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
-                            let mut entity_commands = cmds.spawn((
-                                RigidBody::KinematicPositionBased,
-                                Collider::ball(1.0),
-                                ColliderMassProperties::Density(2.0),
-                                KinematicCharacterController {
-                                    offset: CharacterLength::Relative(0.1),
-                                    max_slope_climb_angle: std::f32::consts::PI / 2.0,
-                                    min_slope_slide_angle: 0.0,
-                                    slide: true,
-                                    translation: Some(Vec3::new(0.0, 0.5, 0.0)),
-                                    filter_groups: Some(CollisionGroups::new(
-                                        Group::GROUP_2,
-                                        Group::GROUP_1,
-                                    )),
-                                    ..default()
-                                },
-                                Velocity::default(),
-                                ComputedVisibility::default(),
-                                Visibility::Visible,
-                                CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
-                                burro::Burro::new(burro_state.selected_burro),
-                                game_state::PlayerMarker(burro_state.player),
-                                player::BurroMovement::default(),
-                                CleanupMarker,
-                                TransformBundle {
-                                    local: {
-                                        let mut t = Transform::from_xyz(point.x, 0.5, point.z);
-                                        t.rotation = Quat::from_axis_angle(Vec3::Y, TAU * 0.5);
-                                        t
-                                    },
-                                    ..default()
-                                },
-                            ));
-
-                            if burro_state.is_bot {
-                                entity_commands.insert(bot::BotBundle::new());
-                            } else {
-                                entity_commands.insert(player::PlayerBundle::new());
-                            }
-
-                            let outline_color = burro_state.outline_color.clone();
-                            entity_commands.with_children(|parent| {
-                                let parent_entity = parent.parent_entity();
-                                parent.spawn(scene_hook::HookedSceneBundle {
-                                    scene: SceneBundle {
-                                        scene: gltf.scenes[0].clone(),
+                            if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
+                                let mut entity_commands = cmds.spawn((
+                                    RigidBody::KinematicPositionBased,
+                                    Collider::ball(1.0),
+                                    ColliderMassProperties::Density(2.0),
+                                    KinematicCharacterController {
+                                        offset: CharacterLength::Relative(0.1),
+                                        max_slope_climb_angle: std::f32::consts::PI / 2.0,
+                                        min_slope_slide_angle: 0.0,
+                                        slide: true,
+                                        translation: Some(Vec3::new(0.0, 0.5, 0.0)),
+                                        filter_groups: Some(CollisionGroups::new(
+                                            Group::GROUP_2,
+                                            Group::GROUP_1,
+                                        )),
                                         ..default()
                                     },
-                                    hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
-                                        if let Some(name) = hook_data.name {
-                                            let name = name.as_str();
-                                            if name.contains("Armature") {
-                                                cmds.insert((
-                                                    assets::AnimationLink {
-                                                        entity: parent_entity,
-                                                    },
-                                                    Transform::from_xyz(0.0, -1.0, 0.0),
-                                                ));
-                                            }
-                                            if name.contains("Cube") {
-                                                cmds.insert((
-                                                    OutlineBundle {
-                                                        outline: OutlineVolume {
-                                                            visible: true,
-                                                            width: 5.0,
-                                                            colour: outline_color,
+                                    Velocity::default(),
+                                    ComputedVisibility::default(),
+                                    Visibility::Visible,
+                                    CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
+                                    burro::Burro::new(burro_state.selected_burro),
+                                    game_state::PlayerMarker(burro_state.player),
+                                    player::BurroMovement::default(),
+                                    CleanupMarker,
+                                    TransformBundle {
+                                        local: {
+                                            let mut t = Transform::from_xyz(point.x, 0.5, point.z);
+                                            t.rotation = Quat::from_axis_angle(Vec3::Y, TAU * 0.5);
+                                            t
+                                        },
+                                        ..default()
+                                    },
+                                ));
+
+                                if burro_state.is_bot {
+                                    entity_commands.insert(bot::BotBundle::new());
+                                } else {
+                                    entity_commands.insert(player::PlayerBundle::new());
+                                }
+
+                                let outline_color = burro_state.outline_color.clone();
+                                entity_commands.with_children(|parent| {
+                                    let parent_entity = parent.parent_entity();
+                                    parent.spawn(scene_hook::HookedSceneBundle {
+                                        scene: SceneBundle {
+                                            scene: gltf.scenes[0].clone(),
+                                            ..default()
+                                        },
+                                        hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
+                                            if let Some(name) = hook_data.name {
+                                                let name = name.as_str();
+                                                if name.contains("Armature") {
+                                                    cmds.insert((
+                                                        assets::AnimationLink {
+                                                            entity: parent_entity,
                                                         },
-                                                        ..default()
-                                                    },
-                                                    SetOutlineDepth::Real,
-                                                    burro::BurroMeshMarker {
-                                                        parent: Some(parent_entity),
-                                                    },
-                                                    toon_material_textured.clone(),
-                                                ));
+                                                        Transform::from_xyz(0.0, -1.0, 0.0),
+                                                    ));
+                                                }
+                                                if name.contains("Cube") {
+                                                    cmds.insert((
+                                                        OutlineBundle {
+                                                            outline: OutlineVolume {
+                                                                visible: true,
+                                                                width: 5.0,
+                                                                colour: outline_color,
+                                                            },
+                                                            ..default()
+                                                        },
+                                                        SetOutlineDepth::Real,
+                                                        burro::BurroMeshMarker {
+                                                            parent: Some(parent_entity),
+                                                        },
+                                                        toon_material_textured.clone(),
+                                                    ));
+                                                }
                                             }
-                                        }
-                                    }),
+                                        }),
+                                    });
                                 });
-                            });
+                            }
+                        }
+                    }
+                } else {
+                    if let Ok(spawn_points) = on_complete_winner_spawn_points.lock() {
+                        for (i, burro_state) in game_state.burros.iter().enumerate() {
+                            if i > 2 { continue; }
+                            let point = spawn_points.get(&i).unwrap();
+
+                            let toon_material_textured = game_assets.burro_assets
+                                [burro_state.selected_burro]
+                                .toon_texture
+                                .clone();
+
+                            let height = 5.0;
+                            if let Some(gltf) = assets_gltf.get(&burro_mesh_handle) {
+                                let mut entity_commands = cmds.spawn((
+                                    RigidBody::KinematicPositionBased,
+                                    Collider::ball(1.0),
+                                    ColliderMassProperties::Density(2.0),
+                                    KinematicCharacterController {
+                                        offset: CharacterLength::Relative(0.1),
+                                        max_slope_climb_angle: std::f32::consts::PI / 2.0,
+                                        min_slope_slide_angle: 0.0,
+                                        slide: true,
+                                        translation: Some(Vec3::new(0.0, height, 0.0)),
+                                        filter_groups: Some(CollisionGroups::new(
+                                            Group::GROUP_2,
+                                            Group::GROUP_1,
+                                        )),
+                                        ..default()
+                                    },
+                                    Velocity::default(),
+                                    ComputedVisibility::default(),
+                                    Visibility::Visible,
+                                    CollisionGroups::new(Group::GROUP_2, Group::GROUP_1),
+                                    burro::Burro::new(burro_state.selected_burro),
+                                    game_state::PlayerMarker(burro_state.player),
+                                    player::BurroMovement::default(),
+                                    CleanupMarker,
+                                    TransformBundle {
+                                        local: {
+                                            let mut t = Transform::from_xyz(point.x, height, point.z);
+                                            t.rotation = Quat::from_axis_angle(Vec3::Y, TAU * 0.5);
+                                            t
+                                        },
+                                        ..default()
+                                    },
+                                ));
+
+                                if burro_state.is_bot {
+                                    entity_commands.insert(bot::BotBundle::new());
+                                } else {
+                                    entity_commands.insert(player::PlayerBundle::new());
+                                }
+
+                                let outline_color = burro_state.outline_color.clone();
+                                let burro_entity = entity_commands.with_children(|parent| {
+                                    let parent_entity = parent.parent_entity();
+                                    parent.spawn(scene_hook::HookedSceneBundle {
+                                        scene: SceneBundle {
+                                            scene: gltf.scenes[0].clone(),
+                                            ..default()
+                                        },
+                                        hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
+                                            if let Some(name) = hook_data.name {
+                                                let name = name.as_str();
+                                                if name.contains("Armature") {
+                                                    cmds.insert((
+                                                        assets::AnimationLink {
+                                                            entity: parent_entity,
+                                                        },
+                                                        Transform::from_xyz(0.0, -1.0, 0.0),
+                                                    ));
+                                                }
+                                                if name.contains("Cube") {
+                                                    cmds.insert((
+                                                        OutlineBundle {
+                                                            outline: OutlineVolume {
+                                                                visible: true,
+                                                                width: 5.0,
+                                                                colour: outline_color,
+                                                            },
+                                                            ..default()
+                                                        },
+                                                        SetOutlineDepth::Real,
+                                                        burro::BurroMeshMarker {
+                                                            parent: Some(parent_entity),
+                                                        },
+                                                        toon_material_textured.clone(),
+                                                    ));
+                                                }
+                                            }
+                                        }),
+                                    });
+                                })
+                                .id();
+
+                                let name = game_assets.burro_assets[burro_state.selected_burro].name.clone();
+                                cmds.spawn_follow_text(burro_entity, name, outline_color, CleanupMarker);
+                            }
                         }
                     }
                 }
+
             }),
             CleanupMarker,
         ));
@@ -307,8 +437,6 @@ fn setup(
         color: Color::WHITE,
         brightness: 0.50,
     });
-
-    game_camera::spawn_camera(&mut commands, CleanupMarker);
 
     commands.spawn((
         DirectionalLightBundle {
@@ -327,7 +455,27 @@ fn setup(
         CleanupMarker,
     ));
 
-    next_state.set(AppState::MechaPicker);
+    if is_winner_display {
+        next_ingame_state.set(IngameState::WinnerCircle);
+        let translation = Vec3::new(0.0, 0.0, -10.0);
+        let transform = Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y);
+        game_camera::spawn_camera_with_transform(&mut commands, transform, CleanupMarker);
+
+        camera_settings.set_camera(
+            10.0,
+            Vec3::ZERO,
+            0.4,
+            true,
+            10.,
+            25.,
+        );
+        next_state.set(AppState::InGame);
+    } else {
+        game_camera::spawn_camera(&mut commands, CleanupMarker);
+
+        camera_settings.set_camera(20.0, Vec3::ZERO, 0.4, false, 0.5, 30.0);
+        next_state.set(AppState::MechaPicker);
+    }
 }
 
 #[derive(Component)]

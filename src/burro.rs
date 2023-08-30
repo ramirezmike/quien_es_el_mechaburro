@@ -8,7 +8,9 @@ impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (handle_burros, handle_burro_death_events, handle_burro_hit)
+            (handle_burros, 
+             handle_burro_death_events.run_if(|g: Res<game_state::GameState>| !g.is_game_over()), 
+             handle_burro_hit)
                 .chain()
                 .run_if(in_state(AppState::InGame)),
         )
@@ -49,7 +51,6 @@ pub struct BurroFlashEvent {
 #[derive(Component)]
 pub struct Burro {
     pub selected_burro: usize,
-    pub max_health: usize,
     pub health: usize,
     pub bullet_speed: f32,
     pub bullet_time_alive: f32,
@@ -72,7 +73,6 @@ impl Burro {
 
         Burro {
             selected_burro,
-            max_health: 3,
             health: 3,
             bullet_speed: 12.0,
             bullet_time_alive: 1.0,
@@ -225,18 +225,13 @@ fn handle_burro_death_events(
     burros: Query<Entity, With<Burro>>,
     mut audio: audio::GameAudio,
     mut game_state: ResMut<game_state::GameState>,
-    //    follow_texts: Query<(Entity, &follow_text::FollowText)>,
     game_assets: Res<assets::GameAssets>,
 ) {
     for death_event in burro_death_event_reader.iter() {
         let number_of_burros = game_state.burros.iter().len();
         if burros.get(death_event.entity).is_ok() {
             commands.entity(death_event.entity).despawn_recursive();
-            //          for (text_entity, text) in follow_texts.iter() {
-            //              if text.following == death_event.entity {
-            //                  commands.entity(text_entity).despawn_recursive();
-            //              }
-            //          }
+
             if !game_state.dead_burros.contains(&death_event.selected_burro) {
                 game_state.dead_burros.push(death_event.selected_burro);
             }

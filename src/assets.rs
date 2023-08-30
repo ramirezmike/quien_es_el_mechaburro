@@ -40,6 +40,7 @@ pub struct GameAssets {
     pub fanfare_sfx: Handle<AudioSource>,
 
     pub level: Handle<Gltf>,
+    pub stage: Handle<Gltf>,
     pub candy: GameMesh,
     pub laser: GameMesh,
     pub bevy_icon: asset_loading::GameTexture,

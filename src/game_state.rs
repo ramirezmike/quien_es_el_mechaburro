@@ -14,7 +14,6 @@ pub struct GameState {
     pub burros: Vec<BurroState>,
     pub dead_burros: Vec<usize>,
     pub current_level: usize,
-    pub current_level_over: bool,
     pub difficulty: f32,
 }
 
@@ -56,13 +55,16 @@ impl GameState {
             burros,
             dead_burros: vec![],
             current_level: 0,
-            current_level_over: false,
             difficulty,
         }
     }
 
     pub fn on_new_level(&mut self) {
         self.dead_burros = vec![];
+    }
+
+    pub fn is_game_over(&self) -> bool {
+        self.current_level >= config::NUMBER_OF_LEVELS
     }
 }
 

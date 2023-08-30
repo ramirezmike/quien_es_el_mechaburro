@@ -241,15 +241,7 @@ fn update_script(
                 game_state.current_level += 1;
 
                 next_ingame_state.set(IngameState::Disabled);
-                if game_state.current_level >= config::NUMBER_OF_LEVELS {
-                    #[cfg(feature = "debug")]
-                    {
-                        game_state.current_level = 0;
-                    }
-                    commands.load_state(AppState::Splash);
-                } else {
-                    commands.load_state(AppState::LoadInGame);
-                }
+                commands.load_state(AppState::LoadInGame);
             }
         }
     }

@@ -87,6 +87,7 @@ fn main() {
         input::InputPlugin,
         scene_hook::HookPlugin,
         ui::text_size::TextSizePlugin,
+        ui::follow_text::FollowTextPlugin,
     ))
     .add_systems(Update, debug)
     .add_systems(Update, bootstrap.run_if(in_state(AppState::Initial)))
@@ -108,7 +109,6 @@ pub enum AppState {
     MechaPicker,
     ScoreDisplay,
     Loading,
-    WinnerDisplay,
     Splash,
 }
 
@@ -116,6 +116,7 @@ pub enum AppState {
 pub enum IngameState {
     InGame,
     ScoreDisplay,
+    WinnerCircle,
     #[default]
     Disabled,
 }
@@ -126,7 +127,7 @@ fn bootstrap(mut commands: Commands, mut clear_color: ResMut<ClearColor>) {
 
     #[cfg(feature = "debug")]
     {
-        commands.load_state(AppState::LoadInGame);
+        commands.load_state(AppState::CharacterSelect);
     }
 
     #[cfg(not(feature = "debug"))]

@@ -140,7 +140,6 @@ pub fn handle_input(
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
 ) {
     for (entity, action_state, transform, mut burro, mut movement, has_bot) in &mut players {
-        //println!("T: {:?}", transform.translation);
         let mut direction = direction::Direction::NEUTRAL;
         let mut facing = None;
 
@@ -210,7 +209,7 @@ pub fn move_player(
     {
         let speed: f32 = burro.speed;
         let friction: f32 = burro.friction;
-        let gravity: Vec3 = 3.0 * Vec3::new(0.0, -1.0, 0.0);
+        let gravity: Vec3 = Vec3::new(0.0, -5.0, 0.0);
 
         burro.velocity *= friction.powf(time.delta_seconds());
         //        burro.velocity += (Vec3::X * speed) * time.delta_seconds();
