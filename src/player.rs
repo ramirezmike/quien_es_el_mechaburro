@@ -242,17 +242,25 @@ pub fn move_player(
 
         for (mut animation, link) in &mut animations {
             if link.entity == entity {
-                if burro.current_animation != game_assets.burro_run {
-                    animation.play(game_assets.burro_run.clone_weak()).repeat();
-                    animation.resume();
-                    burro.current_animation = game_assets.burro_run.clone_weak();
-                    animation.set_speed(3.0);
-                }
-                if burro.current_animation == game_assets.burro_run
-                    && (burro.velocity.length() < 0.1 || burro.is_down)
-                {
+                if burro.is_down {
                     animation.pause();
                 } else {
+                    if burro.velocity.length() < 0.1 {
+                        // idle
+                        if burro.current_animation != game_assets.burro_idle {
+                            animation.play(game_assets.burro_idle.clone_weak()).repeat();
+                            burro.current_animation = game_assets.burro_idle.clone_weak();
+                            animation.set_speed(3.0);
+                        }
+                    } else {
+                        // run
+                        if burro.current_animation != game_assets.burro_run {
+                            animation.play(game_assets.burro_run.clone_weak()).repeat();
+                            burro.current_animation = game_assets.burro_run.clone_weak();
+                            animation.set_speed(3.0);
+                        }
+                    }
+
                     animation.resume();
                 }
             }

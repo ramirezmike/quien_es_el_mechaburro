@@ -83,7 +83,7 @@ impl Burro {
             is_visible: true,
             is_mechaburro: false,
             speed: 60.0,
-            friction: 0.01,
+            friction: 0.0005,
             velocity: Vec3::ZERO,
             random: rng.gen_range(0.5..1.0),
             is_down: false,

@@ -60,8 +60,12 @@ impl Command for IngameLoader {
         );
         assets_handler.add_material(&mut game_assets.avatar_top, "textures/top_avatar.png", true);
         assets_handler.add_animation(
-            &mut game_assets.burro_run,
+            &mut game_assets.burro_idle,
             "models/burro_new.glb#Animation0",
+        );
+        assets_handler.add_animation(
+            &mut game_assets.burro_run,
+            "models/burro_new.glb#Animation1",
         );
 
         assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
@@ -124,8 +128,15 @@ fn setup(
                     score: 0,
                     is_bot: false,
                     hearts: vec![],
+                }, game_state::BurroState {
+                    player: 1,
+                    selected_burro: 1,
+                    outline_color: Color::BLUE,
+                    score: 0,
+                    is_bot: false,
+                    hearts: vec![],
                 }],
-                7,
+                0,
                 1.0,
                 &game_assets.burro_assets,
             );
@@ -303,7 +314,7 @@ fn setup(
                                                         assets::AnimationLink {
                                                             entity: parent_entity,
                                                         },
-                                                        Transform::from_xyz(0.0, -1.0, 0.0),
+                                                        Transform::from_xyz(0.0, -1.09, 0.0),
                                                     ));
                                                 }
                                                 if name.contains("Cube") {

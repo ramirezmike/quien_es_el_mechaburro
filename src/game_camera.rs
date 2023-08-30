@@ -165,7 +165,7 @@ fn update_camera(
             // child = z-offset
             let rot_matrix = Mat3::from_quat(transform.rotation);
             transform.translation =
-                pan_orbit.focus - rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, pan_orbit.radius));
+                pan_orbit.focus + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, pan_orbit.radius));
         }
     }
 }
