@@ -1,18 +1,18 @@
 use crate::loading::command_ext::*;
-use crate::{
-    asset_loading, assets, bot, burro, cleanup, direction, floor, game_camera, game_state, player,
-    scene_hook, AppState, config, IngameState,
-};
 use crate::ui::follow_text::FollowTextCommandsExt;
+use crate::{
+    asset_loading, assets, bot, burro, cleanup, config, direction, floor, game_camera, game_state,
+    player, scene_hook, AppState, IngameState,
+};
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy_mod_outline::{OutlineBundle, OutlineVolume, SetOutlineDepth};
 use bevy_rapier3d::prelude::*;
 use bevy_toon_shader::{ToonShaderMaterial, ToonShaderSun};
+use std::collections::HashMap;
 use std::f32::consts::TAU;
 use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 
 mod ui;
 
@@ -92,10 +92,7 @@ impl Command for IngameLoader {
         );
 
         if game_state.is_game_over() {
-            assets_handler.add_glb(
-                &mut game_assets.stage,
-                "models/stage.glb"
-            );
+            assets_handler.add_glb(&mut game_assets.stage, "models/stage.glb");
         } else {
             assets_handler.add_glb(
                 &mut game_assets.level,
@@ -153,12 +150,16 @@ fn setup(
 
     let hook_spawn_points = Arc::new(Mutex::new(vec![]));
     let on_complete_spawn_points = Arc::clone(&hook_spawn_points);
-    let winner_spawn_points: HashMap::<usize, Vec3> = HashMap::new();
+    let winner_spawn_points: HashMap<usize, Vec3> = HashMap::new();
     let winner_hook_spawn_points = Arc::new(Mutex::new(winner_spawn_points));
     let on_complete_winner_spawn_points = Arc::clone(&winner_hook_spawn_points);
     let burro_mesh_handle = game_assets.burro.clone();
 
-    let level_to_load = if is_winner_display { &game_assets.stage } else { &game_assets.level };
+    let level_to_load = if is_winner_display {
+        &game_assets.stage
+    } else {
+        &game_assets.level
+    };
     if let Some(gltf) = assets_gltf.get(level_to_load) {
         commands.spawn((
             scene_hook::HookedSceneBundle {
@@ -181,15 +182,16 @@ fn setup(
                         }
 
                         if name.contains("floor") {
-                            cmds.insert((OutlineBundle {
-                                outline: OutlineVolume {
-                                    visible: true,
-                                    width: 2.5,
-                                    colour: Color::BLACK,
+                            cmds.insert((
+                                OutlineBundle {
+                                    outline: OutlineVolume {
+                                        visible: true,
+                                        width: 2.5,
+                                        colour: Color::BLACK,
+                                    },
+                                    ..default()
                                 },
-                                ..default()
-                            }, 
-                            SetOutlineDepth::Real,
+                                SetOutlineDepth::Real,
                             ));
                             if let (Some(global_transform), Some(aabb)) =
                                 (hook_data.global_transform, hook_data.aabb)
@@ -209,9 +211,11 @@ fn setup(
 
                                 if is_winner_display {
                                     if let Ok(mut spawn_points) = winner_hook_spawn_points.lock() {
-                                        if let Some(index) = name.chars().last().and_then(|x| x.to_digit(10)) {
+                                        if let Some(index) =
+                                            name.chars().last().and_then(|x| x.to_digit(10))
+                                        {
                                             spawn_points.insert(index as usize, translation);
-                                        } 
+                                        }
                                     }
                                 } else {
                                     if let Ok(mut spawn_points) = hook_spawn_points.lock() {
@@ -232,7 +236,7 @@ fn setup(
                 // TODO: the spawning of burros should be moved into a separate function
                 // and the logic here should be using is_winner_display to determine which
                 // burros and which spawn points to use
-                if !is_winner_display  {
+                if !is_winner_display {
                     if let Ok(spawn_points) = on_complete_spawn_points.lock() {
                         for (i, burro_state) in game_state.burros.iter().enumerate() {
                             let point = spawn_points[i];
@@ -329,7 +333,9 @@ fn setup(
                 } else {
                     if let Ok(spawn_points) = on_complete_winner_spawn_points.lock() {
                         for (i, burro_state) in game_state.burros.iter().enumerate() {
-                            if i > 2 { continue; }
+                            if i > 2 {
+                                continue;
+                            }
                             let point = spawn_points.get(&i).unwrap();
 
                             let toon_material_textured = game_assets.burro_assets
@@ -365,7 +371,8 @@ fn setup(
                                     CleanupMarker,
                                     TransformBundle {
                                         local: {
-                                            let mut t = Transform::from_xyz(point.x, height, point.z);
+                                            let mut t =
+                                                Transform::from_xyz(point.x, height, point.z);
                                             t.rotation = Quat::from_axis_angle(Vec3::Y, TAU * 0.5);
                                             t
                                         },
@@ -380,54 +387,63 @@ fn setup(
                                 }
 
                                 let outline_color = burro_state.outline_color.clone();
-                                let burro_entity = entity_commands.with_children(|parent| {
-                                    let parent_entity = parent.parent_entity();
-                                    parent.spawn(scene_hook::HookedSceneBundle {
-                                        scene: SceneBundle {
-                                            scene: gltf.scenes[0].clone(),
-                                            ..default()
-                                        },
-                                        hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
-                                            if let Some(name) = hook_data.name {
-                                                let name = name.as_str();
-                                                if name.contains("Armature") {
-                                                    cmds.insert((
-                                                        assets::AnimationLink {
-                                                            entity: parent_entity,
-                                                        },
-                                                        Transform::from_xyz(0.0, -1.0, 0.0),
-                                                    ));
-                                                }
-                                                if name.contains("Cube") {
-                                                    cmds.insert((
-                                                        OutlineBundle {
-                                                            outline: OutlineVolume {
-                                                                visible: true,
-                                                                width: 5.0,
-                                                                colour: outline_color,
-                                                            },
-                                                            ..default()
-                                                        },
-                                                        SetOutlineDepth::Real,
-                                                        burro::BurroMeshMarker {
-                                                            parent: Some(parent_entity),
-                                                        },
-                                                        toon_material_textured.clone(),
-                                                    ));
-                                                }
-                                            }
-                                        }),
-                                    });
-                                })
-                                .id();
+                                let burro_entity = entity_commands
+                                    .with_children(|parent| {
+                                        let parent_entity = parent.parent_entity();
+                                        parent.spawn(scene_hook::HookedSceneBundle {
+                                            scene: SceneBundle {
+                                                scene: gltf.scenes[0].clone(),
+                                                ..default()
+                                            },
+                                            hook: scene_hook::SceneHook::new(
+                                                move |cmds, hook_data| {
+                                                    if let Some(name) = hook_data.name {
+                                                        let name = name.as_str();
+                                                        if name.contains("Armature") {
+                                                            cmds.insert((
+                                                                assets::AnimationLink {
+                                                                    entity: parent_entity,
+                                                                },
+                                                                Transform::from_xyz(0.0, -1.0, 0.0),
+                                                            ));
+                                                        }
+                                                        if name.contains("Cube") {
+                                                            cmds.insert((
+                                                                OutlineBundle {
+                                                                    outline: OutlineVolume {
+                                                                        visible: true,
+                                                                        width: 5.0,
+                                                                        colour: outline_color,
+                                                                    },
+                                                                    ..default()
+                                                                },
+                                                                SetOutlineDepth::Real,
+                                                                burro::BurroMeshMarker {
+                                                                    parent: Some(parent_entity),
+                                                                },
+                                                                toon_material_textured.clone(),
+                                                            ));
+                                                        }
+                                                    }
+                                                },
+                                            ),
+                                        });
+                                    })
+                                    .id();
 
-                                let name = game_assets.burro_assets[burro_state.selected_burro].name.clone();
-                                cmds.spawn_follow_text(burro_entity, name, outline_color, CleanupMarker);
+                                let name = game_assets.burro_assets[burro_state.selected_burro]
+                                    .name
+                                    .clone();
+                                cmds.spawn_follow_text(
+                                    burro_entity,
+                                    name,
+                                    outline_color,
+                                    CleanupMarker,
+                                );
                             }
                         }
                     }
                 }
-
             }),
             CleanupMarker,
         ));
@@ -461,14 +477,7 @@ fn setup(
         let transform = Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y);
         game_camera::spawn_camera_with_transform(&mut commands, transform, CleanupMarker);
 
-        camera_settings.set_camera(
-            10.0,
-            Vec3::ZERO,
-            0.4,
-            true,
-            10.,
-            25.,
-        );
+        camera_settings.set_camera(10.0, Vec3::ZERO, 0.4, true, 10., 25.);
         next_state.set(AppState::InGame);
     } else {
         game_camera::spawn_camera(&mut commands, CleanupMarker);

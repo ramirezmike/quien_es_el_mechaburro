@@ -9,14 +9,17 @@ const UI_UPDATE: f32 = 0.5;
 pub struct InGameUIPlugin;
 impl Plugin for InGameUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((score_display::ScoreDisplayPlugin, winner_circle::WinnerCirclePlugin)) 
-            .add_systems(OnEnter(IngameState::InGame), setup)
-            .insert_resource(FixedTime::new_from_secs(UI_UPDATE))
-            .add_systems(
-                FixedUpdate,
-                (update_hearts,).run_if(in_state(IngameState::InGame)),
-            )
-            .add_systems(OnExit(IngameState::InGame), cleanup::<CleanupMarker>);
+        app.add_plugins((
+            score_display::ScoreDisplayPlugin,
+            winner_circle::WinnerCirclePlugin,
+        ))
+        .add_systems(OnEnter(IngameState::InGame), setup)
+        .insert_resource(FixedTime::new_from_secs(UI_UPDATE))
+        .add_systems(
+            FixedUpdate,
+            (update_hearts,).run_if(in_state(IngameState::InGame)),
+        )
+        .add_systems(OnExit(IngameState::InGame), cleanup::<CleanupMarker>);
     }
 }
 

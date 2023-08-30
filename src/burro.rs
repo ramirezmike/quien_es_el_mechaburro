@@ -8,9 +8,11 @@ impl Plugin for BurroPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (handle_burros, 
-             handle_burro_death_events.run_if(|g: Res<game_state::GameState>| !g.is_game_over()), 
-             handle_burro_hit)
+            (
+                handle_burros,
+                handle_burro_death_events.run_if(|g: Res<game_state::GameState>| !g.is_game_over()),
+                handle_burro_hit,
+            )
                 .chain()
                 .run_if(in_state(AppState::InGame)),
         )

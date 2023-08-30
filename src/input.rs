@@ -30,7 +30,9 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
         self.spawn((
             InputManagerBundle::<MenuAction> {
                 action_state: ActionState::default(),
-                input_map: InputMap::new(KEYBOARD_INPUTS).insert_multiple(GAMEPAD_INPUTS).build(),
+                input_map: InputMap::new(KEYBOARD_INPUTS)
+                    .insert_multiple(GAMEPAD_INPUTS)
+                    .build(),
             },
             cleanup_marker,
         ));
@@ -44,9 +46,7 @@ pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
     }
     InputManagerBundle::<MenuAction> {
         action_state: ActionState::default(),
-        input_map: input_map
-            .set_gamepad(Gamepad { id: player })
-            .build(),
+        input_map: input_map.set_gamepad(Gamepad { id: player }).build(),
     }
 }
 
@@ -70,7 +70,6 @@ const GAMEPAD_INPUTS: [(GamepadButtonType, MenuAction); 7] = [
     (GamepadButtonType::DPadDown, MenuAction::Down),
     (GamepadButtonType::DPadRight, MenuAction::Right),
     (GamepadButtonType::DPadLeft, MenuAction::Left),
-
     (GamepadButtonType::South, MenuAction::Select),
     (GamepadButtonType::East, MenuAction::Back),
     (GamepadButtonType::Start, MenuAction::Start),

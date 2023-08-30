@@ -1,7 +1,7 @@
 use crate::{assets, bullet, burro, cleanup, game_camera, game_state, ui, AppState, IngameState};
 use bevy::prelude::*;
-use bevy_toon_shader::ToonShaderMaterial;
 use bevy_mod_outline::OutlineVolume;
+use bevy_toon_shader::ToonShaderMaterial;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
@@ -81,7 +81,11 @@ fn animate_mecha_selection(
     game_assets: Res<assets::GameAssets>,
     time: Res<Time>,
     mut burros: Query<(Entity, &mut Transform, &mut burro::Burro)>,
-    mut burro_meshes: Query<(&mut Handle<ToonShaderMaterial>, &mut OutlineVolume, &burro::BurroMeshMarker)>,
+    mut burro_meshes: Query<(
+        &mut Handle<ToonShaderMaterial>,
+        &mut OutlineVolume,
+        &burro::BurroMeshMarker,
+    )>,
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     mut bullet_event_writer: EventWriter<bullet::BulletEvent>,
     top_texts: Query<Entity, With<TopTextMarker>>,

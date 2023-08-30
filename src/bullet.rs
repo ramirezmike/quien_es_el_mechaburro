@@ -1,6 +1,6 @@
 use crate::{assets::GameAssets, audio, burro, cleanup, config, hit, AppState};
-use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 use bevy::prelude::*;
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 
 pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
@@ -109,13 +109,13 @@ fn handle_bullet_events(
                     width: 2.5,
                     colour: if bullet.bullet_type == BulletType::Laser {
                         Color::BLACK // maybe this is better?
-                        //Color::RED
+                                     //Color::RED
                     } else {
                         Color::BLACK
                     },
                 },
                 ..default()
-            },)
+            })
             .insert(Bullet {
                 source: bullet.source,
                 time_to_live: if bullet.bullet_type == BulletType::Laser {

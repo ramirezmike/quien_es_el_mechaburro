@@ -136,13 +136,13 @@ fn update_top_text(
             for mut text in &mut texts {
                 text.sections[0].value = "".to_string();
             }
-        },
+        }
         Script::Wait => {
             for mut text in &mut texts {
                 text.sections[0].value = "Current Ranking".to_string();
             }
-        },
-        _ => ()
+        }
+        _ => (),
     }
 }
 
@@ -155,8 +155,8 @@ fn update_bottom_text(
             for mut visibility in &mut texts {
                 *visibility = Visibility::Visible;
             }
-        },
-        _ => ()
+        }
+        _ => (),
     }
 }
 
@@ -361,18 +361,20 @@ fn setup(
             ..default()
         },))
         .with_children(|builder| {
-            builder.spawn((TextBundle {
-                text: Text::from_section(
-                    "Round Results",
-                    TextStyle {
-                        font: game_assets.font.clone(),
-                        font_size: text_scaler
-                            .scale(ui::DEFAULT_FONT_SIZE),
-                        color: Color::BLACK,
-                    },
-                ),
-                ..default()
-            }, TopTextMarker));
+            builder.spawn((
+                TextBundle {
+                    text: Text::from_section(
+                        "Round Results",
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE),
+                            color: Color::BLACK,
+                        },
+                    ),
+                    ..default()
+                },
+                TopTextMarker,
+            ));
         })
         .id();
 
@@ -391,18 +393,20 @@ fn setup(
             ..default()
         })
         .with_children(|builder| {
-            builder.spawn((TextBundle {
-                text: Text::from_section(
-                    "Press Start to Continue",
-                    TextStyle {
-                        font: game_assets.font.clone(),
-                        font_size: text_scaler
-                            .scale(ui::DEFAULT_FONT_SIZE * 0.5),
-                        color: Color::BLACK,
-                    },
-                ),
-                ..default()
-            }, BottomTextMarker));
+            builder.spawn((
+                TextBundle {
+                    text: Text::from_section(
+                        "Press Start to Continue",
+                        TextStyle {
+                            font: game_assets.font.clone(),
+                            font_size: text_scaler.scale(ui::DEFAULT_FONT_SIZE * 0.5),
+                            color: Color::BLACK,
+                        },
+                    ),
+                    ..default()
+                },
+                BottomTextMarker,
+            ));
         })
         .id();
 

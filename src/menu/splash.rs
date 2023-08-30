@@ -1,5 +1,7 @@
 use crate::loading::command_ext::*;
-use crate::{asset_loading, assets, cleanup, game_camera, ui, ui::text_size, AppState, IngameState};
+use crate::{
+    asset_loading, assets, cleanup, game_camera, ui, ui::text_size, AppState, IngameState,
+};
 use bevy::prelude::*;
 
 pub struct SplashPlugin;
