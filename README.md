@@ -1,9 +1,12 @@
+# Note
+Recently, I've been working on updating this game to try out new Bevy features and iterating on the code organization. The "jam-release" branch represents what the code was when the game was submitted for the game jam. The main branch should be considered latest but also somewhat unstable.
+
+
 # ¿Quien es el MechaBurro?
 
 An entry for the [first Bevy game jam][jam] following the theme of "Unfair Advantage." It was made in one week using the wonderful [Bevy game engine][bevy]. 
 
 https://user-images.githubusercontent.com/1421719/156888152-78e98f83-8fd9-477f-be48-6857a1cfe1ec.mp4
-
 
 You can play the game [here][itch].
 
@@ -11,7 +14,8 @@ Full trailer for the game can be seen [here](https://www.youtube.com/watch?v=YQe
 
 Other submissions for the jam can be seen [here][submissions]
 
-¿Quien es el MechaBurro? is a singleplayer/local multiplayer game (up to 4 players) with bots (8 total burros) inspired by twin-stick shooters, aspects of mario kart and a card game I played with my family growing up called "Burro." 
+
+¿Quien es el MechaBurro? is a singleplayer/local multiplayer game (up to 8 players) with bots (8 total burros) inspired by twin-stick shooters, aspects of mario kart and a card game I played with my family growing up called "Burro." 
 
 Players choose to play as one of 8 different burro piñatas and then attempt to be the last burro standing in each level of the game. Burros can shoot candy in just the cardinal directions but are able to move independently from where they're aiming. When hit, burros will flash momentairly and be invulnurable to damage but will also be unable to shoot. Shot candies have a limited range before disappearing and burros have a cooldown period before being able to shoot again.
 
@@ -19,7 +23,7 @@ At the start of each round, one burro is chosen randomly to be upgraded to the M
 
 The round ends when only one burro remains or 5 seconds after all human players have lost. Points are based on order of elimination with the first eliminated getting 0 points and each burro after getting 1 more than the previously eliminiated burro. Points are accumulated across rounds and the burro with the most points at the end of the game is declared the winner.
 
-The "jam-release" branch represents what the code was when the game was submitted for the game jam. Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
+Check out my other games [here][othergames]. Also, I'm always hanging out in the [bevy discord][bevy-discord], definitely feel free to @ramirezmike me and ask questions or criticize me :)
 
 
 
