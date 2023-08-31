@@ -158,5 +158,5 @@ fn setup(
             });
         });
 
-    audio.play_bgm(&game_assets.bgm_1);
+    audio.play_bgm(&game_assets.title_bgm);
 }

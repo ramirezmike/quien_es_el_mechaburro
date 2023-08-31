@@ -32,6 +32,10 @@ impl<'w, 's> GameAudio<'w, 's> {
         self.music_channel.play(handle.clone()).looped();
     }
 
+    pub fn stop_bgm(&mut self) {
+        self.music_channel.stop();
+    }
+
     pub fn play_sfx(&mut self, handle: &Handle<AudioSource>) {
         self.sound_channel.set_volume(0.5);
         self.sound_channel.play(handle.clone());

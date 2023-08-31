@@ -15,6 +15,7 @@ pub struct Bot {
     shooting: Option<Cardinal>,
     mind_cooldown: f32,
     target: Option<Vec2>,
+    previous_distance: f32,
 }
 
 impl Default for Bot {
@@ -24,6 +25,7 @@ impl Default for Bot {
             shooting: None,
             mind_cooldown: 0.0,
             target: None,
+            previous_distance: 0.,
         }
     }
 }
@@ -88,11 +90,15 @@ pub fn update_bot_ai(
         // uh this works sorta so I'm ok with it
 
         if let Some(target) = bot.target {
-            if burro_position.distance(target) < 0.5 {
+            let distance = burro_position.distance(target);
+            let is_bot_stuck = (bot.previous_distance - distance).abs() < 0.001;
+            if distance < 0.5 || is_bot_stuck {
                 bot.target = None;
-                bot.mind_cooldown = 1.0;
+                bot.mind_cooldown = 0.0;
                 continue;
             }
+
+            bot.previous_distance = distance;
 
             let x_diff = burro_position.x - target.x;
             let z_diff = burro_position.y - target.y;

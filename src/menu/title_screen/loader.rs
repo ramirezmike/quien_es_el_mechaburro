@@ -13,6 +13,7 @@ impl Command for TitleScreenLoader {
         )> = SystemState::new(world);
         let (mut assets_handler, mut game_assets) = system_state.get_mut(world);
 
+        assets_handler.add_audio(&mut game_assets.title_bgm, "audio/title.ogg");
         assets_handler.add_audio(&mut game_assets.bgm_1, "audio/baila.ogg");
         assets_handler.add_audio(&mut game_assets.sfx_1, "audio/blip.wav");
         assets_handler.add_audio(&mut game_assets.sfx_2, "audio/select.wav");

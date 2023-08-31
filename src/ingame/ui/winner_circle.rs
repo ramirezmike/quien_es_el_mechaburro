@@ -1,6 +1,5 @@
 use crate::input::InputCommandsExt;
-use crate::loading::command_ext::*;
-use crate::{assets, cleanup, game_state, input, ui, AppState, IngameState};
+use crate::{assets, cleanup, game_state, input, ui, AppState, IngameState, audio};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -75,6 +74,7 @@ fn handle_exit(
     mut next_state: ResMut<NextState<AppState>>,
     mut timer: ResMut<WinnerCircleTimer>,
     mut game_state: ResMut<game_state::GameState>,
+    mut audio: audio::GameAudio,
     time: Res<Time>,
 ) {
     let action_state = action_state.single();
@@ -84,5 +84,6 @@ fn handle_exit(
         game_state.current_level = 0;
         next_state.set(AppState::Splash);
         next_ingame_state.set(IngameState::Disabled);
+        audio.stop_bgm();
     }
 }

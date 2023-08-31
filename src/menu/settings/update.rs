@@ -91,6 +91,8 @@ pub fn handle_input(
             setting_state.unfair_advantage as f32 + MIN_DIFFICULTY,
             &game_assets.burro_assets,
         );
+
+        audio.play_bgm(&game_assets.bgm_1);
         commands.load_state(AppState::LoadInGame);
     }
 }

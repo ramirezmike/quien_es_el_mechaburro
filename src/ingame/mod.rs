@@ -1,7 +1,6 @@
-use crate::loading::command_ext::*;
 use crate::ui::follow_text::FollowTextCommandsExt;
 use crate::{
-    asset_loading, assets, bot, burro, cleanup, config, direction, floor, game_camera, game_state,
+    asset_loading, assets, bot, burro, cleanup, audio, game_camera, game_state,
     player, scene_hook, AppState, IngameState,
 };
 use bevy::ecs::system::{Command, SystemState};
@@ -112,7 +111,6 @@ fn setup(
     mut camera_settings: ResMut<game_camera::CameraSettings>,
     game_assets: Res<assets::GameAssets>,
     assets_gltf: Res<Assets<Gltf>>,
-    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
     mut game_state: ResMut<game_state::GameState>,
     mut next_state: ResMut<NextState<AppState>>,
     mut next_ingame_state: ResMut<NextState<IngameState>>,
@@ -128,15 +126,8 @@ fn setup(
                     score: 0,
                     is_bot: false,
                     hearts: vec![],
-                }, game_state::BurroState {
-                    player: 1,
-                    selected_burro: 1,
-                    outline_color: Color::BLUE,
-                    score: 0,
-                    is_bot: false,
-                    hearts: vec![],
                 }],
-                0,
+                1,
                 1.0,
                 &game_assets.burro_assets,
             );
