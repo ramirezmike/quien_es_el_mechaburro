@@ -52,8 +52,35 @@ pub fn handle_input(
     player_selection: Res<menu::character_select::state::PlayerSelection>,
     mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
+    mut axis_timer: Local<Timer>,
+    time: Res<Time>,
 ) {
     let action_state = action_state.single();
+
+    if axis_timer.tick(time.delta()).finished() && action_state.pressed(input::MenuAction::Move) {
+        let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+        if axis_pair.y() == 1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            setting_state.selected_setting = setting_state.selected_setting.previous();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+        if axis_pair.y() == -1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            setting_state.selected_setting = setting_state.selected_setting.next();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+
+        if axis_pair.x() == 1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            setting_state.increment();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+        if axis_pair.x() == -1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            setting_state.decrement();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+    }
 
     if action_state.just_pressed(input::MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
@@ -85,7 +112,7 @@ pub fn handle_input(
             player_selection
                 .players
                 .iter()
-                .map(|x| game_state::BurroState::from(*x))
+                .map(|x| game_state::BurroState::from(x.clone()))
                 .collect::<Vec<_>>(),
             setting_state.number_of_bots.try_into().unwrap(),
             setting_state.unfair_advantage as f32 + MIN_DIFFICULTY,

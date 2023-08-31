@@ -270,6 +270,7 @@ fn handle_input(
     mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
     mut player_selection: ResMut<PlayerSelection>,
+    time: Res<Time>,
 
     #[cfg(feature = "debug")] mut selected_player: Local<usize>,
     #[cfg(feature = "debug")] keys: Res<Input<KeyCode>>,
@@ -329,6 +330,22 @@ fn handle_input(
             }
         }
 
+        let mut left_pressed = false;
+        let mut right_pressed = false;
+
+        if player_selection.axis_cooldown.tick(time.delta()).finished() && action_state.pressed(input::MenuAction::Move) {
+            let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+
+            if axis_pair.x() == 1.0 {
+                right_pressed = true;
+                player_selection.axis_cooldown = Timer::from_seconds(0.2, TimerMode::Once);
+            }
+            if axis_pair.x() == -1.0 {
+                left_pressed = true;
+                player_selection.axis_cooldown = Timer::from_seconds(0.2, TimerMode::Once);
+            }
+        }
+
         match player_selection.state {
             SelectionState::NotPlaying => {
                 if action_state.just_pressed(input::MenuAction::Select) {
@@ -350,14 +367,15 @@ fn handle_input(
                     play_audio = true;
                     player_selection.state = SelectionState::NotPlaying;
                 }
-                if action_state.just_pressed(input::MenuAction::Right) {
+
+                if action_state.just_pressed(input::MenuAction::Right) || right_pressed {
                     play_audio = true;
 
                     player_selection.burro = player_selection
                         .burro
                         .circular_increment(0, number_of_burros);
                 }
-                if action_state.just_pressed(input::MenuAction::Left) {
+                if action_state.just_pressed(input::MenuAction::Left) || left_pressed {
                     play_audio = true;
 
                     // this is only needed when moving left because the force
@@ -381,13 +399,13 @@ fn handle_input(
                     play_audio = true;
                     player_selection.state = SelectionState::Burro;
                 }
-                if action_state.just_pressed(input::MenuAction::Right) {
+                if action_state.just_pressed(input::MenuAction::Right) || right_pressed {
                     play_audio = true;
                     player_selection.outline_color = player_selection
                         .outline_color
                         .circular_increment(0, COLOR_COUNT - 1);
                 }
-                if action_state.just_pressed(input::MenuAction::Left) {
+                if action_state.just_pressed(input::MenuAction::Left) || left_pressed {
                     play_audio = true;
                     player_selection.outline_color = player_selection
                         .outline_color
@@ -417,7 +435,7 @@ fn handle_input(
         player_selection.players = players
             .iter()
             .filter(|(p, _, _)| p.state == SelectionState::Ready)
-            .map(|(p, m, _)| (*p, *m))
+            .map(|(p, m, _)| (p.clone(), *m))
             .collect::<Vec<_>>();
         commands.load_state(AppState::Settings);
     }

@@ -28,8 +28,11 @@ pub struct GameAudio<'w, 's> {
 impl<'w, 's> GameAudio<'w, 's> {
     pub fn play_bgm(&mut self, handle: &Handle<AudioSource>) {
         self.music_channel.stop();
-        self.music_channel.set_volume(0.5);
-        self.music_channel.play(handle.clone()).looped();
+        #[cfg(not(feature = "no_music"))]
+        {
+            self.music_channel.set_volume(0.5);
+            self.music_channel.play(handle.clone()).looped();
+        }
     }
 
     pub fn stop_bgm(&mut self) {

@@ -16,6 +16,7 @@ pub enum MenuAction {
     Down,
     Left,
     Right,
+    Move,
     Start,
     Select,
     Back,
@@ -32,6 +33,8 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
                 action_state: ActionState::default(),
                 input_map: InputMap::new(KEYBOARD_INPUTS)
                     .insert_multiple(GAMEPAD_INPUTS)
+                    .insert_multiple([(DualAxis::left_stick(), MenuAction::Move),])
+                    .set_gamepad(Gamepad { id: 0 })
                     .build(),
             },
             cleanup_marker,
@@ -41,9 +44,11 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
 
 pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
     let mut input_map = InputMap::new(GAMEPAD_INPUTS);
+    input_map.set_gamepad(Gamepad { id: player });
     if player == 0 || cfg!(feature = "debug") {
         input_map.insert_multiple(KEYBOARD_INPUTS);
     }
+    input_map.insert_multiple([(DualAxis::left_stick(), MenuAction::Move),]);
     InputManagerBundle::<MenuAction> {
         action_state: ActionState::default(),
         input_map: input_map.set_gamepad(Gamepad { id: player }).build(),

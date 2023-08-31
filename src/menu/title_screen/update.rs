@@ -44,9 +44,24 @@ pub fn handle_input(
     game_assets: Res<assets::GameAssets>,
     mut exit: ResMut<Events<AppExit>>,
     mut audio: audio::GameAudio,
+    mut axis_timer: Local<Timer>,
+    time: Res<Time>,
 ) {
     let action_state = action_state.single();
 
+    if action_state.pressed(input::MenuAction::Move) && axis_timer.tick(time.delta()).finished() {
+        let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+        if axis_pair.y() == 1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            title_screen_state.selected_option = title_screen_state.selected_option.previous();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+        if axis_pair.y() == -1.0 {
+            audio.play_sfx(&game_assets.sfx_1);
+            title_screen_state.selected_option = title_screen_state.selected_option.next();
+            *axis_timer = Timer::from_seconds(0.2, TimerMode::Once);
+        }
+    }
     if action_state.just_pressed(input::MenuAction::Up) {
         audio.play_sfx(&game_assets.sfx_1);
         title_screen_state.selected_option = title_screen_state.selected_option.previous();

@@ -1,11 +1,12 @@
 use crate::game_state;
 use bevy::prelude::*;
 
-#[derive(Component, Copy, Clone, Default)]
+#[derive(Component, Clone, Default)]
 pub struct PlayerSelectionState {
     pub burro: usize,
     pub outline_color: usize,
     pub state: SelectionState,
+    pub axis_cooldown: Timer,
 }
 
 impl PlayerSelectionState {

@@ -19,6 +19,7 @@ impl Plugin for PlayerPlugin {
 #[derive(Debug)]
 pub enum Movement {
     Normal(direction::Direction),
+    Analog(Vec2),
 }
 
 impl Default for Movement {
@@ -33,6 +34,9 @@ pub enum PlayerAction {
     Down,
     Left,
     Right,
+
+    Move,
+    Shoot,
 
     ActionUp,
     ActionDown,
@@ -87,6 +91,9 @@ impl PlayerBundle {
             input_map.insert(KeyCode::Left, Left);
             input_map.insert(KeyCode::Right, Right);
         }
+
+        input_map.insert(DualAxis::left_stick(), Move);
+        input_map.insert(DualAxis::right_stick(), Shoot);
 
         input_map.insert(KeyCode::W, Up);
         input_map.insert(KeyCode::Z, Up);
@@ -147,20 +154,33 @@ pub fn handle_input(
             continue;
         }
 
+        let mut pressed_up = false;
+        let mut pressed_down = false;
+        let mut pressed_left = false;
+        let mut pressed_right = false;
+        if action_state.pressed(PlayerAction::Shoot) {
+            let axis_pair = action_state.clamped_axis_pair(PlayerAction::Shoot).unwrap();
+            pressed_up = axis_pair.y() > 0.5;
+            pressed_down = axis_pair.y() < -0.5;
+            pressed_right = axis_pair.x() > 0.5;
+            pressed_left = axis_pair.x() < -0.5;
+        }
+
         let mut fire = None;
-        if action_state.pressed(PlayerAction::ActionUp) {
+        if action_state.pressed(PlayerAction::ActionUp) || pressed_up {
             facing = Some(Quat::from_axis_angle(Vec3::Y, 0.0));
             fire = Some(Vec3::new(1.0, 0.0, 0.0));
-        } else if action_state.pressed(PlayerAction::ActionDown) {
+        } else if action_state.pressed(PlayerAction::ActionDown) || pressed_down {
             facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.5));
             fire = Some(Vec3::new(-1.0, 0.0, 0.0));
-        } else if action_state.pressed(PlayerAction::ActionLeft) {
+        } else if action_state.pressed(PlayerAction::ActionLeft) || pressed_left {
             facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.25));
             fire = Some(Vec3::new(0.0, 0.0, -1.0));
-        } else if action_state.pressed(PlayerAction::ActionRight) {
+        } else if action_state.pressed(PlayerAction::ActionRight) || pressed_right {
             facing = Some(Quat::from_axis_angle(Vec3::Y, TAU * 0.75));
             fire = Some(Vec3::new(0.0, 0.0, 1.0));
         }
+
 
         if burro.can_fire() && fire.is_some() {
             bullet_event_writer.send(bullet::BulletEvent {
@@ -184,7 +204,13 @@ pub fn handle_input(
             }
         }
 
-        movement.movement = Movement::Normal(direction);
+        if action_state.pressed(PlayerAction::Move) {
+            let axis_pair = action_state.clamped_axis_pair(PlayerAction::Move).unwrap();
+            movement.movement = Movement::Analog(axis_pair.xy());
+        } else {
+            movement.movement = Movement::Normal(direction);
+        }
+
         movement.facing = facing;
     }
 }
@@ -216,11 +242,12 @@ pub fn move_player(
 
         if !burro.is_down {
             match movement.movement {
+                Movement::Analog(direction) => {
+                    let acceleration = Vec3::new(direction.y, 0.0, direction.x);
+                    burro.velocity += (acceleration * speed) * time.delta_seconds();
+                },
                 Movement::Normal(direction) => {
                     let acceleration = Vec3::from(direction).zero_signum();
-                    if !controller_output.grounded {
-                        //                        acceleration.z *= 0.5;
-                    }
                     burro.velocity += (acceleration * speed) * time.delta_seconds();
                 }
             }

@@ -10,6 +10,7 @@ camera = []
 inspect = []
 lines = []
 fps = []
+no_music = []
 
 # Enable only a small amount of optimization in debug mode
 [profile.dev]
