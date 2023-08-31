@@ -58,7 +58,9 @@ pub fn handle_input(
     let action_state = action_state.single();
 
     if axis_timer.tick(time.delta()).finished() && action_state.pressed(input::MenuAction::Move) {
-        let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+        let axis_pair = action_state
+            .clamped_axis_pair(input::MenuAction::Move)
+            .unwrap();
         if axis_pair.y() == 1.0 {
             audio.play_sfx(&game_assets.sfx_1);
             setting_state.selected_setting = setting_state.selected_setting.previous();

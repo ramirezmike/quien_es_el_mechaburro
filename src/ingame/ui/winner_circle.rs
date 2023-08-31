@@ -1,5 +1,5 @@
 use crate::input::InputCommandsExt;
-use crate::{assets, cleanup, game_state, input, ui, AppState, IngameState, audio};
+use crate::{assets, audio, cleanup, game_state, input, ui, AppState, IngameState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 

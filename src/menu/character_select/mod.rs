@@ -333,8 +333,12 @@ fn handle_input(
         let mut left_pressed = false;
         let mut right_pressed = false;
 
-        if player_selection.axis_cooldown.tick(time.delta()).finished() && action_state.pressed(input::MenuAction::Move) {
-            let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+        if player_selection.axis_cooldown.tick(time.delta()).finished()
+            && action_state.pressed(input::MenuAction::Move)
+        {
+            let axis_pair = action_state
+                .clamped_axis_pair(input::MenuAction::Move)
+                .unwrap();
 
             if axis_pair.x() == 1.0 {
                 right_pressed = true;

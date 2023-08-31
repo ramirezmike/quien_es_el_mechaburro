@@ -50,7 +50,9 @@ pub fn handle_input(
     let action_state = action_state.single();
 
     if action_state.pressed(input::MenuAction::Move) && axis_timer.tick(time.delta()).finished() {
-        let axis_pair = action_state.clamped_axis_pair(input::MenuAction::Move).unwrap();
+        let axis_pair = action_state
+            .clamped_axis_pair(input::MenuAction::Move)
+            .unwrap();
         if axis_pair.y() == 1.0 {
             audio.play_sfx(&game_assets.sfx_1);
             title_screen_state.selected_option = title_screen_state.selected_option.previous();

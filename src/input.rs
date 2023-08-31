@@ -33,7 +33,7 @@ impl<'w, 's> InputCommandsExt for Commands<'w, 's> {
                 action_state: ActionState::default(),
                 input_map: InputMap::new(KEYBOARD_INPUTS)
                     .insert_multiple(GAMEPAD_INPUTS)
-                    .insert_multiple([(DualAxis::left_stick(), MenuAction::Move),])
+                    .insert_multiple([(DualAxis::left_stick(), MenuAction::Move)])
                     .set_gamepad(Gamepad { id: 0 })
                     .build(),
             },
@@ -48,7 +48,7 @@ pub fn create_menu_input_for_player(player: usize) -> impl Bundle {
     if player == 0 || cfg!(feature = "debug") {
         input_map.insert_multiple(KEYBOARD_INPUTS);
     }
-    input_map.insert_multiple([(DualAxis::left_stick(), MenuAction::Move),]);
+    input_map.insert_multiple([(DualAxis::left_stick(), MenuAction::Move)]);
     InputManagerBundle::<MenuAction> {
         action_state: ActionState::default(),
         input_map: input_map.set_gamepad(Gamepad { id: player }).build(),

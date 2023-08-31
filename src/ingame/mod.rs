@@ -1,7 +1,7 @@
 use crate::ui::follow_text::FollowTextCommandsExt;
 use crate::{
-    asset_loading, assets, bot, burro, cleanup, audio, game_camera, game_state,
-    player, scene_hook, AppState, IngameState,
+    asset_loading, assets, audio, bot, burro, cleanup, game_camera, game_state, player, scene_hook,
+    AppState, IngameState,
 };
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;

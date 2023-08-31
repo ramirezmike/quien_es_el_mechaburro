@@ -181,7 +181,6 @@ pub fn handle_input(
             fire = Some(Vec3::new(0.0, 0.0, 1.0));
         }
 
-
         if burro.can_fire() && fire.is_some() {
             bullet_event_writer.send(bullet::BulletEvent {
                 source: entity,
@@ -245,7 +244,7 @@ pub fn move_player(
                 Movement::Analog(direction) => {
                     let acceleration = Vec3::new(direction.y, 0.0, direction.x);
                     burro.velocity += (acceleration * speed) * time.delta_seconds();
-                },
+                }
                 Movement::Normal(direction) => {
                     let acceleration = Vec3::from(direction).zero_signum();
                     burro.velocity += (acceleration * speed) * time.delta_seconds();
