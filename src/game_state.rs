@@ -1,4 +1,4 @@
-use crate::{assets, config, AppState};
+use crate::{assets, config};
 use bevy::prelude::*;
 use rand::Rng;
 

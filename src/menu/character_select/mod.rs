@@ -267,13 +267,13 @@ fn handle_input(
         &ActionState<input::MenuAction>,
     )>,
     game_assets: Res<assets::GameAssets>,
-    mut game_state: ResMut<game_state::GameState>,
     mut audio: audio::GameAudio,
     mut player_selection: ResMut<PlayerSelection>,
     time: Res<Time>,
 
     #[cfg(feature = "debug")] mut selected_player: Local<usize>,
     #[cfg(feature = "debug")] keys: Res<Input<KeyCode>>,
+    #[cfg(feature = "debug")] mut game_state: ResMut<game_state::GameState>,
 ) {
     #[cfg(feature = "debug")]
     {

@@ -1,7 +1,7 @@
 use crate::input::InputCommandsExt;
 use crate::loading::command_ext::*;
 use crate::util::num_ext::*;
-use crate::{assets, cleanup, config, game_state, input, ui, AppState, IngameState};
+use crate::{assets, cleanup, game_state, input, ui, AppState, IngameState};
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 use std::{collections::HashMap, fmt, time::Duration};

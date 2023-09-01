@@ -11,15 +11,18 @@ impl Plugin for MechaPickerPlugin {
         #[cfg(feature = "debug")]
         app.add_systems(Update, skip_picking.run_if(in_state(AppState::MechaPicker)));
 
-        app.insert_resource(TextDisplayTimers::default())
-            .add_systems(OnEnter(AppState::MechaPicker), setup)
-            .add_event::<PickMechaEvent>()
-            .add_systems(OnExit(AppState::MechaPicker), cleanup::<CleanupMarker>)
-            .add_systems(
-                Update,
-                (pick_mecha, animate_mecha_selection, handle_mecha_pick_event)
-                    .run_if(in_state(AppState::MechaPicker)),
-            );
+        #[cfg(not(feature = "debug"))]
+        {
+            app.insert_resource(TextDisplayTimers::default())
+                .add_systems(OnEnter(AppState::MechaPicker), setup)
+                .add_event::<PickMechaEvent>()
+                .add_systems(OnExit(AppState::MechaPicker), cleanup::<CleanupMarker>)
+                .add_systems(
+                    Update,
+                    (pick_mecha, animate_mecha_selection, handle_mecha_pick_event)
+                        .run_if(in_state(AppState::MechaPicker)),
+                );
+        }
     }
 }
 

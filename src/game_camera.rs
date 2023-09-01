@@ -1,5 +1,4 @@
 use crate::{burro, AppState, IngameState};
-use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::window::Window;
 use bevy_toon_shader::ToonShaderMainCamera;
@@ -74,8 +73,8 @@ fn update_camera(
     //  camera_settings: ResMut<CameraSettings>,
     //  time: Res<Time>,
     windows: Query<&Window>,
-    mut ev_motion: EventReader<MouseMotion>,
-    mut ev_scroll: EventReader<MouseWheel>,
+    mut ev_motion: EventReader<bevy::input::mouse::MouseMotion>,
+    mut ev_scroll: EventReader<bevy::input::mouse::MouseWheel>,
     input_mouse: Res<Input<MouseButton>>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {

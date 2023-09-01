@@ -1,11 +1,10 @@
 #![allow(clippy::type_complexity, clippy::too_many_arguments)]
 #![windows_subsystem = "windows"]
 
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{app::AppExit, prelude::*};
-use bevy_inspector_egui::{bevy_egui, quick::WorldInspectorPlugin};
+use bevy_inspector_egui::bevy_egui;
 use bevy_rapier3d::prelude::*;
-use bevy_toon_shader::{ToonShaderMaterial, ToonShaderPlugin};
+use bevy_toon_shader::ToonShaderPlugin;
 
 mod asset_loading;
 mod assets;
@@ -41,17 +40,23 @@ fn main() {
         .add_state::<IngameState>();
 
     #[cfg(feature = "inspect")]
-    app.add_plugins(WorldInspectorPlugin::new());
+    {
+        use bevy_inspector_egui::quick::WorldInspectorPlugin;
+        app.add_plugins(WorldInspectorPlugin::new());
+    }
 
     #[cfg(feature = "lines")]
     app.add_plugins(RapierDebugRenderPlugin::default());
 
     #[cfg(feature = "fps")]
-    app.add_plugins((
-        //      LogDiagnosticsPlugin::default(),
-        FrameTimeDiagnosticsPlugin::default(),
-        debug::DebugPlugin,
-    ));
+    {
+        use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+        app.add_plugins((
+            //      LogDiagnosticsPlugin::default(),
+            FrameTimeDiagnosticsPlugin::default(),
+            debug::DebugPlugin,
+        ));
+    }
 
     app.insert_resource(bevy_egui::EguiSettings {
         scale_factor: 1.8,

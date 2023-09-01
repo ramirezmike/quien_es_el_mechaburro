@@ -1,6 +1,6 @@
 use crate::{assets, floor, game_state};
 use bevy::{
-    ecs::{system::EntityCommands, world::EntityRef},
+    ecs::system::EntityCommands,
     gltf::Gltf,
     prelude::*,
     render::primitives::Aabb,

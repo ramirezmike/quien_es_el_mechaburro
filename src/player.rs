@@ -2,11 +2,7 @@ use crate::{assets, bot, bullet, burro, direction, ZeroSignum};
 use bevy::ecs::query::Has;
 use bevy::{prelude::*, reflect::TypePath};
 use bevy_rapier3d::prelude::*;
-use rand::Rng;
-use std::collections::HashMap;
 use std::f32::consts::TAU;
-//use leafwing_input_manager::axislike::DualAxisData;
-//use leafwing_input_manager::plugin::InputManagerSystem;
 use leafwing_input_manager::prelude::*;
 
 pub struct PlayerPlugin;
@@ -227,7 +223,6 @@ pub fn move_player(
     )>,
     mut animations: Query<(&mut AnimationPlayer, &assets::AnimationLink)>,
     game_assets: Res<assets::GameAssets>,
-    //    mut audio: audio::GameAudio,
 ) {
     for (entity, mut controller, controller_output, mut transform, mut burro, movement, is_bot) in
         burros.iter_mut()
