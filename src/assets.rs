@@ -41,6 +41,7 @@ pub struct GameAssets {
     pub fanfare_sfx: Handle<AudioSource>,
 
     pub level: Handle<Gltf>,
+    pub skybox: Handle<Gltf>,
     pub stage: Handle<Gltf>,
     pub candy: GameMesh,
     pub laser: GameMesh,
@@ -48,6 +49,8 @@ pub struct GameAssets {
     pub level_background: asset_loading::GameTexture,
     pub title_screen_background: asset_loading::GameTexture,
     pub title_screen_logo: asset_loading::GameTexture,
+
+    pub background_bottle: asset_loading::GameTexture,
 
     pub burro: Handle<Gltf>,
     pub burro_run: Handle<AnimationClip>,

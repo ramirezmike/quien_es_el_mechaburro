@@ -1,7 +1,7 @@
 use crate::ui::follow_text::FollowTextCommandsExt;
 use crate::{
     asset_loading, assets, bot, burro, cleanup, game_camera, game_state, player, scene_hook,
-    AppState, IngameState,
+    AppState, IngameState, shaders,
 };
 use bevy::ecs::system::{Command, SystemState};
 use bevy::gltf::Gltf;
@@ -73,6 +73,7 @@ impl Command for IngameLoader {
         );
 
         assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
+        assets_handler.add_material(&mut game_assets.background_bottle, "textures/bottle.png", false);
 
         let mut mechaburro_texture = asset_loading::GameTexture::default();
         assets_handler.add_material(&mut mechaburro_texture, &"textures/mechaburro.png", false);
@@ -99,6 +100,8 @@ impl Command for IngameLoader {
             "models/laser.gltf#Mesh0/Primitive0",
         );
 
+        assets_handler.add_glb(&mut game_assets.skybox, "models/skybox.glb");
+
         if game_state.is_game_over() {
             assets_handler.add_glb(&mut game_assets.stage, "models/stage.glb");
         } else {
@@ -119,6 +122,8 @@ fn setup(
     mut game_state: ResMut<game_state::GameState>,
     mut next_state: ResMut<NextState<AppState>>,
     mut next_ingame_state: ResMut<NextState<IngameState>>,
+    mut shader_materials: shaders::ShaderMaterials,
+    mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
     #[cfg(feature = "debug")]
     {
@@ -131,8 +136,15 @@ fn setup(
                     score: 0,
                     is_bot: false,
                     hearts: vec![],
+                }, game_state::BurroState {
+                    player: 1,
+                    selected_burro: 1,
+                    outline_color: Color::WHITE,
+                    score: 0,
+                    is_bot: false,
+                    hearts: vec![],
                 }],
-                1,
+                0,
                 1.0,
                 &game_assets.burro_assets,
             );
@@ -161,6 +173,46 @@ fn setup(
     let winner_hook_spawn_points = Arc::new(Mutex::new(winner_spawn_points));
     let on_complete_winner_spawn_points = Arc::clone(&winner_hook_spawn_points);
     let burro_mesh_handle = game_assets.burro.clone();
+
+    if let Some(gltf) = assets_gltf.get(&game_assets.skybox) {
+        let material = shader_materials
+                .scroll_images
+                .add(shaders::TextureMaterial {
+                    texture: game_assets.background_bottle.image.clone(),
+                    color: Color::rgba(1., 1., 1., 0.5),
+                    x_scroll_speed: 0.001,
+                    y_scroll_speed: 0.002,
+                    scale: 0.5,
+                });
+        let alpha_material = standard_materials.add(StandardMaterial {
+            base_color: Color::rgba(1., 1., 1., 0.), 
+            unlit: true,
+            alpha_mode: AlphaMode::Blend,
+            ..default()
+        });
+        commands.spawn(
+            scene_hook::HookedSceneBundle {
+                scene: SceneBundle {
+                    scene: gltf.scenes[0].clone(),
+                    ..default()
+                },
+                hook: scene_hook::SceneHook::new(move |cmds, hook_data| {
+                    if let Some(name) = hook_data.name {
+                        let name = name.as_str();
+
+                        if name.contains("Cube") {
+                            //cmds.remove::<Handle<StandardMaterial>>();
+                            cmds.insert((
+                                material.clone(),
+                                alpha_material.clone(), 
+                                bevy::pbr::NotShadowCaster,
+                                bevy::pbr::NotShadowReceiver
+                            ));
+                        }
+                    }
+                })
+            });
+    }
 
     let level_to_load = if is_winner_display {
         &game_assets.stage
