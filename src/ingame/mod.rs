@@ -179,10 +179,10 @@ fn setup(
                 .scroll_images
                 .add(shaders::TextureMaterial {
                     texture: game_assets.background_bottle.image.clone(),
-                    color: Color::rgba(1., 1., 1., 0.5),
-                    x_scroll_speed: 0.001,
-                    y_scroll_speed: 0.002,
-                    scale: 0.5,
+                    color: Color::rgba(1., 1., 1., 1.0),
+                    x_scroll_speed: 1.0,
+                    y_scroll_speed: 1.0,
+                    scale: 1.0,
                 });
         let alpha_material = standard_materials.add(StandardMaterial {
             base_color: Color::rgba(1., 1., 1., 0.), 

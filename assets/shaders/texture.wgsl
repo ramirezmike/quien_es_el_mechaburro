@@ -55,18 +55,44 @@ fn fragment(
     @builtin(front_facing) is_front: bool,
     mesh: MeshVertexOutput
 ) -> @location(0) vec4<f32> {
-    let x_speed = x_scroll_speed.value;
-    let y_speed = y_scroll_speed.value * 10.;
-    let scale_value = scale.value * 0.1;
+    var base_speed = 0.3;
+    var x_speed = x_scroll_speed.value * 0. * base_speed;
+    var y_speed = y_scroll_speed.value * 0.5 * base_speed;
+    var scale_value = scale.value * 0.1;
 
+    // base UV going just downward
     let uv = vec2((globals.time * x_speed + mesh.uv.x / scale_value) % 1.0, (globals.time * y_speed + mesh.uv.y / scale_value) % 1.0);
+
+    // scaled up, going horizontal 
+    scale_value = scale.value * 0.01;
+    scale_value = scale_value * 3.;
+    x_speed = 1. * base_speed;
+    let uv_2 = vec2(abs((globals.time * x_speed - mesh.uv.x / scale_value) % 1.0), (globals.time * y_speed + mesh.uv.y / scale_value) % 1.0);
+ 
+    // scaled up, going reverse vertical, skip every even line? 
+    scale_value = scale_value * 3.;
+    let uv_3 = vec2((globals.time * x_speed + mesh.uv.x / scale_value) % 1.0, (globals.time * y_speed + mesh.uv.y / scale_value) % 1.0);
+
+    // idk, try
+    x_speed = 1.2 * base_speed;
+    let uv_4 = vec2(abs((globals.time * x_speed - mesh.uv.x / scale_value) % 1.0), (globals.time * y_speed + mesh.uv.y / scale_value) % 1.0);
+
     var texture_sample = textureSample(texture, texture_sampler, uv);
+    texture_sample = texture_sample + textureSample(texture, texture_sampler, uv_2);
+
+    var potential_3 = textureSample(texture, texture_sampler, uv_3);
+    texture_sample = texture_sample - ((texture_sample * potential_3) * 9.);
+
+    var potential_4 = texture_sample + textureSample(texture, texture_sampler, uv_4);
+    var stripe_condition = ((uv_4.y * 100.) % 2.) < 1.;
+    if stripe_condition {
+        texture_sample = potential_4;
+    }
 
     var pbr_input: fns::PbrInput = fns::pbr_input_new();
 
     pbr_input.material.base_color = texture_sample;
     pbr_input.material.base_color.a = 0.2;
-//    pbr_input.material.alpha_cutoff = 0.5;
     pbr_input.material.flags = pbr_types::STANDARD_MATERIAL_FLAGS_ALPHA_MODE_BLEND;
 
     return fns::pbr(pbr_input);
