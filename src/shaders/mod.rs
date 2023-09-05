@@ -10,14 +10,14 @@ pub struct ShaderPlugin;
 impl Plugin for ShaderPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<ScrollingImageMaterial>::default())
-           .add_plugins(MaterialPlugin::<TextureMaterial>::default());
+           .add_plugins(MaterialPlugin::<BackgroundMaterial>::default());
     }
 }
 
 #[derive(SystemParam)]
 pub struct ShaderMaterials<'w, 's> {
     pub scrolling_images: ResMut<'w, Assets<ScrollingImageMaterial>>,
-    pub scroll_images: ResMut<'w, Assets<TextureMaterial>>,
+    pub ingame_backgrounds: ResMut<'w, Assets<BackgroundMaterial>>,
     #[system_param(ignore)]
     phantom: PhantomData<&'s ()>,
 }
@@ -38,7 +38,7 @@ impl Material for ScrollingImageMaterial {
 
 #[derive(AsBindGroup, Debug, Clone, TypeUuid, TypePath)]
 #[uuid = "817f64fe-6844-4822-8926-e0ed374294c8"]
-pub struct TextureMaterial {
+pub struct BackgroundMaterial {
     #[texture(0)]
     #[sampler(1)]
     pub texture: Handle<Image>,
@@ -52,9 +52,9 @@ pub struct TextureMaterial {
     pub scale: f32,
 }
 
-impl Material for TextureMaterial {
+impl Material for BackgroundMaterial {
     fn fragment_shader() -> ShaderRef {
-        "shaders/texture.wgsl".into()
+        "shaders/background.wgsl".into()
     }
 
     fn alpha_mode(&self) -> AlphaMode {

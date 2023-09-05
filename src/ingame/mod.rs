@@ -73,7 +73,6 @@ impl Command for IngameLoader {
         );
 
         assets_handler.add_material(&mut game_assets.heart_texture, "textures/heart.png", true);
-        assets_handler.add_material(&mut game_assets.background_bottle, "textures/bottle.png", false);
 
         let mut mechaburro_texture = asset_loading::GameTexture::default();
         assets_handler.add_material(&mut mechaburro_texture, &"textures/mechaburro.png", false);
@@ -103,8 +102,10 @@ impl Command for IngameLoader {
         assets_handler.add_glb(&mut game_assets.skybox, "models/skybox.glb");
 
         if game_state.is_game_over() {
+            assets_handler.add_material(&mut game_assets.background_image, "textures/backgrounds/trophy.png", false);
             assets_handler.add_glb(&mut game_assets.stage, "models/stage.glb");
         } else {
+            assets_handler.add_material(&mut game_assets.background_image, &format!("textures/backgrounds/{:02}.png", game_state.current_level), false);
             assets_handler.add_glb(
                 &mut game_assets.level,
                 &format!("models/level_{:02}.glb", game_state.current_level),
@@ -176,9 +177,9 @@ fn setup(
 
     if let Some(gltf) = assets_gltf.get(&game_assets.skybox) {
         let material = shader_materials
-                .scroll_images
-                .add(shaders::TextureMaterial {
-                    texture: game_assets.background_bottle.image.clone(),
+                .ingame_backgrounds
+                .add(shaders::BackgroundMaterial {
+                    texture: game_assets.background_image.image.clone(),
                     color: Color::rgba(1., 1., 1., 1.0),
                     x_scroll_speed: 1.0,
                     y_scroll_speed: 1.0,
@@ -190,7 +191,7 @@ fn setup(
             alpha_mode: AlphaMode::Blend,
             ..default()
         });
-        commands.spawn(
+        commands.spawn((
             scene_hook::HookedSceneBundle {
                 scene: SceneBundle {
                     scene: gltf.scenes[0].clone(),
@@ -201,7 +202,6 @@ fn setup(
                         let name = name.as_str();
 
                         if name.contains("Cube") {
-                            //cmds.remove::<Handle<StandardMaterial>>();
                             cmds.insert((
                                 material.clone(),
                                 alpha_material.clone(), 
@@ -211,7 +211,9 @@ fn setup(
                         }
                     }
                 })
-            });
+            },
+            CleanupMarker,
+        ));
     }
 
     let level_to_load = if is_winner_display {

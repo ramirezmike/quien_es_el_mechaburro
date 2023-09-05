@@ -81,7 +81,7 @@ fn fragment(
     texture_sample = texture_sample + textureSample(texture, texture_sampler, uv_2);
 
     var potential_3 = textureSample(texture, texture_sampler, uv_3);
-    texture_sample = texture_sample - ((texture_sample * potential_3) * 9.);
+    texture_sample = texture_sample - (texture_sample * potential_3);
 
     var potential_4 = texture_sample + textureSample(texture, texture_sampler, uv_4);
     var stripe_condition = ((uv_4.y * 100.) % 2.) < 1.;

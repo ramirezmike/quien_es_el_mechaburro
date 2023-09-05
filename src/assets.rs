@@ -50,7 +50,7 @@ pub struct GameAssets {
     pub title_screen_background: asset_loading::GameTexture,
     pub title_screen_logo: asset_loading::GameTexture,
 
-    pub background_bottle: asset_loading::GameTexture,
+    pub background_image: asset_loading::GameTexture,
 
     pub burro: Handle<Gltf>,
     pub burro_run: Handle<AnimationClip>,
